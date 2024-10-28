@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 
 public class GenerateBoard : MonoBehaviour
@@ -24,6 +25,23 @@ public class GenerateBoard : MonoBehaviour
     {
         GameObject tileObject = new GameObject($"Tile_{x}_{y}");
         tileObject.transform.parent = transform;
+
+        Mesh mesh = new Mesh();
+        tileObject.AddComponent<MeshFilter>().mesh = mesh;
+
+        //Array of 4 vertices to create a square
+        Vector3[] vertices = new Vector3[4];
+        vertices[0] = new Vector3(x * tileSize, 0, y * tileSize);
+        vertices[1] = new Vector3(x * tileSize, 0, (y + 1) * tileSize);
+        vertices[2] = new Vector3((x + 1) * tileSize, 0, y * tileSize);
+        vertices[3] = new Vector3((x + 1) * tileSize, 0, (y + 1) * tileSize);
+
+        //Array of vertices to form 2 triangles which are 1 square together
+        int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
+
+        //assigning the arrays to the actual mesh component
+        mesh.vertices = vertices;
+        mesh.triangles = tris;
 
         // Set the position of the tile based on its grid coordinates
         tileObject.transform.localPosition = new Vector3(x * tileSize + (tileSize / 2), 0, y * tileSize + (tileSize / 2));
@@ -68,7 +86,7 @@ public class GenerateBoard : MonoBehaviour
 
         piece.type = type;
         piece.team = team;
-        piece.gameObject.layer = LayerMask.NameToLayer("ChessPiece");
+        piece.gameObject.layer = LayerMask.NameToLayer("Piece");
 
 
         return piece;
