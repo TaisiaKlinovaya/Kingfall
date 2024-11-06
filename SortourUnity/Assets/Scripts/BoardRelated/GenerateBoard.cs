@@ -8,15 +8,15 @@ public class GenerateBoard : MonoBehaviour
 {
     [Header("Art stuff")]
     [SerializeField] private Material tileMaterial;
-    [SerializeField] private float tileSize = 1; //1 Meter
+    [SerializeField] private float tileSize = 1;
     [SerializeField] private float yOffset = 0f;
-    //[SerializeField] private Vector3 boardCenter = Vector3.zero;
+
     private const int TILE_COUNT_X = 8;
     private const int TILE_COUNT_Y = 8;
     public GameObject[,] tiles;
-    private Camera currentCamera;//
-    private Vector2Int currentHover;//
+    private Camera currentCamera;
     private Vector3 bounds;
+
     [SerializeField] private GameObject[] BlackTeamPrefabs;
     [SerializeField] private GameObject[] WhiteTeamPrefabs;
     private PieceType[,] allChessPieces;
@@ -45,7 +45,7 @@ public class GenerateBoard : MonoBehaviour
     }
     private GameObject GenerateSingleTile(float tileSize, int x, int y)
     {
-        GameObject tileObject = new GameObject($"Tile{x}{y}");    //GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
+        GameObject tileObject = new GameObject($"Tile{x}{y}");
         tileObject.transform.parent = transform;
 
         Mesh mesh = new Mesh();
@@ -59,7 +59,6 @@ public class GenerateBoard : MonoBehaviour
         vertices[2] = new Vector3(tileSize, yOffset, 0);
         vertices[3] = new Vector3(tileSize, yOffset, tileSize);
 
-        //Array of vertices to form 2 triangles which are 1 square together
         int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
 
         //assigning the arrays to the actual mesh component
@@ -73,7 +72,7 @@ public class GenerateBoard : MonoBehaviour
 
         // Create a BoxCollider for the tile
         BoxCollider collider = tileObject.AddComponent<BoxCollider>();
-        collider.size = new Vector3(tileSize, 0.1f, tileSize); // Make it thin in the y-axis
+        collider.size = new Vector3(tileSize, 0.1f, tileSize); // thin in the y-axis
         collider.center = new Vector3(tileSize / 2, 0, tileSize / 2); // Center the collider
 
         tileObject.layer = LayerMask.NameToLayer("Tile");
@@ -83,7 +82,6 @@ public class GenerateBoard : MonoBehaviour
 
     private void GenerateAllTiles(float tileSize, int tileCountX, int tileCountY)
     {
-        //yOffset += transform.position.y;
         bounds = new Vector3((tileCountX / 2) * tileSize, 0, (tileCountX / 2) * tileSize);
 
         tiles = new GameObject[tileCountX, tileCountY];
@@ -110,8 +108,8 @@ public class GenerateBoard : MonoBehaviour
         }
         return -Vector2Int.one; //Invalid
     }
-    // Chess piece spawn methods
 
+    // Chess piece spawn methods
     private PieceType SpawnSinglePiece(ChessPieceType type, int team)
     {
         //checks what team the piece is and chooses black or white prefab accordingly
@@ -121,7 +119,6 @@ public class GenerateBoard : MonoBehaviour
 
         if (piece == null)
         {
-            //Debug.LogError($"Failed to instantiate piece for type: {type} and team: {team}");
             return null; 
         }
 

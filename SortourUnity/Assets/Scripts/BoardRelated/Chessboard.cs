@@ -8,11 +8,6 @@ public class Chessboard : MonoBehaviour
     private GameObject[,] tiles;
     private Vector2Int currentHover;
 
-    public Chessboard(GameObject[,] tiles)
-    {
-        this.tiles = tiles;
-        currentHover = -Vector2Int.one;
-    }
     public void Initialize(GameObject[,] tiles)
     {
         this.tiles = tiles;
@@ -26,6 +21,7 @@ public class Chessboard : MonoBehaviour
         {
             //Get the indexes of tile we hit
             Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
+
             //If we are hovering any tile after not hovering any tile
             if (currentHover == -Vector2Int.one)
             {
