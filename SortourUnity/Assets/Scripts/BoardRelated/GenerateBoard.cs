@@ -9,24 +9,30 @@ public class GenerateBoard : MonoBehaviour
     [Header("Art stuff")]
     [SerializeField] private Material tileMaterial;
     [SerializeField] private float tileSize = 1; //1 Meter
-    [SerializeField] private float yOffset = 0.7f;
-    [SerializeField] private Vector3 boardCenter = Vector3.zero;
+    [SerializeField] private float yOffset = 0f;
+    //[SerializeField] private Vector3 boardCenter = Vector3.zero;
     private const int TILE_COUNT_X = 8;
     private const int TILE_COUNT_Y = 8;
-    private GameObject[,] tiles;
-    private Camera currentCamera;
-    private Vector2Int currentHover;
+    public GameObject[,] tiles;
+    private Camera currentCamera;//
+    private Vector2Int currentHover;//
     private Vector3 bounds;
     [SerializeField] private GameObject[] BlackTeamPrefabs;
     [SerializeField] private GameObject[] WhiteTeamPrefabs;
     private PieceType[,] allChessPieces;
+    private Chessboard chessboard; // Chessboard-Klasse für das Hovern
+
 
     private void Awake()
     {
         GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
         SpawnAllChessPieces();
         positionPieces();
+        
+        chessboard = gameObject.AddComponent<Chessboard>();
+        chessboard.Initialize(tiles);
     }
+
     private void Update()
     {
         if (!currentCamera)
@@ -34,38 +40,12 @@ public class GenerateBoard : MonoBehaviour
             currentCamera = Camera.main;
             return;
         }
-        RaycastHit info;
-        Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover")))
-        {
-            //Get the indexes of tile we hit
-            Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
-            //If we are hovering any tile after not hovering any tile
-            if (currentHover == -Vector2Int.one)
-            {
-                currentHover = hitPosition;
-                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-            }
-            //if we were already hovernig a tile, change prewius
-            if (currentHover != hitPosition)
-            {
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                currentHover = hitPosition;
-                tiles[currentHover.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-            }
-        }
-        else
-        {
-            if (currentHover != -Vector2Int.one)
-            {
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                currentHover = -Vector2Int.one;
-            }
-        }
+        // Methode für das Hovern aufrufen
+        chessboard.HoverTiles(currentCamera);
     }
     private GameObject GenerateSingleTile(float tileSize, int x, int y)
     {
-        GameObject tileObject = new GameObject($"Tile_{x}_{y}");    //GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
+        GameObject tileObject = new GameObject($"Tile{x}{y}");    //GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
         tileObject.transform.parent = transform;
 
         Mesh mesh = new Mesh();
@@ -74,10 +54,10 @@ public class GenerateBoard : MonoBehaviour
 
         //Array of 4 vertices to create a square
         Vector3[] vertices = new Vector3[4];
-        vertices[0] = new Vector3(x * tileSize, yOffset, y * tileSize) - bounds;
-        vertices[1] = new Vector3(x * tileSize, yOffset, (y + 1) * tileSize) - bounds;
-        vertices[2] = new Vector3((x + 1) * tileSize, yOffset, y * tileSize) - bounds;
-        vertices[3] = new Vector3((x + 1) * tileSize, yOffset, (y + 1) * tileSize) - bounds;
+        vertices[0] = new Vector3(0, yOffset, 0);
+        vertices[1] = new Vector3(0, yOffset, tileSize);
+        vertices[2] = new Vector3(tileSize, yOffset, 0);
+        vertices[3] = new Vector3(tileSize, yOffset, tileSize);
 
         //Array of vertices to form 2 triangles which are 1 square together
         int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
@@ -85,16 +65,16 @@ public class GenerateBoard : MonoBehaviour
         //assigning the arrays to the actual mesh component
         mesh.vertices = vertices;
         mesh.triangles = tris;
-
         mesh.RecalculateNormals();
 
         // Set the position of the tile based on its grid coordinates
-        //tileObject.transform.localPosition = new Vector3(x * tileSize + (tileSize / 2), 0, y * tileSize + (tileSize / 2));
+        tileObject.transform.localPosition = new Vector3(x * tileSize, 0, y * tileSize);
         tileObject.layer = LayerMask.NameToLayer("Tile");
+
         // Create a BoxCollider for the tile
         BoxCollider collider = tileObject.AddComponent<BoxCollider>();
-        //collider.size = new Vector3(tileSize, 0.1f, tileSize); // Make it thin in the y-axis
-        //collider.center = new Vector3(0, 0, 0); // Center the collider
+        collider.size = new Vector3(tileSize, 0.1f, tileSize); // Make it thin in the y-axis
+        collider.center = new Vector3(tileSize / 2, 0, tileSize / 2); // Center the collider
 
         tileObject.layer = LayerMask.NameToLayer("Tile");
 
@@ -103,8 +83,8 @@ public class GenerateBoard : MonoBehaviour
 
     private void GenerateAllTiles(float tileSize, int tileCountX, int tileCountY)
     {
-        yOffset += transform.position.y;
-        bounds = new Vector3((tileCountX / 2) * tileSize, 0, (tileCountX / 2) * tileSize) + boardCenter;
+        //yOffset += transform.position.y;
+        bounds = new Vector3((tileCountX / 2) * tileSize, 0, (tileCountX / 2) * tileSize);
 
         tiles = new GameObject[tileCountX, tileCountY];
 
@@ -116,7 +96,7 @@ public class GenerateBoard : MonoBehaviour
             }
         }
     }
-    private Vector2Int LookupTileIndex(GameObject hitInfo)
+    public Vector2Int LookupTileIndex(GameObject hitInfo)
     {
         for (int x = 0; x < TILE_COUNT_X; x++)
         {
