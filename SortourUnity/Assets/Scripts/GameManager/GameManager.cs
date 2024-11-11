@@ -1,0 +1,207 @@
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System;
+
+public class GameManager : MonoBehaviour
+{
+    //
+    //  ####    Start Scene UI_Elemente  ###
+    public GameObject startScene;           // Referenz zum Startmenü UI
+    public Button startButton;              // Button, um das Spiel zu starten
+
+    //
+    //  ####    Game Scene UI_Elemente  ####
+    public GameObject gameScene;
+    public Text roundTimerText;             // UI-Textfeld für den Runden-Timer
+    public Button finishedButton;           // Button um vor der Zeit seinen Spielzug zu beenden 
+    private float roundTime = 120f;         // 2 Minuten in Sekunden
+    private bool isGameStarted = false;     // Bool, um zu überprüfen, ob das Spiel gestartet ist
+    private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde
+    //  ####    Transformation  ####
+    public Button transformButton;          // Button für die Figuren-Transformation
+
+    //
+    //  ####    Break Scene UI_Elemente     ####
+    public GameObject breakScene;
+    public Button resumeButton;
+    public Button quitButton;
+    private bool isPaused = false;          // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
+
+
+
+    //
+    //  ####    Spieler 1 & 2 hinzufügen    ####
+    public Camera player1Camera;
+    public Camera player2Camera;
+    private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
+
+    void Start()
+    {
+        // Startmenü anzeigen & Game/Break Scene zu beginn deaktivieren
+        startScene.SetActive(true);
+        gameScene.SetActive(false);
+        breakScene.SetActive(false);
+        Time.timeScale = 0f;
+
+        // Spieler Camera auf true oder false setzen
+        player1Camera.enabled = true;
+        player2Camera.enabled = false;
+
+        // Transformations-Button und Timer ausblenden, bis das Spiel gestartet ist
+        roundTimerText.gameObject.SetActive(false);
+        transformButton.gameObject.SetActive(false);
+
+        // Listener für den Start-Button, Resume-Button, Quit-Button und Finished-Button
+        startButton.onClick.AddListener(StartGame);
+        resumeButton.onClick.AddListener(ResumeGame);
+        quitButton.onClick.AddListener(QuitGame);
+        finishedButton.onClick.AddListener(MoveFinished);  // << Hinzugefügt
+    }
+
+    void Update()
+    {
+        // Wenn das Spiel gestartet ist, den Timer laufen lassen
+        if (isGameStarted && roundTime > 0)
+        {
+            roundTime -= Time.deltaTime; // Timer herunterzählen
+            UpdateRoundTimerText();      // Timer-Anzeige aktualisieren
+
+            // Wenn die Zeit abgelaufen ist, kann man zusätzliche Logik hinzufügen
+            if (roundTime <= 0)
+            {
+                roundTime = 0;
+                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt.
+                Debug.Log("Rundenzeit abgelaufen.");
+            }
+        }
+
+        // Prüfen, ob die ESC gedrückt wurde
+        if (Input.GetKeyUp(KeyCode.Escape))
+        {
+            if (isPaused)
+            {
+                ResumeGame();
+            }
+            else
+            {
+                PauseGame();
+            }
+        }
+    }
+
+    public void StartGame()
+    {
+        Debug.Log("StartGame() aufgerufen");  // Debug: Überprüfen, ob die Methode aufgerufen wird
+
+        // Startmenü deaktivieren und das Spiel fortsetzen
+        startScene.SetActive(false);
+        gameScene.SetActive(true);             // << Aktiviert die Game Scene
+        Time.timeScale = 1f;
+        isGameStarted = true;
+
+        // Runden-Timer und Transformations-Button anzeigen
+        roundTimerText.gameObject.SetActive(true);
+        transformButton.gameObject.SetActive(true);
+
+        Debug.Log("Runden-Timer und Transformations-Button aktiviert");  // Debug: Überprüfen, ob die UI-Elemente aktiviert werden
+
+        // Den Listener für den Transformations-Button hinzufügen
+        transformButton.onClick.AddListener(TransformPiece);
+    }
+
+    public void UpdateRoundTimerText()
+    {
+        // Konvertiere die Zeit in Minuten und Sekunden und aktualisiere die Anzeige
+        int minutes = Mathf.FloorToInt(roundTime / 60);
+        int seconds = Mathf.FloorToInt(roundTime % 60);
+        roundTimerText.text = $"{minutes:00}:{seconds:00}";
+    }
+
+    //
+    //  ###     Bearbeitung - Transformation bestimmter Schachfiguren (später)     ###
+    public void TransformPiece()
+    {
+        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug: Überprüfen, ob die Transformationslogik funktioniert
+        // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Transformationslogik hinzufügen.
+    }
+
+    //
+    //  ###     Bearbeitung - Spielzug früher beenden (später)     ###
+    public void MoveFinished()
+    {
+        Debug.Log("Der Spieler hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
+        // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Logik hinzufügen.
+
+        //  Spieler wird gewechselt
+        SwitchPlayer();
+
+        roundTime = 120f;
+
+        Debug.Log($"Spieler {currentPlayer} ist jetzt am Zug");
+    }
+
+    //
+    //  ###     Break Menü     ###
+    public void PauseGame()
+    {
+        breakScene.SetActive(true);
+        Time.timeScale = 0f;        // Zeit anhalten
+        isPaused = true;
+        Debug.Log("Spiel pausiert.");
+    }
+
+    public void ResumeGame()
+    {
+        breakScene.SetActive(false);
+        Time.timeScale = 1f;        // Zeit fortsetzen
+        isPaused = false;
+        Debug.Log("Spiel fortgesetzt.");
+    }
+
+    public void QuitGame()
+    {
+        Debug.Log("Zurück zum Startbildschirm");
+
+        // Deaktiviere die Game Scene und das Pausenmenü
+        gameScene.SetActive(false);
+        breakScene.SetActive(false);
+
+        // Aktiviere das Startmenü
+        startScene.SetActive(true);
+
+        // Spielzustände zurücksetzen
+        isGameStarted = false;
+        isPaused = false;
+        roundTime = 120f; // Timer zurücksetzen
+        Time.timeScale = 0f; // Zeit anhalten
+
+        // Blende das Timer-Textfeld und den Transformations-Button aus
+        roundTimerText.gameObject.SetActive(false);
+        transformButton.gameObject.SetActive(false);
+    }
+
+    // 
+    //  ####    Funktion zum wechseln der Spieler   ####
+    // Update: Spiellogik noch hinzufügen, welche Spieler gerade am zug ist
+    public void SwitchPlayer()
+    {
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
+        UpdateCamera();
+    }
+
+    private void UpdateCamera()
+    {
+        if (currentPlayer == 1)
+        {
+            player1Camera.enabled = true;
+            player2Camera.enabled = false;
+        }
+        else
+        {
+            player1Camera.enabled = false;
+            player2Camera.enabled = true;
+        }
+
+    }
+}
