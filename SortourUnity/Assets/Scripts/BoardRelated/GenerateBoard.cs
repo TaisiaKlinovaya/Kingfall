@@ -72,7 +72,7 @@ public class GenerateBoard : MonoBehaviour
 
         // Create a BoxCollider for the tile
         BoxCollider collider = tileObject.AddComponent<BoxCollider>();
-        collider.size = new Vector3(tileSize, 0.1f, tileSize); // thin in the y-axis
+        collider.size = new Vector3(tileSize, 0.5f, tileSize); // thin in the y-axis
         collider.center = new Vector3(tileSize / 2, 0, tileSize / 2); // Center the collider
 
         tileObject.layer = LayerMask.NameToLayer("Tile");
@@ -160,7 +160,6 @@ public class GenerateBoard : MonoBehaviour
         allChessPieces[5, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
         allChessPieces[6, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
         allChessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
-        Debug.Log(allChessPieces[7, 7]);
         for (int i = 0; i < TILE_COUNT_X; i++)
         {
             allChessPieces[i, 6] = SpawnSinglePiece(ChessPieceType.Pawn, blackTeam);
@@ -171,7 +170,6 @@ public class GenerateBoard : MonoBehaviour
 
     private void positionPieces()
     {
-        Debug.Log("Positioning pieces..."); // Log positioning start
         for (int x = 0; x < TILE_COUNT_X; x++)
         {
             for (int y = 0; y < TILE_COUNT_Y; y++)

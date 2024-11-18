@@ -92,7 +92,6 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        Debug.Log("StartGame() aufgerufen");  // Debug: Überprüfen, ob die Methode aufgerufen wird
 
         // Startmenü deaktivieren und das Spiel fortsetzen
         startScene.SetActive(false);
@@ -103,8 +102,6 @@ public class GameManager : MonoBehaviour
         // Runden-Timer und Transformations-Button anzeigen
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
-
-        Debug.Log("Runden-Timer und Transformations-Button aktiviert");  // Debug: Überprüfen, ob die UI-Elemente aktiviert werden
 
         // Den Listener für den Transformations-Button hinzufügen
         transformButton.onClick.AddListener(TransformPiece);

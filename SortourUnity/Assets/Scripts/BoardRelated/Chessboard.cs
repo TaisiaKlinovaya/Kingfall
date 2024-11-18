@@ -6,34 +6,35 @@ using UnityEngine;
 public class Chessboard : MonoBehaviour
 {
     private GameObject[,] tiles;
+    GameObject tile;
     private Vector2Int currentHover;
+    private Camera currentCamera;
+    private const int TILE_COUNT = 8; // 8 by 8 chessboard
 
     public void Initialize(GameObject[,] tiles)
     {
         this.tiles = tiles;
         currentHover = -Vector2Int.one;
     }
+
     public void HoverTiles(Camera currentCamera)
     {
         RaycastHit info;
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover")))
         {
-            //Get the indexes of tile we hit
             Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
 
-            //If we are hovering any tile after not hovering any tile
             if (currentHover == -Vector2Int.one)
             {
                 currentHover = hitPosition;
                 tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
             }
-            //if we were already hovering a tile, change previous
             if (currentHover != hitPosition)
             {
                 tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
                 currentHover = hitPosition;
-                tiles[currentHover.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
+                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
             }
         }
         else
@@ -45,26 +46,102 @@ public class Chessboard : MonoBehaviour
             }
         }
     }
+
     private Vector2Int LookupTileIndex(GameObject hitInfo)
     {
-        for (int x = 0; x < tiles.GetLength(0); x++)
-        {
-            for (int y = 0; y < tiles.GetLength(1); y++)
-            {
+        for (int x = 0; x < TILE_COUNT; x++)
+            for (int y = 0; y < TILE_COUNT; y++)
                 if (tiles[x, y] == hitInfo)
-                {
                     return new Vector2Int(x, y);
+
+        return -Vector2Int.one;
+    }
+
+    private string GetPieceTypeString(ChessPieceType type)
+    {
+        return type switch
+        {
+            ChessPieceType.Pawn => "Pawn",
+            ChessPieceType.Rook => "Rook",
+            ChessPieceType.Knight => "Knight",
+            ChessPieceType.Bishop => "Bishop",
+            ChessPieceType.Queen => "Queen",
+            ChessPieceType.King => "King",
+            ChessPieceType.Golem => "Golem",
+            _ => "Unknown"
+        };
+    }
+
+    private void CheckTileClick(Vector2Int tilePosition)
+    {
+        if (tilePosition == -Vector2Int.one)
+            return;
+
+        tile = tiles[tilePosition.x, tilePosition.y];
+        BoxCollider tileCollider = tile.GetComponent<BoxCollider>();
+
+        if (tileCollider == null)
+        {
+            Debug.LogError("Tile collider not found!");
+            return;
+        }
+
+        // Get the bounds of the tile collider in world space
+        Bounds tileBounds = tileCollider.bounds;
+
+        // Check for any pieces that overlap with the tile's collider
+        Collider[] overlappingColliders = Physics.OverlapBox(
+            tileBounds.center,
+            tileBounds.extents,
+            tile.transform.rotation,
+            LayerMask.GetMask("Piece")
+        );
+
+        if (overlappingColliders.Length > 0)
+        {
+            // Get the piece component from the first overlapping collider
+            PieceType piece = overlappingColliders[0].GetComponent<PieceType>();
+            if (piece != null)
+            {
+                string pieceName = GetPieceTypeString(piece.type);
+                string teamColor = piece.team == 0 ? "White" : "Black";
+                Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): {pieceName} ({teamColor})");
+            }
+            else
+            {
+                Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Piece found but type unknown");
+            }
+        }
+        else
+        {
+            Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Empty");
+        }
+    }
+
+    private void Update()
+    {
+        if (currentCamera == null)
+        {
+            currentCamera = Camera.main;
+            return;
+        }
+
+        HoverTiles(currentCamera);
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            // checking for Tile layer
+            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
+            {
+                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
+                if (tilePosition != -Vector2Int.one)
+                {
+                    CheckTileClick(tilePosition);
                 }
             }
         }
-        return -Vector2Int.one; //Invalid
-    }
-    public void MovePiece()
-    {
-
-    }
-    public void HoverPieces()
-    {
-
     }
 }
