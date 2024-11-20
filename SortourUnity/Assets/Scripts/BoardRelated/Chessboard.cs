@@ -105,7 +105,7 @@ public class Chessboard : MonoBehaviour
             {
                 string pieceName = GetPieceTypeString(piece.type);
                 string teamColor = piece.team == 0 ? "White" : "Black";
-                Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): {pieceName} ({teamColor})");
+                CallPieces(pieceName, teamColor, tilePosition.x, tilePosition.y);
             }
             else
             {
@@ -115,6 +115,32 @@ public class Chessboard : MonoBehaviour
         else
         {
             Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Empty");
+        }
+    }
+
+    private void CallPieces(String pieceName, String teamColor, int PosX, int PosY)
+    {
+        switch (pieceName)
+        {
+            case "Bishop":
+                //Debug.Log($"Tile ({PosX}, {PosY}): {pieceName} ({teamColor})");
+                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "Pawn":
+                Debug.Log("You clicked on a " + teamColor + " Pawn on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "Rook":
+                Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "Knight":
+                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "Queen":
+                Debug.Log("You clicked on a " + teamColor + " Queen on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "King":
+                Debug.Log("You clicked on a " + teamColor + " King on tile (" + PosX + "|" + PosY + ")");
+                break;
         }
     }
 
