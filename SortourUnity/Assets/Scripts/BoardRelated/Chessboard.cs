@@ -1,12 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class Chessboard : MonoBehaviour
 {
     private GameObject[,] tiles;
     GameObject tile;
+    private Collider[] overlappingColliders;
     private Vector2Int currentHover;
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
@@ -90,7 +93,7 @@ public class Chessboard : MonoBehaviour
         Bounds tileBounds = tileCollider.bounds;
 
         // Check for any pieces that overlap with the tile's collider
-        Collider[] overlappingColliders = Physics.OverlapBox(
+        overlappingColliders = Physics.OverlapBox(
             tileBounds.center,
             tileBounds.extents,
             tile.transform.rotation,
@@ -105,7 +108,9 @@ public class Chessboard : MonoBehaviour
             {
                 string pieceName = GetPieceTypeString(piece.type);
                 string teamColor = piece.team == 0 ? "White" : "Black";
-                CallPieces(pieceName, teamColor, tilePosition.x, tilePosition.y);
+                int teamNum = piece.team;
+                //temporary, add conditions
+                CallPieces(pieceName, teamColor, teamNum, tilePosition.x, tilePosition.y, overlappingColliders);
             }
             else
             {
@@ -118,22 +123,32 @@ public class Chessboard : MonoBehaviour
         }
     }
 
-    private void CallPieces(String pieceName, String teamColor, int PosX, int PosY)
+    private void CallPieces(string pieceName, string teamColor, int teamNum, int PosX, int PosY, Collider[] overlappingColliders)
     {
+        Rook rook = new Rook();
+
+
         switch (pieceName)
         {
             case "Bishop":
-                //Debug.Log($"Tile ({PosX}, {PosY}): {pieceName} ({teamColor})");
                 Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
                 break;
+
             case "Pawn":
-                Debug.Log("You clicked on a " + teamColor + " Pawn on tile (" + PosX + "|" + PosY + ")");
+                //Debug.Log("You clicked on a " + teamColor + " Pawn on tile (" + PosX + "|" + PosY + ")");
+                Pawn pawn = overlappingColliders[0].GetComponent<Pawn>();
+                if (pawn != null)
+                {
+                    pawn.MovePawn(teamNum);
+                }
                 break;
+
             case "Rook":
-                Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
+                //Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
+                rook.GetPossibleMoves(PosX, PosY);
                 break;
             case "Knight":
-                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
+                Debug.Log("You clicked on a " + teamColor + " Knight on tile (" + PosX + "|" + PosY + ")");
                 break;
             case "Queen":
                 Debug.Log("You clicked on a " + teamColor + " Queen on tile (" + PosX + "|" + PosY + ")");
@@ -141,8 +156,12 @@ public class Chessboard : MonoBehaviour
             case "King":
                 Debug.Log("You clicked on a " + teamColor + " King on tile (" + PosX + "|" + PosY + ")");
                 break;
+            default:
+                Debug.Log("Unknown piece type clicked.");
+                break;
         }
     }
+
 
     private void Update()
     {
