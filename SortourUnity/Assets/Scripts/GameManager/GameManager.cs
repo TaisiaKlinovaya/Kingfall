@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : MonoBehaviour
 {
@@ -26,9 +27,7 @@ public class GameManager : MonoBehaviour
     public GameObject breakScene;
     public Button resumeButton;
     public Button quitButton;
-    private bool isPaused = false;          // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
-
-
+    private bool isPaused = false;                  // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
 
     //
     //  ####    Spieler 1 & 2 hinzufügen    ####
@@ -71,8 +70,10 @@ public class GameManager : MonoBehaviour
             if (roundTime <= 0)
             {
                 roundTime = 0;
-                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt.
-                Debug.Log("Rundenzeit abgelaufen.");
+
+                Debug.Log("Rundenzeit abgelaufen.");    //  Debug Information
+
+                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt
             }
         }
 
@@ -103,6 +104,11 @@ public class GameManager : MonoBehaviour
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
 
+<<<<<<< Updated upstream
+=======
+        Debug.Log("Runden-Timer und Transformations-Button aktiviert");  // Debug Information
+
+>>>>>>> Stashed changes
         // Den Listener für den Transformations-Button hinzufügen
         transformButton.onClick.AddListener(TransformPiece);
     }
@@ -119,7 +125,7 @@ public class GameManager : MonoBehaviour
     //  ###     Bearbeitung - Transformation bestimmter Schachfiguren (später)     ###
     public void TransformPiece()
     {
-        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug: Überprüfen, ob die Transformationslogik funktioniert
+        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug Information
         // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Transformationslogik hinzufügen.
     }
 
@@ -135,7 +141,7 @@ public class GameManager : MonoBehaviour
 
         roundTime = 120f;
 
-        Debug.Log($"Spieler {currentPlayer} ist jetzt am Zug");
+        Debug.Log($"Spieler {currentPlayer} ist jetzt am Zug"); //  Debug Information
     }
 
     //
@@ -143,17 +149,19 @@ public class GameManager : MonoBehaviour
     public void PauseGame()
     {
         breakScene.SetActive(true);
-        Time.timeScale = 0f;        // Zeit anhalten
+        Time.timeScale = 0f;            // Zeit anhalten
         isPaused = true;
-        Debug.Log("Spiel pausiert.");
+
+        Debug.Log("Spiel pausiert.");   //  Debug Information 
     }
 
     public void ResumeGame()
     {
         breakScene.SetActive(false);
-        Time.timeScale = 1f;        // Zeit fortsetzen
+        Time.timeScale = 1f;                // Zeit fortsetzen
         isPaused = false;
-        Debug.Log("Spiel fortgesetzt.");
+
+        Debug.Log("Spiel fortgesetzt.");    //  Debug Information 
     }
 
     public void QuitGame()
