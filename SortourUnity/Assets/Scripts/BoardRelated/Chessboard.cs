@@ -24,6 +24,10 @@ public class Chessboard : MonoBehaviour
     {
         RaycastHit info;
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+
+        // Visualisiere den Ray im Editor
+        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
+
         if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover")))
         {
             Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);

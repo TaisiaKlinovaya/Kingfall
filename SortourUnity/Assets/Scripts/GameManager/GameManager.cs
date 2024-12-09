@@ -104,11 +104,9 @@ public class GameManager : MonoBehaviour
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
 
-<<<<<<< Updated upstream
-=======
         Debug.Log("Runden-Timer und Transformations-Button aktiviert");  // Debug Information
 
->>>>>>> Stashed changes
+
         // Den Listener für den Transformations-Button hinzufügen
         transformButton.onClick.AddListener(TransformPiece);
     }
