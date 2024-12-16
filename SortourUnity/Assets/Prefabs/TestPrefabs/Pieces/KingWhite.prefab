@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5918138160046248452}
   - component: {fileID: -3111202934586662803}
   - component: {fileID: 3827980807540189089}
+  - component: {fileID: -8459996659089714726}
   m_Layer: 0
   m_Name: KingWhite
   m_TagString: Untagged
@@ -125,3 +126,16 @@ CapsuleCollider:
   m_Height: 1.44
   m_Direction: 1
   m_Center: {x: 0, y: 0.64963883, z: 0}
+--- !u!114 &-8459996659089714726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7886964639542890800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 

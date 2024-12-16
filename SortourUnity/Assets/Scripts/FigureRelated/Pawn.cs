@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 
 public class Pawn : PieceType
@@ -8,32 +9,33 @@ public class Pawn : PieceType
     private bool isFirstMove = true;
     private int movingDistance;
     public GameObject[] tiles; // Reference to all tiles
-    public Vector2Int CurrentPosition;
+    public Vector2 CurrentPosition;
 
     private void Start()
     {
-        CurrentPosition = new Vector2Int((int)transform.position.x, (int)transform.position.z);
+        CurrentPosition = transform.position;
     }
     public bool IsValidMove(Vector2Int targetPosition)
     {
-        int distanceX = Mathf.Abs(targetPosition.x - CurrentPosition.x);
-        int distanceY = targetPosition.y - CurrentPosition.y; // Moving forward on the y-axis
+        int distanceX = Mathf.Abs(targetPosition.x - (int)CurrentPosition.x);
+        int distanceY = targetPosition.y - (int)CurrentPosition.y;
 
-        // Check if the move is only forward and within one step
-        if (distanceX != CurrentPosition.x)
-        {
-            Debug.Log("Invalid move: Cannot move sideways.");
-            Debug.Log(distanceX + " != " + CurrentPosition.x);
-            return false;
-        }
-
-        if (distanceY != CurrentPosition.y + 1)
+        // Assuming white pawn moving up the board (positive Y direction)
+        if (distanceY > 2 || distanceY <= 1)
         {
             Debug.Log("Invalid move: Can only move one step forward.");
-            Debug.Log(distanceY + " != " + CurrentPosition.y + 1);
+            Debug.Log(distanceY + " > 2" + " " + distanceY + " <= 0");
             return false;
         }
 
+        // Prevent sideways movement unless capturing diagonally
+        if (distanceX > CurrentPosition.x)
+        {
+            Debug.Log("Invalid move: Cannot move more than one square sideways.");
+            Debug.Log(distanceX + " > " + CurrentPosition.x);
+            return false;
+        }
+        Debug.Log(" DistanceY: " + distanceY);
         return true;
     }
 
@@ -41,13 +43,10 @@ public class Pawn : PieceType
     {
         if (IsValidMove(targetPosition))
         {
-            // Update pawn position
-            CurrentPosition = targetPosition;
-
-            // Move the pawn visually (assuming grid cells map to world units)
             transform.position = new Vector3(targetPosition.x, transform.position.y, targetPosition.y);
+            CurrentPosition = transform.position;
 
-            Debug.Log("Pawn moved to: " + targetPosition);
+            Debug.Log("Pawn moved to: " + transform.position);
         }
         else
         {

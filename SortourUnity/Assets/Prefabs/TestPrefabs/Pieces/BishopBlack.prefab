@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2073995322194877687}
   - component: {fileID: 636038473499049198}
   - component: {fileID: 646913672452568659}
+  - component: {fileID: 8265740708813675757}
   m_Layer: 0
   m_Name: BishopBlack
   m_TagString: Untagged
@@ -124,3 +125,16 @@ CapsuleCollider:
   m_Height: 0.04
   m_Direction: 1
   m_Center: {x: 0.000000038184222, y: 0.017552363, z: -0.000000009313225}
+--- !u!114 &8265740708813675757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 841951212914518022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 

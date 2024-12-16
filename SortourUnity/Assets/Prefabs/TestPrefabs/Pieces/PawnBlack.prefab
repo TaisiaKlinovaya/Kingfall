@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6051262414639862804}
   - component: {fileID: -3818059215835647401}
   - component: {fileID: 5553403903980046741}
+  - component: {fileID: 7448591617496002544}
   m_Layer: 0
   m_Name: PawnBlack
   m_TagString: Untagged
@@ -141,3 +142,18 @@ MonoBehaviour:
   currentX: 0
   currentY: 0
   type: 0
+  tiles: []
+  CurrentPosition: {x: 0, y: 0}
+--- !u!114 &7448591617496002544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8371137057724265051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 
