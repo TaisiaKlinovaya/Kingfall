@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Chessboard : MonoBehaviour
 {
     private GameObject[,] tiles;
     GameObject tile;
+    private Collider[] overlappingColliders;
     private Vector2Int currentHover;
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
@@ -17,10 +19,56 @@ public class Chessboard : MonoBehaviour
         currentHover = -Vector2Int.one;
     }
 
+    private void Update()
+    {
+        if (currentCamera == null)
+        {
+            currentCamera = Camera.main;
+            return;
+        }
+
+        HoverTiles(currentCamera);
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
+            {
+                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
+                if (tilePosition != -Vector2Int.one)
+                {
+                    if (selectedPiece != null)
+                    {
+                        //Vector2Int currentPosition = (int)transform.position;
+                        if (selectedPiece.IsValidMove(tilePosition))
+                        {
+                            selectedPiece.MoveToTile(tilePosition);
+                            selectedPiece = null;
+                        }
+                        else
+                        {
+                            Debug.Log(tilePosition);
+                        }
+                    }
+                    else
+                    {
+                        CheckTileClick(tilePosition);
+                    }
+                }
+            }
+        }
+    }
+
     public void HoverTiles(Camera currentCamera)
     {
         RaycastHit info;
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+
+        // Visualisiere den Ray im Editor
+        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
+
         if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover")))
         {
             Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
@@ -90,7 +138,7 @@ public class Chessboard : MonoBehaviour
         Bounds tileBounds = tileCollider.bounds;
 
         // Check for any pieces that overlap with the tile's collider
-        Collider[] overlappingColliders = Physics.OverlapBox(
+        overlappingColliders = Physics.OverlapBox(
             tileBounds.center,
             tileBounds.extents,
             tile.transform.rotation,
@@ -105,7 +153,9 @@ public class Chessboard : MonoBehaviour
             {
                 string pieceName = GetPieceTypeString(piece.type);
                 string teamColor = piece.team == 0 ? "White" : "Black";
-                CallPieces(pieceName, teamColor, tilePosition.x, tilePosition.y);
+                int teamNum = piece.team;
+                //temporary, add conditions
+                CallPieces(pieceName, teamColor, teamNum, tilePosition.x, tilePosition.y, overlappingColliders);
             }
             else
             {
@@ -118,22 +168,41 @@ public class Chessboard : MonoBehaviour
         }
     }
 
-    private void CallPieces(String pieceName, String teamColor, int PosX, int PosY)
+    private Pawn selectedPiece = null;
+    private void CallPieces(string pieceName, string teamColor, int teamNum, int PosX, int PosY, Collider[] overlappingColliders)
     {
+
         switch (pieceName)
         {
+
             case "Bishop":
-                //Debug.Log($"Tile ({PosX}, {PosY}): {pieceName} ({teamColor})");
                 Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
                 break;
+
             case "Pawn":
-                Debug.Log("You clicked on a " + teamColor + " Pawn on tile (" + PosX + "|" + PosY + ")");
+                Pawn pawn = overlappingColliders[0].GetComponent<Pawn>();
+                if (pawn != null)
+                {
+                    if (selectedPiece == null)
+                    {
+                        selectedPiece = pawn;
+                        Debug.Log("Pawn selected");
+                    }
+                    else
+                    {
+                        Debug.Log("Attempting to move pawn");
+
+                        // Let the Update method handle the move logic
+                    }
+                }
                 break;
+
             case "Rook":
                 Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
+                //rook.GetPossibleMoves(PosX, PosY);
                 break;
             case "Knight":
-                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
+                Debug.Log("You clicked on a " + teamColor + " Knight on tile (" + PosX + "|" + PosY + ")");
                 break;
             case "Queen":
                 Debug.Log("You clicked on a " + teamColor + " Queen on tile (" + PosX + "|" + PosY + ")");
@@ -141,33 +210,9 @@ public class Chessboard : MonoBehaviour
             case "King":
                 Debug.Log("You clicked on a " + teamColor + " King on tile (" + PosX + "|" + PosY + ")");
                 break;
-        }
-    }
-
-    private void Update()
-    {
-        if (currentCamera == null)
-        {
-            currentCamera = Camera.main;
-            return;
-        }
-
-        HoverTiles(currentCamera);
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            // checking for Tile layer
-            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
-            {
-                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
-                if (tilePosition != -Vector2Int.one)
-                {
-                    CheckTileClick(tilePosition);
-                }
-            }
+            default:
+                Debug.Log("Unknown piece type clicked.");
+                break;
         }
     }
 }
