@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 public class Chessboard : MonoBehaviour
@@ -13,11 +12,46 @@ public class Chessboard : MonoBehaviour
     private Vector2Int currentHover;
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
+    private ChessPieceMovement selectedPiece = null;
 
     public void Initialize(GameObject[,] tiles)
     {
         this.tiles = tiles;
         currentHover = -Vector2Int.one;
+    }
+
+    private void Update()
+    {
+        if (currentCamera == null)
+        {
+            currentCamera = Camera.main;
+            return;
+        }
+
+        HoverTiles(currentCamera);
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
+            {
+                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
+                if (tilePosition != -Vector2Int.one)
+                {
+                    if (selectedPiece != null)
+                    {
+                        selectedPiece.SayHi(tilePosition);
+                        selectedPiece = null;
+                    }
+                    else
+                    {
+                        CheckTileClick(tilePosition);
+                    }
+                }
+            }
+        }
     }
 
     public void HoverTiles(Camera currentCamera)
@@ -106,91 +140,38 @@ public class Chessboard : MonoBehaviour
 
         if (overlappingColliders.Length > 0)
         {
-            // Get the piece component from the first overlapping collider
-            PieceType piece = overlappingColliders[0].GetComponent<PieceType>();
-            if (piece != null)
+            // Hole PieceType Komponente
+            PieceType pieceType = overlappingColliders[0].GetComponent<PieceType>();
+
+            // Hole ChessPieceMovement Komponente
+            ChessPieceMovement chessPiece = overlappingColliders[0].GetComponent<ChessPieceMovement>();
+
+            if (chessPiece != null)
             {
-                string pieceName = GetPieceTypeString(piece.type);
-                string teamColor = piece.team == 0 ? "White" : "Black";
-                int teamNum = piece.team;
-                //temporary, add conditions
-                CallPieces(pieceName, teamColor, teamNum, tilePosition.x, tilePosition.y, overlappingColliders);
+                // Bestimme Figurenname und Teamfarbe
+                string pieceName = GetPieceTypeString(pieceType.type);
+                string teamColor = pieceType.team == 0 ? "White" : "Black";
+
+                // Wenn keine Figur ausgewählt ist, wähle diese Figur aus
+                if (selectedPiece == null)
+                {
+                    selectedPiece = chessPiece;
+                    chessPiece.name = pieceName;
+                    Debug.Log($"{teamColor} {pieceName} selected");
+                }
+                else if (selectedPiece == chessPiece)
+                {
+                    Debug.Log($"Same {pieceName} clicked again");
+                }
             }
             else
             {
-                Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Piece found but type unknown");
+                Debug.LogWarning($"Piece components missing on collider");
             }
         }
         else
         {
-            Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Empty");
+            Debug.Log($"No piece found on this tile");
         }
     }
-
-    private void CallPieces(string pieceName, string teamColor, int teamNum, int PosX, int PosY, Collider[] overlappingColliders)
-    {
-        Rook rook = new Rook();
-
-
-        switch (pieceName)
-        {
-            case "Bishop":
-                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
-                break;
-
-            case "Pawn":
-                //Debug.Log("You clicked on a " + teamColor + " Pawn on tile (" + PosX + "|" + PosY + ")");
-                Pawn pawn = overlappingColliders[0].GetComponent<Pawn>();
-                if (pawn != null)
-                {
-                    pawn.MovePawn(teamNum);
-                }
-                break;
-
-            case "Rook":
-                //Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
-                rook.GetPossibleMoves(PosX, PosY);
-                break;
-            case "Knight":
-                Debug.Log("You clicked on a " + teamColor + " Knight on tile (" + PosX + "|" + PosY + ")");
-                break;
-            case "Queen":
-                Debug.Log("You clicked on a " + teamColor + " Queen on tile (" + PosX + "|" + PosY + ")");
-                break;
-            case "King":
-                Debug.Log("You clicked on a " + teamColor + " King on tile (" + PosX + "|" + PosY + ")");
-                break;
-            default:
-                Debug.Log("Unknown piece type clicked.");
-                break;
-        }
     }
-
-
-    private void Update()
-    {
-        if (currentCamera == null)
-        {
-            currentCamera = Camera.main;
-            return;
-        }
-
-        HoverTiles(currentCamera);
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-
-            // checking for Tile layer
-            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
-            {
-                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
-                if (tilePosition != -Vector2Int.one)
-                {
-                    CheckTileClick(tilePosition);
-                }
-            }
-        }
-    }
-}

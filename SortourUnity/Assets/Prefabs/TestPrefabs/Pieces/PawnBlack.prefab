@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 2985542596219991657}
   - component: {fileID: 6051262414639862804}
   - component: {fileID: -3818059215835647401}
-  - component: {fileID: 3666897652506250921}
+  - component: {fileID: 5553403903980046741}
+  - component: {fileID: 7448591617496002544}
   m_Layer: 0
   m_Name: PawnBlack
   m_TagString: Untagged
@@ -125,7 +126,7 @@ CapsuleCollider:
   m_Height: 0.79
   m_Direction: 1
   m_Center: {x: -0.000000022351742, y: 0.34086126, z: 0.000000022351742}
---- !u!114 &3666897652506250921
+--- !u!114 &5553403903980046741
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,10 +135,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 8371137057724265051}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55e9b41be9448aa4b9dfe0e14bd7e3ee, type: 3}
+  m_Script: {fileID: 11500000, guid: ae00eb64ec5981449b2bd61bfaf30fdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   team: 0
   currentX: 0
   currentY: 0
   type: 0
+  tiles: []
+  CurrentPosition: {x: 0, y: 0}
+--- !u!114 &7448591617496002544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8371137057724265051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 

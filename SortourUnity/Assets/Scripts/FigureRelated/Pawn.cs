@@ -1,57 +1,56 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 
 public class Pawn : PieceType
 {
-    private Boolean isFirstMove = true;
+    private bool isFirstMove = true;
     private int movingDistance;
-    public void MovePawn(int teamNum)
+    public GameObject[] tiles; // Reference to all tiles
+    public Vector2 CurrentPosition;
+
+    private void Start()
     {
-        int direction = (teamNum == 0) ? 1 : -1;
+        CurrentPosition = transform.position;
+    }
+    public bool IsValidMove(Vector2Int targetPosition)
+    {
+        int distanceX = Mathf.Abs(targetPosition.x - (int)CurrentPosition.x);
+        int distanceY = targetPosition.y - (int)CurrentPosition.y;
 
-        if(isFirstMove)
+        // Assuming white pawn moving up the board (positive Y direction)
+        if (distanceY > 2 || distanceY <= 1)
         {
-            movingDistance = 2;
-            isFirstMove = false;
-        } else
-        {
-            movingDistance = 1;
-        }
-        
-        Vector3 newPosition = transform.position + new Vector3(0, 0, direction * movingDistance);
-
-        // Check for pieces at the destination
-        Collider[] hitColliders = Physics.OverlapBox(
-            newPosition,
-            new Vector3(0.5f, 0.5f, 0.5f),
-            Quaternion.identity,
-            LayerMask.GetMask("Piece")
-        );
-
-        // Check if there are any pieces at the destination
-        foreach (var hitCollider in hitColliders)
-        {
-            // Get the PieceType component of the hit object
-            PieceType hitPiece = hitCollider.GetComponent<PieceType>();
-
-            // Check if the piece is from a different team
-            if (hitPiece != null && hitPiece.team != teamNum)
-            {
-                // Destroy the piece at the destination
-                Destroy(hitCollider.gameObject);
-                Debug.Log($"Destroyed enemy piece of team {hitPiece.team}");
-            }
+            Debug.Log("Invalid move: Can only move one step forward.");
+            Debug.Log(distanceY + " > 2" + " " + distanceY + " <= 0");
+            return false;
         }
 
-        transform.position = newPosition;
+        // Prevent sideways movement unless capturing diagonally
+        if (distanceX > CurrentPosition.x)
+        {
+            Debug.Log("Invalid move: Cannot move more than one square sideways.");
+            Debug.Log(distanceX + " > " + CurrentPosition.x);
+            return false;
+        }
+        Debug.Log(" DistanceY: " + distanceY);
+        return true;
+    }
 
-        Debug.Log("Pawn moved " + teamNum + " direction " + direction);
+    public void MoveToTile(Vector2Int targetPosition)
+    {
+        if (IsValidMove(targetPosition))
+        {
+            transform.position = new Vector3(targetPosition.x, transform.position.y, targetPosition.y);
+            CurrentPosition = transform.position;
 
-        //currentY += (int)(direction * 2);
-
-
-    }  
+            Debug.Log("Pawn moved to: " + transform.position);
+        }
+        else
+        {
+            Debug.Log("Move failed.");
+        }
+    }
 }
-

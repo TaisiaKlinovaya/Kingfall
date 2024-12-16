@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5037202443832359155}
   - component: {fileID: -561866828955345713}
   - component: {fileID: 9222798275299131753}
+  - component: {fileID: -2185413627590484898}
   m_Layer: 0
   m_Name: KnightWhite
   m_TagString: Untagged
@@ -125,3 +126,16 @@ CapsuleCollider:
   m_Height: 1.05
   m_Direction: 1
   m_Center: {x: -0.000000074505806, y: 0.41804558, z: 0.000000014901161}
+--- !u!114 &-2185413627590484898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 801951312439803475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3395112449113011214}
   - component: {fileID: -7989322567349237219}
   - component: {fileID: 6116436909837738797}
+  - component: {fileID: 3130238949747123319}
   m_Layer: 0
   m_Name: RookWhite
   m_TagString: Untagged
@@ -124,3 +125,16 @@ CapsuleCollider:
   m_Height: 0.04
   m_Direction: 1
   m_Center: {x: 0.000000038184222, y: 0.014178743, z: 0.0000000013969838}
+--- !u!114 &3130238949747123319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5200633497699764783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 
