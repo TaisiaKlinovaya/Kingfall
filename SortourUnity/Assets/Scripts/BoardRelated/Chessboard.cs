@@ -12,7 +12,6 @@ public class Chessboard : MonoBehaviour
     private Vector2Int currentHover;
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
-    private ChessPieceMovement selectedPiece = null;
 
     public void Initialize(GameObject[,] tiles)
     {
@@ -42,7 +41,7 @@ public class Chessboard : MonoBehaviour
                 {
                     if (selectedPiece != null)
                     {
-                        selectedPiece.SayHi(tilePosition);
+                        selectedPiece.MoveToTile(tilePosition);
                         selectedPiece = null;
                     }
                     else
@@ -140,38 +139,76 @@ public class Chessboard : MonoBehaviour
 
         if (overlappingColliders.Length > 0)
         {
-            // Hole PieceType Komponente
-            PieceType pieceType = overlappingColliders[0].GetComponent<PieceType>();
-
-            // Hole ChessPieceMovement Komponente
-            ChessPieceMovement chessPiece = overlappingColliders[0].GetComponent<ChessPieceMovement>();
-
-            if (chessPiece != null)
+            // Get the piece component from the first overlapping collider
+            PieceType piece = overlappingColliders[0].GetComponent<PieceType>();
+            if (piece != null)
             {
-                // Bestimme Figurenname und Teamfarbe
-                string pieceName = GetPieceTypeString(pieceType.type);
-                string teamColor = pieceType.team == 0 ? "White" : "Black";
-
-                // Wenn keine Figur ausgewählt ist, wähle diese Figur aus
-                if (selectedPiece == null)
-                {
-                    selectedPiece = chessPiece;
-                    chessPiece.name = pieceName;
-                    Debug.Log($"{teamColor} {pieceName} selected");
-                }
-                else if (selectedPiece == chessPiece)
-                {
-                    Debug.Log($"Same {pieceName} clicked again");
-                }
+                string pieceName = GetPieceTypeString(piece.type);
+                string teamColor = piece.team == 0 ? "White" : "Black";
+                int teamNum = piece.team;
+                //temporary, add conditions
+                CallPieces(pieceName, teamColor, teamNum, tilePosition.x, tilePosition.y, overlappingColliders);
             }
             else
             {
-                Debug.LogWarning($"Piece components missing on collider");
+                Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Piece found but type unknown");
             }
         }
         else
         {
-            Debug.Log($"No piece found on this tile");
+            Debug.Log($"Tile ({tilePosition.x}, {tilePosition.y}): Empty");
         }
     }
+
+    private Pawn selectedPiece = null;
+    private void CallPieces(string pieceName, string teamColor, int teamNum, int PosX, int PosY, Collider[] overlappingColliders)
+    {
+
+        switch (pieceName)
+        {
+
+            case "Bishop":
+                Debug.Log("You clicked on a " + teamColor + " Bishop on tile (" + PosX + "|" + PosY + ")");
+                break;
+
+            case "Pawn":
+                Pawn pawn = overlappingColliders[0].GetComponent<Pawn>();
+                if (pawn != null)
+                {
+                    if (selectedPiece == null)
+                    {
+                        selectedPiece = pawn;
+                        selectedPiece.CurrentPosition.x = PosX;
+                        selectedPiece.CurrentPosition.y = PosY;
+                        selectedPiece.Team = teamNum;
+                        Debug.Log("Pawn selected");
+                    }
+                    else if (selectedPiece == pawn)
+                    {
+
+                        Debug.Log("Attempting to move pawn");
+
+                        // Let the Update method handle the move logic
+                    }
+                }
+                break;
+
+            case "Rook":
+                Debug.Log("You clicked on a " + teamColor + " Rook on tile (" + PosX + "|" + PosY + ")");
+                //rook.GetPossibleMoves(PosX, PosY);
+                break;
+            case "Knight":
+                Debug.Log("You clicked on a " + teamColor + " Knight on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "Queen":
+                Debug.Log("You clicked on a " + teamColor + " Queen on tile (" + PosX + "|" + PosY + ")");
+                break;
+            case "King":
+                Debug.Log("You clicked on a " + teamColor + " King on tile (" + PosX + "|" + PosY + ")");
+                break;
+            default:
+                Debug.Log("Unknown piece type clicked.");
+                break;
+        }
     }
+}
