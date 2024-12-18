@@ -24,7 +24,13 @@ public class Chessboard : MonoBehaviour
     {
         if (currentCamera == null)
         {
-            currentCamera = Camera.main;
+            if(GameManager.Instance.CurrentPlayer == 1)
+            {
+                currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
+            } else if(GameManager.Instance.CurrentPlayer == 2)
+            {
+                currentCamera = GameObject.Find("Player2Camera").GetComponent<Camera>();
+            }
             return;
         }
 

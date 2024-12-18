@@ -6,7 +6,7 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : MonoBehaviour
 {
-    //
+    public static GameManager Instance { get; private set; }
     //  ####    Start Scene UI_Elemente  ###
     public GameObject startScene;           // Referenz zum Startmenü UI
     public Button startButton;              // Button, um das Spiel zu starten
@@ -35,8 +35,19 @@ public class GameManager : MonoBehaviour
     public Camera player2Camera;
     private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
 
+    public int CurrentPlayer { get { return currentPlayer; } }
+
     void Start()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Instance = this;
+        }
+
         // Startmenü anzeigen & Game/Break Scene zu beginn deaktivieren
         startScene.SetActive(true);
         gameScene.SetActive(false);
