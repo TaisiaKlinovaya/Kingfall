@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public Text roundTimerText;             // UI-Textfeld für den Runden-Timer
     public Button finishedButton;           // Button um vor der Zeit seinen Spielzug zu beenden 
     private float roundTime = 120f;         // 2 Minuten in Sekunden
+    private bool isRoundActive = true;
     private bool isGameStarted = false;     // Bool, um zu überprüfen, ob das Spiel gestartet ist
     private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde
     //  ####    Transformation  ####
@@ -35,10 +36,14 @@ public class GameManager : MonoBehaviour
     public Camera player2Camera;
     private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
 
+    private String state;
+
     public int CurrentPlayer { get { return currentPlayer; } }
+    public String State { get { return state; } }
 
     void Start()
     {
+        state = "StartMenu";
         if (Instance != null && Instance != this)
         {
             Destroy(this);
@@ -100,11 +105,20 @@ public class GameManager : MonoBehaviour
                 PauseGame();
             }
         }
+
+        if (isRoundActive)
+        {
+            if(roundTime <= 0)
+            {
+                Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
+                MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
+            }
+        }
     }
 
     public void StartGame()
     {
-
+        state = "GameRun";
         // Startmenü deaktivieren und das Spiel fortsetzen
         startScene.SetActive(false);
         gameScene.SetActive(true);             // << Aktiviert die Game Scene
@@ -115,7 +129,7 @@ public class GameManager : MonoBehaviour
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
 
-        Debug.Log("Runden-Timer und Transformations-Button aktiviert");  // Debug Information
+        Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);  // Debug Information
 
 
         // Den Listener für den Transformations-Button hinzufügen
@@ -139,33 +153,31 @@ public class GameManager : MonoBehaviour
     }
 
     //
-    //  ###     Bearbeitung - Spielzug früher beenden (später)     ###
+    //  ###     Spielzug früher beenden     ###     NEU Funktioniert 
     public void MoveFinished()
     {
-        Debug.Log("Der Spieler hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
-        // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Logik hinzufügen.
+        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
 
-        //  Spieler wird gewechselt
-        SwitchPlayer();
-
-        roundTime = 120f;
-
-        Debug.Log($"Spieler {currentPlayer} ist jetzt am Zug"); //  Debug Information
+        roundTime = 120f;       //  Runden zeit zurücksetzen
+        isRoundActive = true;   //  Runde erneut aktivieren
+        SwitchPlayer();         //  Spieler wird gewechselt
     }
 
     //
     //  ###     Break Menü     ###
     public void PauseGame()
     {
+        state = "PauseMenu";
         breakScene.SetActive(true);
         Time.timeScale = 0f;            // Zeit anhalten
         isPaused = true;
 
-        Debug.Log("Spiel pausiert.");   //  Debug Information 
+        Debug.Log("Spiel pausiert. State: " + state);   //  Debug Information 
     }
 
     public void ResumeGame()
     {
+        state = "GameRun";
         breakScene.SetActive(false);
         Time.timeScale = 1f;                // Zeit fortsetzen
         isPaused = false;
@@ -175,7 +187,8 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("Zurück zum Startbildschirm");
+        state = "StartMenu";
+        Debug.Log("Zurück zum Startbildschirm, State :" + state);
 
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);

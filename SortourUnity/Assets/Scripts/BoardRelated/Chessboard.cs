@@ -20,45 +20,54 @@ public class Chessboard : MonoBehaviour
         currentHover = -Vector2Int.one;
     }
 
+    private void Start()
+    {
+        if(currentCamera == null)
+        {
+            currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
+        }
+    }
     private void Update()
     {
-        if (currentCamera == null)
+        if(GameManager.Instance.State == "GameRun")
         {
             if(GameManager.Instance.CurrentPlayer == 1)
             {
                 currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
-            } else if(GameManager.Instance.CurrentPlayer == 2)
+            }
+            if(GameManager.Instance.CurrentPlayer == 2)
             {
                 currentCamera = GameObject.Find("Player2Camera").GetComponent<Camera>();
             }
-            return;
-        }
 
-        HoverTiles(currentCamera);
 
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            HoverTiles(currentCamera);
 
-            if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
+            if (Input.GetMouseButtonDown(0))
             {
-                Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
-                if (tilePosition != -Vector2Int.one)
+                Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+
+                if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
                 {
-                    //Wenn FFigur Selektiert, führe Methode dieser Figur aus
-                    if (selectedPiece != null)
+                    Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
+                    if (tilePosition != -Vector2Int.one)
                     {
-                        selectedPiece.SeeFigure(tilePosition);
-                        selectedPiece = null;
-                    }
-                    else
-                    {
-                        CheckTileClick(tilePosition);
+                        //Wenn FFigur Selektiert, führe Methode dieser Figur aus
+                        if (selectedPiece != null)
+                        {
+                            selectedPiece.SeeFigure(tilePosition);
+                            selectedPiece = null;
+                        }
+                        else
+                        {
+                            CheckTileClick(tilePosition);
+                        }
                     }
                 }
             }
         }
+        
     }
 
     public void HoverTiles(Camera currentCamera)
@@ -162,8 +171,9 @@ public class Chessboard : MonoBehaviour
                 if (selectedPiece == null)
                 {
                     selectedPiece = chessPiece;
-                    chessPiece.name = pieceName;
-                    chessPiece.team = teamNum;
+                    selectedPiece.name = pieceName;
+                    selectedPiece.team = teamNum;
+                    selectedPiece.CurrentPosition = tilePosition;
                     Debug.Log($"{teamColor} {pieceName} selected");
                 }
                 else if (selectedPiece == chessPiece)

@@ -8,14 +8,9 @@ using UnityEngine.EventSystems;
 public class ChessPieceMovement : MonoBehaviour {
 
     public string name;
-    public Vector2 CurrentPosition;
+    public Vector2Int CurrentPosition;
     private Boolean isFirstMove = true;
     public int team;
-
-    private void Start()
-    {
-        CurrentPosition = transform.position;
-    }
     public void SeeFigure(Vector2Int targetPosition)
     {
 
@@ -24,7 +19,7 @@ public class ChessPieceMovement : MonoBehaviour {
         switch (name)
         {
             case "Pawn":
-                isValidMove = CheckMoves(targetPosition, 0, 2, 1, true);
+                isValidMove = CheckMoves(targetPosition, 1, 2, 1, true);
                 break;
             case "Rook":
                 isValidMove = CheckMoves(targetPosition, 8, 8, 1, false);
@@ -59,28 +54,35 @@ public class ChessPieceMovement : MonoBehaviour {
     {
         int direction = (team == 0) ? 1 : -1; // White moves +1, Black moves -1
 
+        Debug.Log("CurrentPosition : " + CurrentPosition);
+
         // Calculate distances
-        int distanceX = Mathf.Abs(targetPosition.x - (int)CurrentPosition.x);
+        int distanceX = targetPosition.x - (int)CurrentPosition.x;
         int distanceY = targetPosition.y - (int)CurrentPosition.y;
 
         if (oneDirection == true)
         {
-            if (team == 0 && distanceY * direction < 0)
+            if (oneDirection)
             {
-                Debug.Log("Invalid move: Can only move forward in the correct direction.");
-                return false;
-            }
-            if (team == 1 && distanceY * direction > 0)
-            {
-                Debug.Log("Invalid move: Can only move forward in the correct direction.");
-                return false;
+                if ((team == 0 && distanceY < 0) || (team == 1 && distanceY > 0))
+                {
+                    Debug.Log("Invalid move: Pawn can only move forward.");
+                    return false;
+                }
             }
         }
 
         // X-axis movement check
         if (distanceX > xLimit)
         {
+            Debug.Log(targetPosition.x + " - " + (int)CurrentPosition.x + " = " + distanceX);
             Debug.Log($"Invalid move: X-axis movement exceeds limit of {xLimit}.");
+            return false;
+        }
+
+        if(name == "Pawn" && !isFirstMove && Mathf.Abs(distanceY) > 1)
+        {
+            Debug.Log("Pawn can only go 1 forward now");
             return false;
         }
 
@@ -109,9 +111,9 @@ public class ChessPieceMovement : MonoBehaviour {
     public void MoveToTile(Vector2Int targetPosition)
     {
             // Adjust position to center of tile
-        transform.localPosition = new Vector3(targetPosition.x + 0.5f, transform.position.y, targetPosition.y + 0.5f);
+        transform.localPosition = new Vector3(targetPosition.x + 0.5f, 0, targetPosition.y + 0.5f);
 
-        CurrentPosition = new Vector2(targetPosition.x, targetPosition.y);
+        CurrentPosition = new Vector2Int(targetPosition.x, targetPosition.y);
         isFirstMove = false;
 
         Debug.Log($"Figure moved to: ({targetPosition.x}, {targetPosition.y})");
