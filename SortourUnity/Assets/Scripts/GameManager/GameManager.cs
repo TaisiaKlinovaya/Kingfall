@@ -7,12 +7,18 @@ using UnityEngine.Rendering.PostProcessing;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    private String state;
+    public int CurrentPlayer { get { return currentPlayer; } }
+    public String State { get { return state; } }
+
     //  ####    Start Scene UI_Elemente  ###
+    [Header("Start Scene UI Elemente")]
     public GameObject startScene;           // Referenz zum Startmenü UI
     public Button startButton;              // Button, um das Spiel zu starten
 
     //
     //  ####    Game Scene UI_Elemente  ####
+    [Header("Game Scene UI Elemente")]
     public GameObject gameScene;
     public Text roundTimerText;             // UI-Textfeld für den Runden-Timer
     public Button finishedButton;           // Button um vor der Zeit seinen Spielzug zu beenden 
@@ -25,6 +31,7 @@ public class GameManager : MonoBehaviour
 
     //
     //  ####    Break Scene UI_Elemente     ####
+    [Header("Break Scene UI Elemente")]
     public GameObject breakScene;
     public Button resumeButton;
     public Button quitButton;
@@ -32,14 +39,10 @@ public class GameManager : MonoBehaviour
 
     //
     //  ####    Spieler 1 & 2 hinzufügen    ####
+    [Header("Spieler Kameras")]
     public Camera player1Camera;
     public Camera player2Camera;
     private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
-
-    private String state;
-
-    public int CurrentPlayer { get { return currentPlayer; } }
-    public String State { get { return state; } }
 
     void Start()
     {
