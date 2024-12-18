@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 1068802910457119734}
   - component: {fileID: 5933055407761686686}
   - component: {fileID: -7618546267300713837}
-  - component: {fileID: 8696914396524666335}
   m_Layer: 0
   m_Name: PawnWhite
   m_TagString: Untagged
@@ -139,22 +138,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   name: 
-  CurrentPosition: {x: 0, y: 0}
---- !u!114 &8696914396524666335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8136827764730858393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae00eb64ec5981449b2bd61bfaf30fdf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
-  tiles: []
   CurrentPosition: {x: 0, y: 0}
