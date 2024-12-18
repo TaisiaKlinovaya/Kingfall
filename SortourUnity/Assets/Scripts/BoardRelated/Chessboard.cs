@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Chessboard : MonoBehaviour
 {
+    public static Chessboard ChessboardInstance { get; private set; }
     private GameObject[,] tiles;
     GameObject tile;
     private Collider[] overlappingColliders;
@@ -13,6 +14,7 @@ public class Chessboard : MonoBehaviour
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
     private ChessPieceMovement selectedPiece = null;
+    private PieceType oppositePiece = null;
 
     public void Initialize(GameObject[,] tiles)
     {
@@ -22,20 +24,30 @@ public class Chessboard : MonoBehaviour
 
     private void Start()
     {
-        if(currentCamera == null)
+        if (ChessboardInstance != null && ChessboardInstance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            ChessboardInstance = this;
+        }
+
+        if (currentCamera == null)
         {
             currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
         }
     }
     private void Update()
     {
-        if(GameManager.Instance.State == "GameRun")
+        if (GameManager.Instance.State == "GameRun")
         {
-            if(GameManager.Instance.CurrentPlayer == 1)
+            //set camera depending on whose turn it is
+            if (GameManager.Instance.CurrentPlayer == 1)
             {
                 currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
             }
-            if(GameManager.Instance.CurrentPlayer == 2)
+            if (GameManager.Instance.CurrentPlayer == 2)
             {
                 currentCamera = GameObject.Find("Player2Camera").GetComponent<Camera>();
             }
@@ -67,7 +79,7 @@ public class Chessboard : MonoBehaviour
                 }
             }
         }
-        
+
     }
 
     public void HoverTiles(Camera currentCamera)
