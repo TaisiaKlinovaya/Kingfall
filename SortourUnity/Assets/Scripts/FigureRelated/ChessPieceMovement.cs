@@ -1,12 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class ChessPieceMovement : MonoBehaviour 
+public class ChessPieceMovement : MonoBehaviour
 {
     public new string name;                                                             // Name der Figur (z.B. "Pawn", "Rook"), bestimmt die Bewegungsregeln.
     public Vector2Int CurrentPosition;                                                  // Die aktuelle Position der Figur auf dem Schachbrett.
@@ -14,10 +9,12 @@ public class ChessPieceMovement : MonoBehaviour
     public int team;                                                                    // Gibt an, zu welchem Team die Figur gehört (z.B. 0 = Weiß, 1 = Schwarz).
     private Collider[] overlappingColliders;                                            // Wird verwendet, um Kollisionen mit anderen Figuren zu überprüfen.
     PieceType piece;                                                                    // Referenz auf den Typ der Figur (z.B. Turm, Läufer).
+    private GameObject[,] tiles;
 
     // Methode, um eine Bewegung der Figur zu überprüfen und auszuführen.
-    public void SeeFigure(Vector2Int targetPosition)
+    public void SeeFigure(Vector2Int targetPosition, GameObject[,] tiles)
     {
+        this.tiles = tiles;
         // Überprüft, ob eine Figur am Zielort vorhanden ist.
         if (piece != null)
         {
@@ -30,27 +27,30 @@ public class ChessPieceMovement : MonoBehaviour
 
         bool isValidMove = false;                                                       // Variabel zum Speichern, ob der Zug gültig ist.
 
-        // Bewegungslogik basierend auf dem Namen der Figur.
-        switch (name)
+        if (CheckForOpponents(targetPosition, tiles) == true)
         {
-            case "Pawn": // Wenn die Figur ein Bauer ist.
-                isValidMove = CheckMoves(targetPosition, 0, 2, 1);                      // Spezifische Logik für Bauern.
-                break;
-            case "Rook": // Wenn die Figur ein Turm ist.
-                isValidMove = CheckMoves(targetPosition, 8, 8, 1);                      // Kann sich beliebig weit horizontal/vertikal bewegen.
-                break;
-            case "Knight": // Wenn die Figur ein Springer ist.
-                isValidMove = CheckKnightMove(targetPosition);                          // Springerbewegung: "L"-förmig.
-                break;
-            case "Bishop": // Wenn die Figur ein Läufer ist.
-                isValidMove = CheckMoves(targetPosition, 0, 0, 9);                      // Kann sich nur diagonal bewegen.
-                break;
-            case "King": // Wenn die Figur ein König ist.
-                isValidMove = CheckMoves(targetPosition, 1, 1, 1);                      // Kann sich 1 Feld in jede Richtung bewegen.
-                break;
-            case "Queen": // Wenn die Figur eine Dame ist.
-                isValidMove = CheckMoves(targetPosition, 8, 8, 8);                      // Kann sich beliebig weit in jede Richtung bewegen.
-                break;
+            // Bewegungslogik basierend auf dem Namen der Figur.
+            switch (name)
+            {
+                case "Pawn": // Wenn die Figur ein Bauer ist.
+                    isValidMove = CheckMoves(targetPosition, 0, 2, 1);                      // Spezifische Logik für Bauern.
+                    break;
+                case "Rook": // Wenn die Figur ein Turm ist.
+                    isValidMove = CheckMoves(targetPosition, 8, 8, 1);                      // Kann sich beliebig weit horizontal/vertikal bewegen.
+                    break;
+                case "Knight": // Wenn die Figur ein Springer ist.
+                    isValidMove = CheckKnightMove(targetPosition);                          // Springerbewegung: "L"-förmig.
+                    break;
+                case "Bishop": // Wenn die Figur ein Läufer ist.
+                    isValidMove = CheckMoves(targetPosition, 0, 0, 9);                      // Kann sich nur diagonal bewegen.
+                    break;
+                case "King": // Wenn die Figur ein König ist.
+                    isValidMove = CheckMoves(targetPosition, 1, 1, 1);                      // Kann sich 1 Feld in jede Richtung bewegen.
+                    break;
+                case "Queen": // Wenn die Figur eine Dame ist.
+                    isValidMove = CheckMoves(targetPosition, 8, 8, 8);                      // Kann sich beliebig weit in jede Richtung bewegen.
+                    break;
+            }
         }
 
         // Überprüfung des Zugs und Aktualisierung der Position.
@@ -77,6 +77,54 @@ public class ChessPieceMovement : MonoBehaviour
             }
         }
         return true;                                                                    // Feld ist frei oder Figur gehört dem Gegner.
+    }
+
+    //Function to check for opposite figures
+    private bool CheckForOpponents(Vector2Int targetPosition, GameObject[,] tiles)
+    {
+        GameObject tile = tiles[targetPosition.x, targetPosition.y];
+        BoxCollider tileCollider = tile.GetComponent<BoxCollider>();
+        if (tileCollider == null)
+        {
+            Debug.LogError("Tile collider not found!");
+            return false;
+        }
+
+        Bounds tileBounds = tileCollider.bounds;
+        Collider[] overlappingColliders = Physics.OverlapBox(
+            tileBounds.center,
+            tileBounds.extents,
+            tile.transform.rotation,
+            LayerMask.GetMask("Piece")
+        );
+
+        // no collision - free tile
+        if (overlappingColliders.Length == 0)
+        {
+            Debug.Log("Feld ist frei");
+            return true;
+        }
+
+        PieceType otherPiece = overlappingColliders[0].GetComponent<PieceType>();
+
+        if (otherPiece != null)
+        {
+            // if opponent figure, destroy and move
+            if (otherPiece.team != team)
+            {
+                Debug.Log("Gegnerische Figur gefunden - kann geschlagen werden");
+                Destroy(otherPiece.gameObject);
+                return true;
+            } //if same team figure dont move
+            else if (otherPiece.team == team)
+            {
+                Debug.Log("gegner Figur: " + otherPiece.name);
+                Debug.Log($"Eigene Figur im Weg (Team {team})");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Hauptlogik für die Überprüfung von Bewegungen.
