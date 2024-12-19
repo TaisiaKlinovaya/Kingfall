@@ -14,7 +14,6 @@ public class Chessboard : MonoBehaviour
     private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
     private ChessPieceMovement selectedPiece = null;
-    private PieceType oppositePiece = null;
 
     public void Initialize(GameObject[,] tiles)
     {
@@ -68,7 +67,7 @@ public class Chessboard : MonoBehaviour
                         //Wenn FFigur Selektiert, führe Methode dieser Figur aus
                         if (selectedPiece != null)
                         {
-                            selectedPiece.SeeFigure(tilePosition);
+                            selectedPiece.SeeFigure(tilePosition, tiles);
                             selectedPiece = null;
                         }
                         else
@@ -187,7 +186,7 @@ public class Chessboard : MonoBehaviour
                     selectedPiece.team = teamNum;
                     selectedPiece.CurrentPosition = tilePosition;
                     Debug.Log($"{teamColor} {pieceName} selected");
-                }
+                } 
                 else if (selectedPiece == chessPiece)
                 {
                     Debug.Log($"Same {pieceName} clicked again");
