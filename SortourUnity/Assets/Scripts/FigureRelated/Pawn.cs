@@ -17,7 +17,6 @@ public class Pawn : PieceType
     public bool IsValidMove(Vector2Int targetPosition)
     {
         int direction = (Team == 0) ? 1 : -1; // White moves +1, Black moves -1
-        Debug.Log("direction " + direction + " team " + team);
 
         // Calculate distances
         int distanceX = Mathf.Abs(targetPosition.x - (int)CurrentPosition.x);
@@ -54,7 +53,8 @@ public class Pawn : PieceType
             return false;
         }
 
-        return true;
+
+            return true;
     }
 
     public void MoveToTile(Vector2Int targetPosition)

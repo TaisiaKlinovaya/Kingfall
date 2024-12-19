@@ -2,20 +2,28 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
+using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : MonoBehaviour
 {
-    //
+    public static GameManager Instance { get; private set; }
+    private String state;
+    public int CurrentPlayer { get { return currentPlayer; } }
+    public String State { get { return state; } }
+
     //  ####    Start Scene UI_Elemente  ###
+    [Header("Start Scene UI Elemente")]
     public GameObject startScene;           // Referenz zum Startmenü UI
     public Button startButton;              // Button, um das Spiel zu starten
 
     //
     //  ####    Game Scene UI_Elemente  ####
+    [Header("Game Scene UI Elemente")]
     public GameObject gameScene;
     public Text roundTimerText;             // UI-Textfeld für den Runden-Timer
     public Button finishedButton;           // Button um vor der Zeit seinen Spielzug zu beenden 
     private float roundTime = 120f;         // 2 Minuten in Sekunden
+    private bool isRoundActive = true;
     private bool isGameStarted = false;     // Bool, um zu überprüfen, ob das Spiel gestartet ist
     private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde
     //  ####    Transformation  ####
@@ -23,21 +31,31 @@ public class GameManager : MonoBehaviour
 
     //
     //  ####    Break Scene UI_Elemente     ####
+    [Header("Break Scene UI Elemente")]
     public GameObject breakScene;
     public Button resumeButton;
     public Button quitButton;
-    private bool isPaused = false;          // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
-
-
+    private bool isPaused = false;                  // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
 
     //
     //  ####    Spieler 1 & 2 hinzufügen    ####
+    [Header("Spieler Kameras")]
     public Camera player1Camera;
     public Camera player2Camera;
     private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
 
     void Start()
     {
+        state = "StartMenu";
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Instance = this;
+        }
+
         // Startmenü anzeigen & Game/Break Scene zu beginn deaktivieren
         startScene.SetActive(true);
         gameScene.SetActive(false);
@@ -71,8 +89,10 @@ public class GameManager : MonoBehaviour
             if (roundTime <= 0)
             {
                 roundTime = 0;
-                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt.
-                Debug.Log("Rundenzeit abgelaufen.");
+
+                Debug.Log("Rundenzeit abgelaufen.");    //  Debug Information
+
+                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt
             }
         }
 
@@ -88,11 +108,20 @@ public class GameManager : MonoBehaviour
                 PauseGame();
             }
         }
+
+        if (isRoundActive)
+        {
+            if(roundTime <= 0)
+            {
+                Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
+                MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
+            }
+        }
     }
 
     public void StartGame()
     {
-
+        state = "GameRun";
         // Startmenü deaktivieren und das Spiel fortsetzen
         startScene.SetActive(false);
         gameScene.SetActive(true);             // << Aktiviert die Game Scene
@@ -102,6 +131,9 @@ public class GameManager : MonoBehaviour
         // Runden-Timer und Transformations-Button anzeigen
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
+
+        Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);  // Debug Information
+
 
         // Den Listener für den Transformations-Button hinzufügen
         transformButton.onClick.AddListener(TransformPiece);
@@ -119,46 +151,47 @@ public class GameManager : MonoBehaviour
     //  ###     Bearbeitung - Transformation bestimmter Schachfiguren (später)     ###
     public void TransformPiece()
     {
-        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug: Überprüfen, ob die Transformationslogik funktioniert
+        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug Information
         // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Transformationslogik hinzufügen.
     }
 
     //
-    //  ###     Bearbeitung - Spielzug früher beenden (später)     ###
+    //  ###     Spielzug früher beenden     ###     NEU Funktioniert 
     public void MoveFinished()
     {
-        Debug.Log("Der Spieler hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
-        // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Logik hinzufügen.
+        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
 
-        //  Spieler wird gewechselt
-        SwitchPlayer();
-
-        roundTime = 120f;
-
-        Debug.Log($"Spieler {currentPlayer} ist jetzt am Zug");
+        roundTime = 120f;       //  Runden zeit zurücksetzen
+        isRoundActive = true;   //  Runde erneut aktivieren
+        SwitchPlayer();         //  Spieler wird gewechselt
     }
 
     //
     //  ###     Break Menü     ###
     public void PauseGame()
     {
+        state = "PauseMenu";
         breakScene.SetActive(true);
-        Time.timeScale = 0f;        // Zeit anhalten
+        Time.timeScale = 0f;            // Zeit anhalten
         isPaused = true;
-        Debug.Log("Spiel pausiert.");
+
+        Debug.Log("Spiel pausiert. State: " + state);   //  Debug Information 
     }
 
     public void ResumeGame()
     {
+        state = "GameRun";
         breakScene.SetActive(false);
-        Time.timeScale = 1f;        // Zeit fortsetzen
+        Time.timeScale = 1f;                // Zeit fortsetzen
         isPaused = false;
-        Debug.Log("Spiel fortgesetzt.");
+
+        Debug.Log("Spiel fortgesetzt.");    //  Debug Information 
     }
 
     public void QuitGame()
     {
-        Debug.Log("Zurück zum Startbildschirm");
+        state = "StartMenu";
+        Debug.Log("Zurück zum Startbildschirm, State :" + state);
 
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
