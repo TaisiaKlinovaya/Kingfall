@@ -3776,7 +3776,7 @@ MonoBehaviour:
   - {fileID: 2162507986182748001, guid: f98bda84e2225024ebe83cde9505f51f, type: 3}
   WhiteTeamPrefabs:
   - {fileID: 8136827764730858393, guid: f592e6afef9abe24e875ab0c7615adde, type: 3}
-  - {fileID: 5200633497699764783, guid: 2afef3ebeb0f8c240a31a78f5b0810ad, type: 3}
+  - {fileID: 5200633497699764783, guid: 81522c5c8be343246a9468d49742f6ae, type: 3}
   - {fileID: 801951312439803475, guid: acada30ab58247849b1e3dd006ba1878, type: 3}
   - {fileID: 6007263896112012174, guid: 523ff490d1a9d8944b2d7e515dcfc747, type: 3}
   - {fileID: 831783141443313000, guid: 67d802d12813df7478b02e0124a24a02, type: 3}
