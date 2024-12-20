@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1068802910457119734}
   - component: {fileID: 5933055407761686686}
   - component: {fileID: -7618546267300713837}
+  - component: {fileID: 5741519700254806}
   m_Layer: 0
   m_Name: PawnWhite
   m_TagString: Untagged
@@ -31,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -2.485239, y: 1.2282554, z: -0.5076123}
-  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -137,5 +138,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 
-  CurrentPosition: {x: 0, y: 0}
+--- !u!114 &5741519700254806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8136827764730858393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae00eb64ec5981449b2bd61bfaf30fdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 0
+  currentX: 0
+  currentY: 0
+  type: 0
