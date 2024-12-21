@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.02805158, g: 0.023316467, b: 0.020225631, a: 1}
+  m_IndirectSpecularColor: {r: 0.028051583, g: 0.02331647, b: 0.02022564, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -723,8 +723,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 246866477}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.92387956, z: 0.38268343, w: 0}
-  m_LocalPosition: {x: 0, y: 9.5, z: 8.5}
+  m_LocalRotation: {x: -0.0003572985, y: -0.91418254, z: 0.40530178, w: -0.0008134293}
+  m_LocalPosition: {x: -0.0019102735, y: 9.223516, z: 8.439021}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -913,7 +913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fe45e29974b7f644bbbcc6aa7aaa47c6, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -1.23
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fe45e29974b7f644bbbcc6aa7aaa47c6, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1940,8 +1940,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 739816373}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.39961436, y: -0, z: -0, w: 0.9166834}
-  m_LocalPosition: {x: 0, y: 9.5, z: -8}
+  m_LocalRotation: {x: -0.423049, y: -0.0021721206, z: 0.001017766, w: -0.9061037}
+  m_LocalPosition: {x: -0.022825379, y: 9.536801, z: -8.076001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2528,7 +2528,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 82d4d97f840d93345b3e66c943134e9d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.74
+      value: -0.49
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 82d4d97f840d93345b3e66c943134e9d, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3652,6 +3652,9 @@ MonoBehaviour:
   tileMaterial: {fileID: 2100000, guid: 7cc2af1d49e87b648aa772e53d81e33c, type: 2}
   tileSize: 1
   yOffset: 0
+  deathSize: 0.75
+  deathSpacing: 0.5025
+  dragOffset: 1
   BlackTeamPrefabs:
   - {fileID: 8371137057724265051, guid: c4216fb004bd9b14e91327afef52b3fd, type: 3}
   - {fileID: 4092411331329298651, guid: c3a06a60db639854a8d07749e473074a, type: 3}
@@ -3675,7 +3678,7 @@ Transform:
   m_GameObject: {fileID: 1407249035}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4, y: 1.25, z: -4}
+  m_LocalPosition: {x: -4, y: 0.01999998, z: -4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4016,7 +4019,7 @@ Transform:
   m_GameObject: {fileID: 1784679142}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.532824, y: -5.132353, z: -1.4976279}
+  m_LocalPosition: {x: -2.532824, y: -6.362353, z: -1.4976279}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4508,13 +4511,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: board
       objectReference: {fileID: 0}
+    - target: {fileID: 3207204067633619840, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5046873517097235802, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5046873517097235802, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.23
+      value: -1.46
       objectReference: {fileID: 0}
     - target: {fileID: 5046873517097235802, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
       propertyPath: m_LocalPosition.z

@@ -5,73 +5,49 @@ using TreeEditor;
 using UnityEngine;
 public class Pawn : PieceType
 {
-    private bool isFirstMove = true;
-    public Vector2 CurrentPosition;
-    public int Team;
-
-    private void Start()
+    public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
-        CurrentPosition = transform.position;
-    }
+        List<Vector2Int> r = new List<Vector2Int>();
 
-    public bool IsValidMove(Vector2Int targetPosition)
-    {
-        int direction = (Team == 0) ? 1 : -1; // White moves +1, Black moves -1
+        int direction = (team == 0) ? 1 : -1;
 
-        // Calculate distances
-        int distanceX = Mathf.Abs(targetPosition.x - (int)CurrentPosition.x);
-        int distanceY = targetPosition.y - (int)CurrentPosition.y;
-
-        // Ensure movement is in the correct direction
-        if (distanceY * direction < 0)
+        // One in front
+        if (board[currentX, currentY + direction] == null)
         {
-            Debug.Log("Invalid move: Can only move forward in the correct direction.");
-            return false;
+            r.Add(new Vector2Int(currentX, currentY + direction));
         }
 
-        // Normalize distance for direction
-        int normalizedDistanceY = Mathf.Abs(distanceY);
-
-        // Allow one step forward (or two steps on first move)
-        if (normalizedDistanceY > 2 || (normalizedDistanceY == 2 && !isFirstMove))
+        // Two in Front
+        if (board[currentX, currentY + direction] == null)
         {
-            Debug.Log("Invalid move: Too many steps forward.");
-            return false;
+            // Weißes Team
+            if (team == 0 && currentY == 1 && board[currentX, currentY + (direction * 2)] == null)
+            {
+                r.Add(new Vector2Int(currentX, currentY + (direction * 2)));
+            }
+
+            // Schwarzes Team
+            if (team == 1 && currentY == 6 && board[currentX, currentY + (direction * 2)] == null)
+            {
+                r.Add(new Vector2Int(currentX, currentY + (direction * 2)));
+            }
+        }
+        //Kill move
+        if (currentX != tileCountX - 1)
+        {
+            if (board[currentX + 1, currentY + direction] != null && board[currentX + 1, currentY + direction].team != team)
+            {
+                r.Add(new Vector2Int(currentX + 1, currentY + direction));
+            }
         }
 
-        // Sideways movement restricted to 1 square (for captures)
-        if (distanceX > 1)
+        if (currentX != 0)
         {
-            Debug.Log("Invalid move: Cannot move more than one square sideways.");
-            return false;
+            if (board[currentX - 1, currentY + direction] != null && board[currentX - 1, currentY + direction].team != team)
+            {
+                r.Add(new Vector2Int(currentX - 1, currentY + direction));
+            }
         }
-
-        // Additional check for pure forward movement (no sideways movement for non-capture)
-        if (distanceX > 0 && normalizedDistanceY == 1)
-        {
-            Debug.Log("Invalid move: Can only move sideways when capturing.");
-            return false;
-        }
-
-
-            return true;
-    }
-
-    public void MoveToTile(Vector2Int targetPosition)
-    {
-        if (IsValidMove(targetPosition))
-        {
-            // Adjust position to center of tile
-            transform.localPosition = new Vector3(targetPosition.x + 0.5f, transform.position.y, targetPosition.y + 0.5f);
-
-            CurrentPosition = new Vector2(targetPosition.x, targetPosition.y);
-            isFirstMove = false;
-
-            Debug.Log($"Pawn moved to: ({targetPosition.x}, {targetPosition.y})");
-        }
-        else
-        {
-            Debug.Log("Move failed.");
-        }
+        return r;
     }
 }
