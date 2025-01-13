@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 7987142186667015833}
   - component: {fileID: 3764602536598878742}
   - component: {fileID: 2073995322194877687}
-  - component: {fileID: 636038473499049198}
   - component: {fileID: 646913672452568659}
-  - component: {fileID: 8265740708813675757}
+  - component: {fileID: -117210440022231357}
   m_Layer: 0
   m_Name: BishopBlack
   m_TagString: Untagged
@@ -86,22 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &636038473499049198
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 841951212914518022}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1124272c15797514294ce3624ac590c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
 --- !u!136 &646913672452568659
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -125,7 +108,7 @@ CapsuleCollider:
   m_Height: 0.04
   m_Direction: 1
   m_Center: {x: 0.000000038184222, y: 0.017552363, z: -0.000000009313225}
---- !u!114 &8265740708813675757
+--- !u!114 &-117210440022231357
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,7 +117,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 841951212914518022}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Script: {fileID: 11500000, guid: 142c88df39c1a6549aa762f8a4239e27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 

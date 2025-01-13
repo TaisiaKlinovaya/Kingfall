@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 3851764013877986434}
   - component: {fileID: 6790964873197847648}
   - component: {fileID: 7046532198401517468}
-  - component: {fileID: -3424178595377192016}
   - component: {fileID: 5714721321918155320}
-  - component: {fileID: 1389759005402564767}
+  - component: {fileID: 4424053998118653489}
   m_Layer: 0
   m_Name: QueenWhite
   m_TagString: Untagged
@@ -87,22 +86,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-3424178595377192016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 831783141443313000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1124272c15797514294ce3624ac590c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
 --- !u!136 &5714721321918155320
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -120,13 +103,13 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.34
   m_Height: 1.24
   m_Direction: 1
   m_Center: {x: -0.000000074505806, y: 0.56373227, z: 0}
---- !u!114 &1389759005402564767
+--- !u!114 &4424053998118653489
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -135,7 +118,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 831783141443313000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Script: {fileID: 11500000, guid: a4c0a3fed2184a44baadd846e980a06c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 
+  team: 0
+  currentX: 0
+  currentY: 0
+  type: 0
