@@ -1,15 +1,12 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using TreeEditor;
+#endif
 using UnityEngine;
 public class Pawn : PieceType
 {
-    public void Start()
-    {
-        
-    }
-    public void Update()
-    {
-        
-    }
     public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
         List<Vector2Int> r = new List<Vector2Int>();
@@ -55,5 +52,4 @@ public class Pawn : PieceType
         }
         return r;
     }
-
 }

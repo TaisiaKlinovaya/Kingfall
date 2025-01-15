@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 4691927549410169635}
   - component: {fileID: 6361994215001663728}
   - component: {fileID: 2985542596219991657}
-  - component: {fileID: 6051262414639862804}
   - component: {fileID: -3818059215835647401}
-  - component: {fileID: 7448591617496002544}
+  - component: {fileID: 4511195334191856771}
   m_Layer: 0
   m_Name: PawnBlack
   m_TagString: Untagged
@@ -31,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -2.485239, y: 1.2282554, z: -0.5076123}
-  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -43,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8371137057724265051}
-  m_Mesh: {fileID: 394811329889943572, guid: 66f051ffe0721494eb89490e60fec01c, type: 3}
+  m_Mesh: {fileID: 6590731582013008299, guid: 17449c0804f64c1459ff5d0495835e74, type: 3}
 --- !u!23 &2985542596219991657
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -64,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d6a7c91f3df91aa4db6dcb8c560b5225, type: 2}
+  - {fileID: -4660651839558579860, guid: 17449c0804f64c1459ff5d0495835e74, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -86,22 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6051262414639862804
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8371137057724265051}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1124272c15797514294ce3624ac590c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
 --- !u!136 &-3818059215835647401
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -119,13 +102,13 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
-  m_Radius: 0.54
-  m_Height: 2.35
+  m_Radius: 0.3
+  m_Height: 0.79
   m_Direction: 1
   m_Center: {x: -0.000000022351742, y: 0.34086126, z: 0.000000022351742}
---- !u!114 &7448591617496002544
+--- !u!114 &4511195334191856771
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,9 +117,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8371137057724265051}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Script: {fileID: 11500000, guid: ae00eb64ec5981449b2bd61bfaf30fdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 
-  CurrentPosition: {x: 0, y: 0}
   team: 0
+  currentX: 0
+  currentY: 0
+  type: 0

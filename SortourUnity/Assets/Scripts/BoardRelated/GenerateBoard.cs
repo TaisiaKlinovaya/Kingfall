@@ -1,7 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using TreeEditor;
+using Unity.VisualScripting;
+#endif
+
 using UnityEngine;
 
 public class GenerateBoard : MonoBehaviour
@@ -11,7 +15,7 @@ public class GenerateBoard : MonoBehaviour
     [SerializeField] private float tileSize = 1;
     [SerializeField] private float yOffset = 0f;
     [SerializeField] private float deathSize = 0.3f;
-    [SerializeField] private float deathSpacing = 0.3f;
+    [SerializeField] private float deathSpacing = 0.4f;
     [SerializeField] private float dragOffset = 1f;
 
     private const int TILE_COUNT_X = 8;
@@ -37,16 +41,20 @@ public class GenerateBoard : MonoBehaviour
     private Vector2Int currentHover;
     //private Camera currentCamera;
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
+    private bool isBoardGenerated = false;
+    private bool isSpawningInProgress = false;
 
 
     private void Awake()
     {
         GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
-        SpawnAllChessPieces();
-        positionPieces();
-        
+
+        // Initialize the allChessPieces array
+        allChessPieces = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
+
         chessboard = gameObject.AddComponent<Chessboard>();
         chessboard.Initialize(tiles);
+
     }
     private void Start()
     {
@@ -66,13 +74,26 @@ public class GenerateBoard : MonoBehaviour
     }
     private void Update()
     {
+        //spawn and delete all chesspieces based on game state
+        if (GameManager.Instance.State == "GameRun" && !isBoardGenerated && !isSpawningInProgress)
+        {
+            isSpawningInProgress = true;  // Set flag before starting spawn
+            StartCoroutine(SpawnAndPositionPiecesWithDelay());
+        }
+        if (GameManager.Instance.State == "StartMenu")
+        {
+            isBoardGenerated = false;
+            isSpawningInProgress = false;  // Reset the flag when returning to menu
+            DeleteAllPieces();
+        }
+
 
         if (!currentCamera)
         {
             currentCamera = Camera.main;
             return;
         }
-        //
+        
         if (GameManager.Instance.State == "GameRun")
         {
             //set camera depending on whose turn it is
@@ -84,106 +105,89 @@ public class GenerateBoard : MonoBehaviour
             {
                 currentCamera = GameObject.Find("Player2Camera").GetComponent<Camera>();
             }
-            //
-            RaycastHit info;
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover", "Highlight")))//W!, "Highlight"
-            {
-                //Get the indexes of tile we hit
-                Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
-                //If we are hovering any tile after not hovering any tile
-                if (currentHover == -Vector2Int.one)
-                {
-                    currentHover = hitPosition;
-                    tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-                }
-                //if we were already hovernig a tile, change prewius
-                if (currentHover != hitPosition)
-                {
-                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
-                    currentHover = hitPosition;
-                    tiles[currentHover.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-                }
-                // If we press down on the mouse
-                if (Input.GetMouseButtonDown(0))
-                {
-                    if (allChessPieces[hitPosition.x, hitPosition.y] != null)
-                    {
-                        // Is it our turn?
-                        if (true)
-                        {
-                            currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
 
-                            // Get a list of where i can go, highlight tiles as well
-                            availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
-                            HighlightTiles();
+            //only interactable if board is fully generated
+            if (isBoardGenerated)
+            {
+                RaycastHit info;
+                Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover", "Highlight")))//W!, "Highlight"
+                {
+                    //Get the indexes of tile we hit
+                    Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
+                    //If we are hovering any tile after not hovering any tile
+                    if (currentHover == -Vector2Int.one)
+                    {
+                        currentHover = hitPosition;
+                        tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
+                    }
+                    //if we were already hovernig a tile, change prewius
+                    if (currentHover != hitPosition)
+                    {
+                        tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
+                        currentHover = hitPosition;
+                        tiles[currentHover.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
+                    }
+                    // If we press down on the mouse
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        if (allChessPieces[hitPosition.x, hitPosition.y] != null)
+                        {
+                            // Is it our turn?
+                            if (true)
+                            {
+                                currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
+
+                                // Get a list of where i can go, highlight tiles as well
+                                availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
+                                HighlightTiles();
+                            }
                         }
                     }
-                }
-                // If we are releasing the mouse button
-                if (currentlyDragging != null && Input.GetMouseButtonUp(0))
-                {
-                    Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
-
-                    bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-                    if (!validMove)//!
+                    // If we are releasing the mouse button
+                    if (currentlyDragging != null && Input.GetMouseButtonUp(0))
                     {
-                        currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                        Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
+
+                        bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
+                        if (!validMove)//!
+                        {
+                            currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                            currentlyDragging = null;
+                        }
+
+
                         currentlyDragging = null;
+
+                        RemoveHighlightTiles();
+
                     }
 
 
-                    currentlyDragging = null;
-
-                    RemoveHighlightTiles();
-
                 }
-
-            }
-            else
-            {
-                if (currentHover != -Vector2Int.one)
+                else
                 {
-                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
-                    currentHover = -Vector2Int.one;
-                }
-                if (currentlyDragging && Input.GetMouseButtonUp(0))
-                {
-                    currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
-                    currentlyDragging = null;
-                    RemoveHighlightTiles();
-                }
-            }
-            //if we are dragging a piece
-            if (currentlyDragging)
-            {
-                Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
-                float distance = 0.0f;
-                if (horizontalPlane.Raycast(ray, out distance))
-                {
-                    currentlyDragging.SetPosition(ray.GetPoint(distance) + Vector3.up * dragOffset);
-                }
-            }
-            if (Input.GetMouseButtonDown(0))
-            {
-                //Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-
-                if (Physics.Raycast(ray, out hit, 100f, LayerMask.GetMask("Tile", "Hover")))
-                {
-                    Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
-                    if (tilePosition != -Vector2Int.one)
+                    if (currentHover != -Vector2Int.one)
                     {
-                        //Wenn FFigur Selektiert, führe Methode dieser Figur aus
-                        //if (selectedPiece != null)
-                        //{
-                        //    //selectedPiece.SeeFigure(tilePosition, tiles);
-                        //    //selectedPiece = null;
-                        //}
-                        //else
-                        //{
-                        //    CheckTileClick(tilePosition);
-                        //}
+                        tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
+                        currentHover = -Vector2Int.one;
+                    }
+                    if (currentlyDragging && Input.GetMouseButtonUp(0))
+                    {
+                        currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
+                        currentlyDragging = null;
+                        RemoveHighlightTiles();
+                    }
+                }
+
+                //if we are dragging a piece
+                if (currentlyDragging)
+                {
+                    Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
+                    float distance = 0.0f;
+                    if (horizontalPlane.Raycast(ray, out distance))
+                    {
+                        currentlyDragging.SetPosition(ray.GetPoint(distance) + Vector3.up * dragOffset);
                     }
                 }
             }
@@ -269,6 +273,8 @@ public class GenerateBoard : MonoBehaviour
         }
         availableMoves.Clear();
     }
+
+    // Operations
     private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2 pos)
     {
         for (int i = 0; i < moves.Count; i++)
@@ -302,20 +308,20 @@ public class GenerateBoard : MonoBehaviour
             if (ocp.team == 0)
             {
                 deadWhites.Add(ocp);
-                ocp.SetScale(Vector3.one * 1);
+                ocp.SetScale(Vector3.one * deathSize);
                 ocp.SetPosition(
-                    new Vector3(9 * tileSize, yOffset, -1 * tileSize)
-                    - bounds
-                    + new Vector3(tileSize / 2, 0, tileSize / 2)
-                    + (Vector3.forward * deathSpacing) * deadWhites.Count);
+                new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
+                - bounds
+                + new Vector3(tileSize / 2, 0, tileSize / 2)
+                + (Vector3.forward * deathSpacing) * deadWhites.Count);
             }
             else
             {
                 deadBlacks.Add(ocp);
-                ocp.SetScale(Vector3.one * 1);
+                ocp.SetScale(Vector3.one * deathSize);
                 ocp.SetPosition(
-                    new Vector3(9 * tileSize, yOffset, 8 * tileSize)
-                    - bounds 
+                    new Vector3(-1 * tileSize, yOffset - 0.23f, 8 * tileSize)
+                    - bounds
                     + new Vector3(tileSize / 2, 0, tileSize / 2)
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
             }
@@ -363,62 +369,103 @@ public class GenerateBoard : MonoBehaviour
         return piece;
     }
 
-    private void SpawnAllChessPieces()
+    private IEnumerator SpawnAndPositionPiecesWithDelay()
     {
+        // Clear the board first
+        DeleteAllPieces();
         allChessPieces = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
 
         int whiteTeam = 0;
         int blackTeam = 1;
 
-        //white team
-        allChessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
-        allChessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
-        allChessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
-        allChessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Queen, whiteTeam);
-        allChessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.King, whiteTeam);
-        allChessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
-        allChessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
-        allChessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
-        for (int i = 0; i < TILE_COUNT_X; i++)
+        // Helper method to spawn and position a piece
+        void SpawnAndPositionPiece(ChessPieceType type, int team, int x, int y)
         {
-            allChessPieces[i, 1] = SpawnSinglePiece(ChessPieceType.Pawn, whiteTeam);
+            if (allChessPieces[x, y] != null)
+            {
+                Debug.LogError($"Unexpected piece at {x},{y}. This shouldn't happen!");
+                return;
+            }
+
+            allChessPieces[x, y] = SpawnSinglePiece(type, team);
+            positionSinglePiece(x, y, true);
         }
 
-        //black team
-        allChessPieces[0, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
-        allChessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
-        allChessPieces[2, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
-        allChessPieces[3, 7] = SpawnSinglePiece(ChessPieceType.Queen, blackTeam);
-        allChessPieces[4, 7] = SpawnSinglePiece(ChessPieceType.King, blackTeam);
-        allChessPieces[5, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
-        allChessPieces[6, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
-        allChessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
+        // Spawn and position white team
+        SpawnAndPositionPiece(ChessPieceType.Rook, whiteTeam, 0, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Knight, whiteTeam, 1, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Bishop, whiteTeam, 2, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Queen, whiteTeam, 3, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.King, whiteTeam, 4, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Bishop, whiteTeam, 5, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Knight, whiteTeam, 6, 0);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Rook, whiteTeam, 7, 0);
+        yield return new WaitForSeconds(0.2f);
+
         for (int i = 0; i < TILE_COUNT_X; i++)
         {
-            allChessPieces[i, 6] = SpawnSinglePiece(ChessPieceType.Pawn, blackTeam);
+            SpawnAndPositionPiece(ChessPieceType.Pawn, whiteTeam, i, 1);
+            yield return new WaitForSeconds(0.1f);
         }
+
+        // Spawn and position black team
+        SpawnAndPositionPiece(ChessPieceType.Rook, blackTeam, 0, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Knight, blackTeam, 1, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Bishop, blackTeam, 2, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Queen, blackTeam, 3, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.King, blackTeam, 4, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Bishop, blackTeam, 5, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Knight, blackTeam, 6, 7);
+        yield return new WaitForSeconds(0.2f);
+        SpawnAndPositionPiece(ChessPieceType.Rook, blackTeam, 7, 7);
+
+
+        for (int i = 0; i < TILE_COUNT_X; i++)
+        {
+            SpawnAndPositionPiece(ChessPieceType.Pawn, blackTeam, i, 6);
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isBoardGenerated = true;
+        isSpawningInProgress = false;  // Reset flag after spawning is complete
+        yield break;
     }
 
-    // positioning pieces
 
-    private void positionPieces()
+    private void positionSinglePiece(int x, int y, Boolean force = false)
     {
+        allChessPieces[x, y].currentX = x;
+        allChessPieces[x, y].currentY = y;
+        allChessPieces[x, y].SetPosition(GetTileCenter(x, y), force);
+        allChessPieces[x, y].transform.localPosition = new Vector3(x * tileSize + (tileSize / 2), yOffset, y * tileSize + (tileSize / 2));
+    }
+
+    public void DeleteAllPieces()
+    {
+        // Iterate through the array and destroy each piece
         for (int x = 0; x < TILE_COUNT_X; x++)
         {
             for (int y = 0; y < TILE_COUNT_Y; y++)
             {
                 if (allChessPieces[x, y] != null)
                 {
-                    positionSinglePiece(x, y, true);
+                    Destroy(allChessPieces[x, y].gameObject);
+                    allChessPieces[x, y] = null; // Clear reference in the array
                 }
             }
         }
-    }
-    private void positionSinglePiece(int x, int y, Boolean force = false)
-    {
-        allChessPieces[x, y].currentX = x;
-        allChessPieces[x, y].currentY = y;
-        allChessPieces[x, y].SetPosition(GetTileCenter(x, y), force); //W!
-        //allChessPieces[x, y].transform.localPosition = new Vector3(x * tileSize + (tileSize / 2), yOffset, y * tileSize + (tileSize / 2));
     }
 }

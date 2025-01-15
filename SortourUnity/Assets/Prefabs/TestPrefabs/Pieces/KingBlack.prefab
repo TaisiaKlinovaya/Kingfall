@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 2036994965003641391}
   - component: {fileID: 6515480907882390094}
   - component: {fileID: 4986633053428451972}
-  - component: {fileID: -2364908398660209174}
   - component: {fileID: 8592778538225571616}
-  - component: {fileID: 6652502915634670439}
+  - component: {fileID: 8694228169382971026}
   m_Layer: 0
   m_Name: KingBlack
   m_TagString: Untagged
@@ -43,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2162507986182748001}
-  m_Mesh: {fileID: -6650468367744337225, guid: b5cf2019f853299488cef38136afe773, type: 3}
+  m_Mesh: {fileID: 5454144085375349945, guid: 17449c0804f64c1459ff5d0495835e74, type: 3}
 --- !u!23 &4986633053428451972
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -64,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d39689015b9c73c4886e9e34d8b9d3f4, type: 2}
+  - {fileID: -4660651839558579860, guid: 17449c0804f64c1459ff5d0495835e74, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -86,22 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-2364908398660209174
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2162507986182748001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1124272c15797514294ce3624ac590c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
 --- !u!136 &8592778538225571616
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -119,13 +102,13 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
-  m_Radius: 0.42
-  m_Height: 2.4
+  m_Radius: 0.38
+  m_Height: 1.4
   m_Direction: 1
   m_Center: {x: 0, y: 0.64963883, z: 0}
---- !u!114 &6652502915634670439
+--- !u!114 &8694228169382971026
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -134,9 +117,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2162507986182748001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
+  m_Script: {fileID: 11500000, guid: 51aeef0e37b9bba4db93de7c08159f63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: 
-  CurrentPosition: {x: 0, y: 0}
   team: 0
+  currentX: 0
+  currentY: 0
+  type: 0

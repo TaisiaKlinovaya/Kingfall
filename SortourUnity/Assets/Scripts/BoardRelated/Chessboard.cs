@@ -52,7 +52,7 @@ public class Chessboard : MonoBehaviour
             }
 
 
-            HoverTiles(currentCamera);
+            //HoverTiles(currentCamera);
 
             if (Input.GetMouseButtonDown(0))
             {
@@ -67,8 +67,8 @@ public class Chessboard : MonoBehaviour
                         //Wenn FFigur Selektiert, führe Methode dieser Figur aus
                         if (selectedPiece != null)
                         {
-                            selectedPiece.SeeFigure(tilePosition, tiles);
-                            selectedPiece = null;
+                            //selectedPiece.SeeFigure(tilePosition, tiles);
+                            //selectedPiece = null;
                         }
                         else
                         {
@@ -81,39 +81,10 @@ public class Chessboard : MonoBehaviour
 
     }
 
-    public void HoverTiles(Camera currentCamera)
-    {
-        RaycastHit info;
-        Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+    //public void HoverTiles(Camera currentCamera)
+    //{
 
-        // Visualisiere den Ray im Editor
-        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
-
-        if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover")))
-        {
-            Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
-
-            if (currentHover == -Vector2Int.one)
-            {
-                currentHover = hitPosition;
-                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-            }
-            if (currentHover != hitPosition)
-            {
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                currentHover = hitPosition;
-                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
-            }
-        }
-        else
-        {
-            if (currentHover != -Vector2Int.one)
-            {
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                currentHover = -Vector2Int.one;
-            }
-        }
-    }
+    //}
 
     private Vector2Int LookupTileIndex(GameObject hitInfo)
     {
@@ -150,7 +121,7 @@ public class Chessboard : MonoBehaviour
 
         if (tileCollider == null)
         {
-            Debug.LogError("Tile collider not found!");
+            //Debug.LogError("Tile collider not found!");
             return;
         }
 
@@ -181,25 +152,25 @@ public class Chessboard : MonoBehaviour
                 // Wenn keine Figur ausgewählt ist, wähle diese Figur aus
                 if (selectedPiece == null)
                 {
-                    selectedPiece = chessPiece;
-                    selectedPiece.name = pieceName;
-                    selectedPiece.team = teamNum;
-                    selectedPiece.CurrentPosition = tilePosition;
-                    Debug.Log($"{teamColor} {pieceName} selected");
-                } 
+                    //selectedPiece = chessPiece;
+                    //selectedPiece.name = pieceName;
+                    //selectedPiece.team = teamNum;
+                    //selectedPiece.CurrentPosition = tilePosition;
+                    //Debug.Log($"{teamColor} {pieceName} selected");
+                }
                 else if (selectedPiece == chessPiece)
                 {
-                    Debug.Log($"Same {pieceName} clicked again");
+                    //Debug.Log($"Same {pieceName} clicked again");
                 }
             }
             else
             {
-                Debug.LogWarning($"Piece components missing on collider");
+                //Debug.LogWarning($"Piece components missing on collider");
             }
         }
         else
         {
-            Debug.Log($"No piece found on this tile");
+            //Debug.Log($"No piece found on this tile");
         }
     }
 }

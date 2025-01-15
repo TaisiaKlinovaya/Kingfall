@@ -11,10 +11,8 @@ GameObject:
   - component: {fileID: 65653967384132358}
   - component: {fileID: 5966964952778194817}
   - component: {fileID: 6112507951187276431}
-  - component: {fileID: 1068802910457119734}
   - component: {fileID: 5933055407761686686}
-  - component: {fileID: -7618546267300713837}
-  - component: {fileID: 5741519700254806}
+  - component: {fileID: -944432499444778860}
   m_Layer: 0
   m_Name: PawnWhite
   m_TagString: Untagged
@@ -87,22 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1068802910457119734
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8136827764730858393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1124272c15797514294ce3624ac590c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  currentX: 0
-  currentY: 0
-  type: 0
 --- !u!136 &5933055407761686686
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -120,25 +102,13 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Radius: 0.31
   m_Height: 0.85
   m_Direction: 1
   m_Center: {x: -0.000000022351742, y: 0.34086126, z: 0.000000022351742}
---- !u!114 &-7618546267300713837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8136827764730858393}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 273f62a8f57534a4fb613b99a9300f0e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5741519700254806
+--- !u!114 &-944432499444778860
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

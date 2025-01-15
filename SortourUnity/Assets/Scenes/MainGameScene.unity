@@ -723,8 +723,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 246866477}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.92387956, z: 0.38268343, w: 0}
-  m_LocalPosition: {x: 0, y: 9.5, z: 8.5}
+  m_LocalRotation: {x: -0.0003572985, y: -0.91418254, z: 0.40530178, w: -0.0008134293}
+  m_LocalPosition: {x: -0.0019102735, y: 9.223516, z: 8.439021}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1940,8 +1940,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 739816373}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.39961436, y: -0, z: -0, w: 0.9166834}
-  m_LocalPosition: {x: 0, y: 9.5, z: -8}
+  m_LocalRotation: {x: -0.423049, y: -0.0021721206, z: 0.001017766, w: -0.9061037}
+  m_LocalPosition: {x: -0.022825379, y: 9.536801, z: -8.076001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3652,8 +3652,8 @@ MonoBehaviour:
   tileMaterial: {fileID: 2100000, guid: 7cc2af1d49e87b648aa772e53d81e33c, type: 2}
   tileSize: 1
   yOffset: 0
-  deathSize: 0.3
-  deathSpacing: 0.3
+  deathSize: 0.75
+  deathSpacing: 0.5025
   dragOffset: 1
   BlackTeamPrefabs:
   - {fileID: 8371137057724265051, guid: c4216fb004bd9b14e91327afef52b3fd, type: 3}
@@ -4510,6 +4510,10 @@ PrefabInstance:
     - target: {fileID: 3207204067633619840, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
       propertyPath: m_Name
       value: board
+      objectReference: {fileID: 0}
+    - target: {fileID: 3207204067633619840, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5046873517097235802, guid: 44d56ebdaad597e4087d9d155e0bf503, type: 3}
       propertyPath: m_LocalPosition.x

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
-//using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : MonoBehaviour
 {
@@ -127,6 +127,7 @@ public class GameManager : MonoBehaviour
         gameScene.SetActive(true);             // << Aktiviert die Game Scene
         Time.timeScale = 1f;
         isGameStarted = true;
+        isPaused = true;
 
         // Runden-Timer und Transformations-Button anzeigen
         roundTimerText.gameObject.SetActive(true);
