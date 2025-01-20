@@ -33,6 +33,8 @@ public class GenerateBoard : MonoBehaviour
     private PieceType currentlyDragging;
     private List<PieceType> deadWhites = new List<PieceType>();
     private List<PieceType> deadBlacks = new List<PieceType>();
+    private bool isKingDead = false;
+    private String winTeam;
 
     //Chessboard
     public static Chessboard ChessboardInstance { get; private set; }
@@ -87,6 +89,12 @@ public class GenerateBoard : MonoBehaviour
             DeleteAllPieces();
         }
 
+        //check if king is dead, activate win scene if he is
+        if(isKingDead == true)
+        {
+            GameManager.Instance.WinGame(winTeam);
+            isKingDead = false;
+        }
 
         if (!currentCamera)
         {
@@ -324,6 +332,13 @@ public class GenerateBoard : MonoBehaviour
                     - bounds
                     + new Vector3(tileSize / 2, 0, tileSize / 2)
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
+            }
+
+            if (ocp.type == ChessPieceType.King)
+            {
+                isKingDead = true;
+                winTeam = (ocp.team == 1) ? "White" : "Black";
+
             }
         }
 

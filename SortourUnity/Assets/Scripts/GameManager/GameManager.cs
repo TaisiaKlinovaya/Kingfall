@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
 using UnityEngine.Rendering.PostProcessing;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -37,6 +38,12 @@ public class GameManager : MonoBehaviour
     public Button quitButton;
     private bool isPaused = false;                  // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
 
+    //win scene UI
+    [Header("Win Scene UI")]
+    public GameObject winScene;
+    public Button ReturnToMain;
+    public TMP_Text winnerText;
+
     //
     //  ####    Spieler 1 & 2 hinzufügen    ####
     [Header("Spieler Kameras")]
@@ -60,6 +67,7 @@ public class GameManager : MonoBehaviour
         startScene.SetActive(true);
         gameScene.SetActive(false);
         breakScene.SetActive(false);
+        winScene.SetActive(false);
         Time.timeScale = 0f;
 
         // Spieler Camera auf true oder false setzen
@@ -75,6 +83,7 @@ public class GameManager : MonoBehaviour
         resumeButton.onClick.AddListener(ResumeGame);
         quitButton.onClick.AddListener(QuitGame);
         finishedButton.onClick.AddListener(MoveFinished);  // << Hinzugefügt
+        ReturnToMain.onClick.AddListener(QuitGame);
     }
 
     void Update()
@@ -179,6 +188,17 @@ public class GameManager : MonoBehaviour
         Debug.Log("Spiel pausiert. State: " + state);   //  Debug Information 
     }
 
+    public void WinGame(String winTeam)
+    {
+        state = "Win";
+        winnerText.SetText(winTeam + " team won!");
+        gameScene.SetActive(false);
+        breakScene.SetActive(false);
+
+        Time.timeScale = 0f;
+        winScene.SetActive(true);
+
+    }
     public void ResumeGame()
     {
         state = "GameRun";
@@ -197,6 +217,7 @@ public class GameManager : MonoBehaviour
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
         breakScene.SetActive(false);
+        winScene.SetActive(false);
 
         // Aktiviere das Startmenü
         startScene.SetActive(true);
