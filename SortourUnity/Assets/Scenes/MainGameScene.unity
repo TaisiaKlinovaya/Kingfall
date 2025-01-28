@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.028051583, g: 0.02331647, b: 0.02022564, a: 1}
+  m_IndirectSpecularColor: {r: 0.02805158, g: 0.023316467, b: 0.020225631, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2016,6 +2016,8 @@ GameObject:
   - component: {fileID: 782223434}
   - component: {fileID: 782223433}
   - component: {fileID: 782223432}
+  - component: {fileID: 782223436}
+  - component: {fileID: 782223435}
   m_Layer: 5
   m_Name: startButton
   m_TagString: Untagged
@@ -2099,6 +2101,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 782223432}
+        m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &782223433
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2137,6 +2151,34 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 782223430}
   m_CullTransparentMesh: 1
+--- !u!225 &782223435
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782223430}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &782223436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 782223430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a23c3dd82e2158498a04f5a37286923, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pulsateSpeed: 1
+  minAlpha: 0.06
+  maxAlpha: 0.85
+  canvasGroup: {fileID: 0}
 --- !u!1001 &826555183
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2422,6 +2464,9 @@ MonoBehaviour:
   breakScene: {fileID: 732720482}
   resumeButton: {fileID: 434023229}
   quitButton: {fileID: 1291019285}
+  winScene: {fileID: 0}
+  ReturnToMain: {fileID: 0}
+  winnerText: {fileID: 0}
   player1Camera: {fileID: 739816374}
   player2Camera: {fileID: 0}
 --- !u!4 &883939668
