@@ -29,6 +29,7 @@ public class PieceType : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * 10);
         transform.localScale = Vector3.Lerp(transform.localScale, desiredScale, Time.deltaTime * 10);
     }
+
     public virtual List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
         List<Vector2Int> r = new List<Vector2Int>();

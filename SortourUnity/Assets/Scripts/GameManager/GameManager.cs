@@ -3,12 +3,13 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
 using UnityEngine.Rendering.PostProcessing;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     private String state;
-    public int CurrentPlayer { get { return currentPlayer; } }
+    public int CurrentPlayer { get { return currentPlayer; } private set { } }
     public String State { get { return state; } }
 
     //  ####    Start Scene UI_Elemente  ###
@@ -37,12 +38,19 @@ public class GameManager : MonoBehaviour
     public Button quitButton;
     private bool isPaused = false;                  // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
 
+    //win scene UI
+    [Header("Win Scene UI")]
+    public GameObject winScene;
+    public Button ReturnToMain;
+    public TMP_Text winnerText;
+
     //
     //  ####    Spieler 1 & 2 hinzufügen    ####
     [Header("Spieler Kameras")]
     public Camera player1Camera;
     public Camera player2Camera;
-    private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
+    private int currentPlayer = 0;          // 1 für Spieler 1, 2 für Spieler 2
+    private GenerateBoard board;
 
     void Start()
     {
@@ -60,6 +68,7 @@ public class GameManager : MonoBehaviour
         startScene.SetActive(true);
         gameScene.SetActive(false);
         breakScene.SetActive(false);
+        winScene.SetActive(false);
         Time.timeScale = 0f;
 
         // Spieler Camera auf true oder false setzen
@@ -70,11 +79,24 @@ public class GameManager : MonoBehaviour
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
 
+        board = FindFirstObjectByType<GenerateBoard>();
+
+        SetInitialCamera();
+
+        if (finishedButton != null)
+        {
+            finishedButton.onClick.RemoveAllListeners();
+            finishedButton.onClick.AddListener(MoveFinished);
+        }
+
         // Listener für den Start-Button, Resume-Button, Quit-Button und Finished-Button
         startButton.onClick.AddListener(StartGame);
         resumeButton.onClick.AddListener(ResumeGame);
         quitButton.onClick.AddListener(QuitGame);
         finishedButton.onClick.AddListener(MoveFinished);  // << Hinzugefügt
+        ReturnToMain.onClick.AddListener(QuitGame);
+
+
     }
 
     void Update()
@@ -111,7 +133,7 @@ public class GameManager : MonoBehaviour
 
         if (isRoundActive)
         {
-            if(roundTime <= 0)
+            if (roundTime <= 0)
             {
                 Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
                 MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
@@ -160,11 +182,12 @@ public class GameManager : MonoBehaviour
     //  ###     Spielzug früher beenden     ###     NEU Funktioniert 
     public void MoveFinished()
     {
-        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
+        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");
 
         roundTime = 120f;       //  Runden zeit zurücksetzen
         isRoundActive = true;   //  Runde erneut aktivieren
-        SwitchPlayer();         //  Spieler wird gewechselt
+
+        SwitchPlayer();
     }
 
     //
@@ -179,6 +202,17 @@ public class GameManager : MonoBehaviour
         Debug.Log("Spiel pausiert. State: " + state);   //  Debug Information 
     }
 
+    public void WinGame(String winTeam)
+    {
+        state = "Win";
+        winnerText.SetText(winTeam + " team won!");
+        gameScene.SetActive(false);
+        breakScene.SetActive(false);
+
+        Time.timeScale = 0f;
+        winScene.SetActive(true);
+
+    }
     public void ResumeGame()
     {
         state = "GameRun";
@@ -197,6 +231,7 @@ public class GameManager : MonoBehaviour
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
         breakScene.SetActive(false);
+        winScene.SetActive(false);
 
         // Aktiviere das Startmenü
         startScene.SetActive(true);
@@ -212,27 +247,32 @@ public class GameManager : MonoBehaviour
         transformButton.gameObject.SetActive(false);
     }
 
-    // 
-    //  ####    Funktion zum wechseln der Spieler   ####
-    // Update: Spiellogik noch hinzufügen, welche Spieler gerade am zug ist
+    private void SetInitialCamera()
+    {
+        if (player1Camera != null) player1Camera.enabled = true;
+        if (player2Camera != null) player2Camera.enabled = false;
+
+        if (board != null)
+        {
+            board.SetCamera(currentPlayer);
+        }
+    }
+
     public void SwitchPlayer()
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
-        UpdateCamera();
-    }
 
-    private void UpdateCamera()
-    {
+        board.SetCamera(currentPlayer);
         if (currentPlayer == 1)
         {
-            player1Camera.enabled = true;
-            player2Camera.enabled = false;
+            if (player1Camera != null) player1Camera.enabled = true;
+            if (player2Camera != null) player2Camera.enabled = false;
         }
-        else
+        if (currentPlayer == 2)
         {
-            player1Camera.enabled = false;
-            player2Camera.enabled = true;
+            if (player1Camera != null) player1Camera.enabled = false;
+            if (player2Camera != null) player2Camera.enabled = true;
         }
-
+        Debug.Log("current player after switch Player: " + currentPlayer);
     }
 }
