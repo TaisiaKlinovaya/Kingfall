@@ -23,6 +23,8 @@ public class GenerateBoard : MonoBehaviour
     public GameObject[,] tiles;
     private Camera currentCamera;
     private Vector3 bounds;
+    private bool isKingDead = false;
+    private String winTeam;
 
 
     private List<Vector2Int> availableMoves = new List<Vector2Int>();
@@ -33,8 +35,6 @@ public class GenerateBoard : MonoBehaviour
     private PieceType currentlyDragging;
     private List<PieceType> deadWhites = new List<PieceType>();
     private List<PieceType> deadBlacks = new List<PieceType>();
-    private bool isKingDead = false;
-    private String winTeam;
 
     //Chessboard
     public static Chessboard ChessboardInstance { get; private set; }
@@ -46,9 +46,18 @@ public class GenerateBoard : MonoBehaviour
     private bool isBoardGenerated = false;
     private bool isSpawningInProgress = false;
 
+    public static GenerateBoard Instance { get; private set; }
 
     private void Awake()
     {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
 
         // Initialize the allChessPieces array
@@ -56,8 +65,8 @@ public class GenerateBoard : MonoBehaviour
 
         chessboard = gameObject.AddComponent<Chessboard>();
         chessboard.Initialize(tiles);
-
     }
+
     private void Start()
     {
         if (ChessboardInstance != null && ChessboardInstance != this)
@@ -74,6 +83,7 @@ public class GenerateBoard : MonoBehaviour
             currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
         }
     }
+
     private void Update()
     {
         //spawn and delete all chesspieces based on game state
@@ -88,20 +98,18 @@ public class GenerateBoard : MonoBehaviour
             isSpawningInProgress = false;  // Reset the flag when returning to menu
             DeleteAllPieces();
         }
-
         //check if king is dead, activate win scene if he is
-        if(isKingDead == true)
+        if (isKingDead == true)
         {
             GameManager.Instance.WinGame(winTeam);
             isKingDead = false;
         }
-
         if (!currentCamera)
         {
             currentCamera = Camera.main;
             return;
         }
-        
+
         if (GameManager.Instance.State == "GameRun")
         {
             //set camera depending on whose turn it is
@@ -119,59 +127,58 @@ public class GenerateBoard : MonoBehaviour
             {
                 RaycastHit info;
                 Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover", "Highlight")))//W!, "Highlight"
+                if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover", "Highlight")))
                 {
-                    //Get the indexes of tile we hit
                     Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
-                    //If we are hovering any tile after not hovering any tile
+
+                    // If we are hovering a tile after not hovering any tiles
                     if (currentHover == -Vector2Int.one)
                     {
                         currentHover = hitPosition;
                         tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
                     }
-                    //if we were already hovernig a tile, change prewius
+
+                    // If we were already hovering a tile, change the previous one
                     if (currentHover != hitPosition)
                     {
                         tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
                         currentHover = hitPosition;
-                        tiles[currentHover.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
+                        tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
                     }
+
                     // If we press down on the mouse
                     if (Input.GetMouseButtonDown(0))
                     {
-                        if (allChessPieces[hitPosition.x, hitPosition.y] != null)
+                        if (currentlyDragging == null)
                         {
-                            // Is it our turn?
-                            if (true)
+                            if (allChessPieces[hitPosition.x, hitPosition.y] != null)
                             {
-                                currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
+                                // Is it our turn?
+                                if (true)
+                                {
+                                    currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
 
-                                // Get a list of where i can go, highlight tiles as well
-                                availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
-                                HighlightTiles();
+                                    // Get a list of where i can go, highlight tiles as well
+                                    availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
+                                    HighlightTiles();
+                                }
                             }
                         }
-                    }
-                    // If we are releasing the mouse button
-                    if (currentlyDragging != null && Input.GetMouseButtonUp(0))
-                    {
-                        Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
-
-                        bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-                        if (!validMove)//!
+                        else
                         {
-                            currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                            // Try to move the piece to the new position
+                            Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
+
+                            bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
+                            if (!validMove)
+                            {
+                                currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                            }
+
                             currentlyDragging = null;
+                            RemoveHighlightTiles();
                         }
-
-
-                        currentlyDragging = null;
-
-                        RemoveHighlightTiles();
-
                     }
-
-
                 }
                 else
                 {
@@ -180,15 +187,9 @@ public class GenerateBoard : MonoBehaviour
                         tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
                         currentHover = -Vector2Int.one;
                     }
-                    if (currentlyDragging && Input.GetMouseButtonUp(0))
-                    {
-                        currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
-                        currentlyDragging = null;
-                        RemoveHighlightTiles();
-                    }
                 }
 
-                //if we are dragging a piece
+                // If we are dragging a piece
                 if (currentlyDragging)
                 {
                     Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
@@ -201,6 +202,19 @@ public class GenerateBoard : MonoBehaviour
             }
         }
     }
+    public void SetCamera(int activeTeam)
+    {
+        if (activeTeam == 1)
+        {
+            currentCamera = GameManager.Instance.player1Camera; // Reference to Player 1's camera
+        }
+        else if (activeTeam == 2)
+        {
+            currentCamera = GameManager.Instance.player2Camera; // Reference to Player 2's camera
+            Debug.Log("camera set to player2 in setCamera");
+        }
+    }
+    //!W
     private GameObject GenerateSingleTile(float tileSize, int x, int y)
     {
         GameObject tileObject = new GameObject($"Tile{x}{y}");
@@ -237,6 +251,7 @@ public class GenerateBoard : MonoBehaviour
 
         return tileObject;
     }
+
     public void Initialize(GameObject[,] tiles)
     {
         this.tiles = tiles;
@@ -257,11 +272,11 @@ public class GenerateBoard : MonoBehaviour
             }
         }
     }
+
     private Vector3 GetTileCenter(int x, int y)
     {
         //return new Vector3(x * tileSize + (tileSize / 2), yOffset, y * tileSize + (tileSize / 2));
         return new Vector3(x * tileSize, yOffset, y * tileSize) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2);
-
     }
 
     // HighlightTiles
@@ -294,13 +309,15 @@ public class GenerateBoard : MonoBehaviour
         }
         return false;
     }
+
     private bool MoveTo(PieceType cp, int x, int y)
     {
-        //W!
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
+            Debug.Log("Ung ltiger Zug: Das Ziel ist kein g ltiges Feld.");
             return false;
         }
+
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
         // Is there another piece on the target position?
@@ -310,18 +327,23 @@ public class GenerateBoard : MonoBehaviour
 
             if (cp.team == ocp.team)
             {
+                Debug.Log("Ung ltiger Zug: Eigene Figur auf dem Zielfeld.");
                 return false;
             }
-            //If its the enmy team
+
+            // If it's the enemy team
             if (ocp.team == 0)
             {
                 deadWhites.Add(ocp);
                 ocp.SetScale(Vector3.one * deathSize);
                 ocp.SetPosition(
-                new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
-                - bounds
-                + new Vector3(tileSize / 2, 0, tileSize / 2)
-                + (Vector3.forward * deathSpacing) * deadWhites.Count);
+                    new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
+                    - bounds
+                    + new Vector3(tileSize / 2, 0, tileSize / 2)
+                    + (Vector3.forward * deathSpacing) * deadWhites.Count);
+
+                // Meldung: Gegnerische Figur geschlagen
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) hat {ocp.GetType().Name} (Team Wei ) auf Feld ({x}, {y}) geschlagen.");
             }
             else
             {
@@ -332,7 +354,11 @@ public class GenerateBoard : MonoBehaviour
                     - bounds
                     + new Vector3(tileSize / 2, 0, tileSize / 2)
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
+
+                // Meldung: Gegnerische Figur geschlagen
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
             }
+
 
             if (ocp.type == ChessPieceType.King)
             {
@@ -346,8 +372,13 @@ public class GenerateBoard : MonoBehaviour
         allChessPieces[previousPosition.x, previousPosition.y] = null;
 
         positionSinglePiece(x, y);
+
+        // Meldung der neuen Position
+        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
+
         return true;
     }
+
     public Vector2Int LookupTileIndex(GameObject hitInfo)
     {
         for (int x = 0; x < TILE_COUNT_X; x++)
@@ -373,13 +404,12 @@ public class GenerateBoard : MonoBehaviour
 
         if (piece == null)
         {
-            return null; 
+            return null;
         }
 
         piece.type = type;
         piece.team = team;
         piece.gameObject.layer = LayerMask.NameToLayer("Piece");
-
 
         return piece;
     }
@@ -408,21 +438,21 @@ public class GenerateBoard : MonoBehaviour
 
         // Spawn and position white team
         SpawnAndPositionPiece(ChessPieceType.Rook, whiteTeam, 0, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, whiteTeam, 1, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Bishop, whiteTeam, 2, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Queen, whiteTeam, 3, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.King, whiteTeam, 4, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Bishop, whiteTeam, 5, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, whiteTeam, 6, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Rook, whiteTeam, 7, 0);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
 
         for (int i = 0; i < TILE_COUNT_X; i++)
         {
@@ -432,21 +462,20 @@ public class GenerateBoard : MonoBehaviour
 
         // Spawn and position black team
         SpawnAndPositionPiece(ChessPieceType.Rook, blackTeam, 0, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, blackTeam, 1, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Bishop, blackTeam, 2, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Queen, blackTeam, 3, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.King, blackTeam, 4, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Bishop, blackTeam, 5, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, blackTeam, 6, 7);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Rook, blackTeam, 7, 7);
-
 
         for (int i = 0; i < TILE_COUNT_X; i++)
         {
@@ -458,7 +487,6 @@ public class GenerateBoard : MonoBehaviour
         isSpawningInProgress = false;  // Reset flag after spawning is complete
         yield break;
     }
-
 
     private void positionSinglePiece(int x, int y, Boolean force = false)
     {
@@ -482,5 +510,55 @@ public class GenerateBoard : MonoBehaviour
                 }
             }
         }
+
+        //deletes all dead pieces and clears the lists
+
+        foreach (PieceType deadPiece in deadWhites)
+        {
+            if (deadPiece != null)
+            {
+                Destroy(deadPiece.gameObject);
+            }
+        }
+        deadWhites.Clear();
+
+        foreach (PieceType deadPiece in deadBlacks)
+        {
+            if (deadPiece != null)
+            {
+                Destroy(deadPiece.gameObject);
+            }
+        }
+        deadBlacks.Clear();
+    }
+    public void ProcessDefeatedPiece(PieceType defeatedPiece)
+    {
+        if (defeatedPiece == null)
+        {
+            return;
+        }
+
+        if (defeatedPiece.team == 0)
+        {
+            deadWhites.Add(defeatedPiece);
+            defeatedPiece.SetScale(Vector3.one * deathSize);
+            defeatedPiece.SetPosition(
+                new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
+                - bounds
+                + new Vector3(tileSize / 2, 0, tileSize / 2)
+                + (Vector3.forward * deathSpacing) * deadWhites.Count);
+        }
+        else
+        {
+            deadBlacks.Add(defeatedPiece);
+            defeatedPiece.SetScale(Vector3.one * deathSize);
+            defeatedPiece.SetPosition(
+                new Vector3(-1 * tileSize, yOffset - 0.23f, 8 * tileSize)
+                - bounds
+                + new Vector3(tileSize / 2, 0, tileSize / 2)
+                + (Vector3.back * deathSpacing) * deadBlacks.Count);
+        }
+
+        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Wei " : "Schwarz")}) wurde besiegt.");
     }
 }
