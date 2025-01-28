@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     private String state;
-    public int CurrentPlayer { get { return currentPlayer; } }
+    public int CurrentPlayer { get { return currentPlayer; } private set { } }
     public String State { get { return state; } }
 
     //  ####    Start Scene UI_Elemente  ###
@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
     private float roundTime = 120f;         // 2 Minuten in Sekunden
     private bool isRoundActive = true;
     private bool isGameStarted = false;     // Bool, um zu überprüfen, ob das Spiel gestartet ist
-    private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde
+    //private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde ##AUSKOMMENTIERT: keine verwendung
     //  ####    Transformation  ####
     public Button transformButton;          // Button für die Figuren-Transformation
 
@@ -49,7 +49,8 @@ public class GameManager : MonoBehaviour
     [Header("Spieler Kameras")]
     public Camera player1Camera;
     public Camera player2Camera;
-    private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
+    private int currentPlayer = 1;          // Spieler 1 beginnt (1 für Spieler 1, 2 für Spieler 2)
+    private GenerateBoard board;
 
     void Start()
     {
@@ -78,12 +79,25 @@ public class GameManager : MonoBehaviour
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
 
-        // Listener für den Start-Button, Resume-Button, Quit-Button und Finished-Button
+        board = FindFirstObjectByType<GenerateBoard>();
+
+        SetInitialCamera();
+
+        if (finishedButton != null)
+        {
+            finishedButton.onClick.RemoveAllListeners();
+            finishedButton.onClick.AddListener(MoveFinished);
+        }
+
+        // Listener für den Start-, Resume-, Quit-, Finished-, Return-, Transform-Button
         startButton.onClick.AddListener(StartGame);
         resumeButton.onClick.AddListener(ResumeGame);
         quitButton.onClick.AddListener(QuitGame);
-        finishedButton.onClick.AddListener(MoveFinished);  // << Hinzugefügt
+        finishedButton.onClick.AddListener(MoveFinished);
         ReturnToMain.onClick.AddListener(QuitGame);
+        transformButton.onClick.AddListener(TransformPiece);
+
+
     }
 
     void Update()
@@ -120,7 +134,7 @@ public class GameManager : MonoBehaviour
 
         if (isRoundActive)
         {
-            if(roundTime <= 0)
+            if (roundTime <= 0)
             {
                 Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
                 MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
@@ -143,10 +157,6 @@ public class GameManager : MonoBehaviour
         transformButton.gameObject.SetActive(true);
 
         Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);  // Debug Information
-
-
-        // Den Listener für den Transformations-Button hinzufügen
-        transformButton.onClick.AddListener(TransformPiece);
     }
 
     public void UpdateRoundTimerText()
@@ -169,11 +179,12 @@ public class GameManager : MonoBehaviour
     //  ###     Spielzug früher beenden     ###     NEU Funktioniert 
     public void MoveFinished()
     {
-        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
+        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");
 
         roundTime = 120f;       //  Runden zeit zurücksetzen
         isRoundActive = true;   //  Runde erneut aktivieren
-        SwitchPlayer();         //  Spieler wird gewechselt
+
+        SwitchPlayer();
     }
 
     //
@@ -233,27 +244,32 @@ public class GameManager : MonoBehaviour
         transformButton.gameObject.SetActive(false);
     }
 
-    // 
-    //  ####    Funktion zum wechseln der Spieler   ####
-    // Update: Spiellogik noch hinzufügen, welche Spieler gerade am zug ist
+    private void SetInitialCamera()
+    {
+        if (player1Camera != null) player1Camera.enabled = true;
+        if (player2Camera != null) player2Camera.enabled = false;
+
+        if (board != null)
+        {
+            board.SetCamera(currentPlayer);
+        }
+    }
+
     public void SwitchPlayer()
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
-        UpdateCamera();
-    }
 
-    private void UpdateCamera()
-    {
+        //board.SetCamera(currentPlayer);   --> AUSKOMMENTIERT: Damit der Finish Button funktioniert
         if (currentPlayer == 1)
         {
-            player1Camera.enabled = true;
-            player2Camera.enabled = false;
+            if (player1Camera != null) player1Camera.enabled = true;
+            if (player2Camera != null) player2Camera.enabled = false;
         }
-        else
+        if (currentPlayer == 2)
         {
-            player1Camera.enabled = false;
-            player2Camera.enabled = true;
+            if (player1Camera != null) player1Camera.enabled = false;
+            if (player2Camera != null) player2Camera.enabled = true;
         }
-
+        Debug.Log("current player after switch Player: " + currentPlayer);
     }
 }
