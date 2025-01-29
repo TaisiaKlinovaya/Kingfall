@@ -46,11 +46,10 @@ public class GenerateBoard : MonoBehaviour
     private bool isBoardGenerated = false;
     private bool isSpawningInProgress = false;
 
-    public static GenerateBoard Instance { get; private set; } //W!
+    public static GenerateBoard Instance { get; private set; }
 
     private void Awake()
     {
-        //W!
         if (Instance == null)
         {
             Instance = this;
@@ -59,7 +58,6 @@ public class GenerateBoard : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        //!W
         GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
 
         // Initialize the allChessPieces array
@@ -316,7 +314,7 @@ public class GenerateBoard : MonoBehaviour
     {
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log("Ung ltiger Zug: Das Ziel ist kein g ltiges Feld.");
+            Debug.Log("Ungültiger Zug: Das Ziel ist kein gültiges Feld.");
             return false;
         }
 
@@ -329,7 +327,7 @@ public class GenerateBoard : MonoBehaviour
 
             if (cp.team == ocp.team)
             {
-                Debug.Log("Ung ltiger Zug: Eigene Figur auf dem Zielfeld.");
+                Debug.Log("Ungültiger Zug: Eigene Figur auf dem Zielfeld.");
                 return false;
             }
 
@@ -345,7 +343,7 @@ public class GenerateBoard : MonoBehaviour
                     + (Vector3.forward * deathSpacing) * deadWhites.Count);
 
                 // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) hat {ocp.GetType().Name} (Team Wei ) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß " : "Schwarz")}) hat {ocp.GetType().Name} (Team Weiß ) auf Feld ({x}, {y}) geschlagen.");
             }
             else
             {
@@ -358,7 +356,7 @@ public class GenerateBoard : MonoBehaviour
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
 
                 // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
             }
 
 
@@ -376,7 +374,7 @@ public class GenerateBoard : MonoBehaviour
         positionSinglePiece(x, y);
 
         // Meldung der neuen Position
-        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
+        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei?" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
 
         return true;
     }
@@ -561,6 +559,6 @@ public class GenerateBoard : MonoBehaviour
                 + (Vector3.back * deathSpacing) * deadBlacks.Count);
         }
 
-        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Wei " : "Schwarz")}) wurde besiegt.");
+        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
     }
 }
