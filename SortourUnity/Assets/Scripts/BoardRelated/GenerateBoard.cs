@@ -31,7 +31,7 @@ public class GenerateBoard : MonoBehaviour
     [SerializeField] private GameObject[] BlackTeamPrefabs;
     [SerializeField] private GameObject[] WhiteTeamPrefabs;
     private PieceType[,] allChessPieces;
-    private Chessboard chessboard; // Chessboard-Klasse für das Hovern
+    private Chessboard chessboard; // Chessboard-Klasse f r das Hovern
     private PieceType currentlyDragging;
     private List<PieceType> deadWhites = new List<PieceType>();
     private List<PieceType> deadBlacks = new List<PieceType>();
@@ -87,12 +87,12 @@ public class GenerateBoard : MonoBehaviour
     private void Update()
     {
         // Spawn and delete all chesspieces based on game state
-        if (GameManager.Instance.State == GameManager.GameState.GameRun && !isBoardGenerated && !isSpawningInProgress)
+        if (GameManager.Instance.State == "GameRun" && !isBoardGenerated && !isSpawningInProgress)
         {
             isSpawningInProgress = true;  // Set flag before starting spawn
             StartCoroutine(SpawnAndPositionPiecesWithDelay());
         }
-        if (GameManager.Instance.State == GameManager.GameState.StartMenu)
+        if (GameManager.Instance.State == "StartMenu")
         {
             isBoardGenerated = false;
             isSpawningInProgress = false;  // Reset the flag when returning to menu
@@ -112,7 +112,7 @@ public class GenerateBoard : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance.State == GameManager.GameState.GameRun)
+        if (GameManager.Instance.State == "GameRun")
         {
             // Set camera depending on whose turn it is
             if (GameManager.Instance.CurrentPlayer == 1)
@@ -156,11 +156,11 @@ public class GenerateBoard : MonoBehaviour
                             if (allChessPieces[hitPosition.x, hitPosition.y] != null)
                             {
                                 // Is it our turn?
-                                if (true) // Hier sollten Sie die Logik für den Spielerwechsel einfügen
+                                if (true) // Hier sollten Sie die Logik f r den Spielerwechsel einf gen
                                 {
                                     currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
 
-                                    // Hier wird die Information über die angeklickte Figur ausgegeben
+                                    // Hier wird die Information  ber die angeklickte Figur ausgegeben
                                     if (currentlyDragging != null)
                                     {
                                         Debug.Log(currentlyDragging.GetPieceInfo());
@@ -322,7 +322,7 @@ public class GenerateBoard : MonoBehaviour
     {
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log("Ungültiger Zug: Das Ziel ist kein gültiges Feld.");
+            Debug.Log("Ung ltiger Zug: Das Ziel ist kein g ltiges Feld.");
             return false;
         }
 
@@ -335,7 +335,7 @@ public class GenerateBoard : MonoBehaviour
 
             if (cp.team == ocp.team)
             {
-                Debug.Log("Ungültiger Zug: Eigene Figur auf dem Zielfeld.");
+                Debug.Log("Ung ltiger Zug: Eigene Figur auf dem Zielfeld.");
                 return false;
             }
 
@@ -354,7 +354,7 @@ public class GenerateBoard : MonoBehaviour
                     + (Vector3.forward * deathSpacing) * deadWhites.Count);
 
                 // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß " : "Schwarz")}) hat {ocp.GetType().Name} (Team Weiß ) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei  " : "Schwarz")}) hat {ocp.GetType().Name} (Team Wei  ) auf Feld ({x}, {y}) geschlagen.");
             }
             else
             {
@@ -367,7 +367,7 @@ public class GenerateBoard : MonoBehaviour
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
 
                 // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei  " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
             }
 
 
@@ -391,7 +391,7 @@ public class GenerateBoard : MonoBehaviour
         allChessPieces[previousPosition.x, previousPosition.y] = null;
         positionSinglePiece(x, y);
 
-        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
+        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
         // Meldung der neuen Position
         Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei?" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
 
@@ -579,6 +579,6 @@ public class GenerateBoard : MonoBehaviour
                 + (Vector3.back * deathSpacing) * deadBlacks.Count);
         }
 
-        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
+        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Wei " : "Schwarz")}) wurde besiegt.");
     }
 }
