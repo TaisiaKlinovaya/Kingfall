@@ -39,7 +39,7 @@ public class Chessboard : MonoBehaviour
     }
     private void Update()
     {
-        if (GameManager.Instance.State == GameManager.GameState.GameRun)
+        if (GameManager.Instance.State == "GameRun")
         {
             //set camera depending on whose turn it is
             if (GameManager.Instance.CurrentPlayer == 1)
@@ -64,7 +64,7 @@ public class Chessboard : MonoBehaviour
                     Vector2Int tilePosition = LookupTileIndex(hit.transform.gameObject);
                     if (tilePosition != -Vector2Int.one)
                     {
-                        //Wenn FFigur Selektiert, führe Methode dieser Figur aus
+                        //Wenn FFigur Selektiert, f hre Methode dieser Figur aus
                         if (selectedPiece != null)
                         {
                             //selectedPiece.SeeFigure(tilePosition, tiles);
@@ -149,7 +149,7 @@ public class Chessboard : MonoBehaviour
                 string teamColor = pieceType.team == 0 ? "White" : "Black";
                 int teamNum = pieceType.team;
 
-                // Wenn keine Figur ausgewählt ist, wähle diese Figur aus
+                // Wenn keine Figur ausgew hlt ist, w hle diese Figur aus
                 if (selectedPiece == null)
                 {
                     //selectedPiece = chessPiece;
