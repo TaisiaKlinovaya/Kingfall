@@ -59,5 +59,9 @@ public class PieceType : MonoBehaviour
             transform.localScale = desiredScale;
         }
     }
+    public string GetPieceInfo()
+    {
+        return $"Figur {type} (Team {(team == 0 ? "Weiﬂ" : "Schwarz")}) auf Position ({currentX}, {currentY}).";
+    }
 }
 

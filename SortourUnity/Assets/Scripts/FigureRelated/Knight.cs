@@ -37,6 +37,5 @@ public class Knight : PieceType
 
         }
         return r;
-
     }
 }
