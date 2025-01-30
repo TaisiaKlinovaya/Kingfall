@@ -342,6 +342,41 @@ public class GenerateBoard : MonoBehaviour
             // Gegnerische Figur besiegen
             GenerateBoard.Instance.ProcessDefeatedPiece(ocp);
             allChessPieces[x, y] = null;
+            // If it's the enemy team
+            if (ocp.team == 0)
+            {
+                deadWhites.Add(ocp);
+                ocp.SetScale(Vector3.one * deathSize);
+                ocp.SetPosition(
+                    new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
+                    - bounds
+                    + new Vector3(tileSize / 2, 0, tileSize / 2)
+                    + (Vector3.forward * deathSpacing) * deadWhites.Count);
+
+                // Meldung: Gegnerische Figur geschlagen
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiﬂ " : "Schwarz")}) hat {ocp.GetType().Name} (Team Weiﬂ ) auf Feld ({x}, {y}) geschlagen.");
+            }
+            else
+            {
+                deadBlacks.Add(ocp);
+                ocp.SetScale(Vector3.one * deathSize);
+                ocp.SetPosition(
+                    new Vector3(-1 * tileSize, yOffset - 0.23f, 8 * tileSize)
+                    - bounds
+                    + new Vector3(tileSize / 2, 0, tileSize / 2)
+                    + (Vector3.back * deathSpacing) * deadBlacks.Count);
+
+                // Meldung: Gegnerische Figur geschlagen
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiﬂ " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
+            }
+
+
+            if (ocp.type == ChessPieceType.King)
+            {
+                isKingDead = true;
+                winTeam = (ocp.team == 1) ? "White" : "Black";
+
+            }
         }
 
         // Wenn die Figur ein Golem ist, besiege alle Figuren auf dem Weg
@@ -357,6 +392,8 @@ public class GenerateBoard : MonoBehaviour
         positionSinglePiece(x, y);
 
         Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiﬂ" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
+        // Meldung der neuen Position
+        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei?" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
 
         return true;
     }
