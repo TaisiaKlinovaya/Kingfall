@@ -87,12 +87,12 @@ public class GenerateBoard : MonoBehaviour
     private void Update()
     {
         // Spawn and delete all chesspieces based on game state
-        if (GameManager.Instance.State == "GameRun" && !isBoardGenerated && !isSpawningInProgress)
+        if (GameManager.Instance.State == GameManager.GameState.GameRun && !isBoardGenerated && !isSpawningInProgress)
         {
             isSpawningInProgress = true;  // Set flag before starting spawn
             StartCoroutine(SpawnAndPositionPiecesWithDelay());
         }
-        if (GameManager.Instance.State == "StartMenu")
+        if (GameManager.Instance.State == GameManager.GameState.StartMenu)
         {
             isBoardGenerated = false;
             isSpawningInProgress = false;  // Reset the flag when returning to menu
@@ -112,7 +112,7 @@ public class GenerateBoard : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance.State == "GameRun")
+        if (GameManager.Instance.State == GameManager.GameState.GameRun)
         {
             // Set camera depending on whose turn it is
             if (GameManager.Instance.CurrentPlayer == 1)

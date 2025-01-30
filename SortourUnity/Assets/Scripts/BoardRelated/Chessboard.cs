@@ -39,7 +39,7 @@ public class Chessboard : MonoBehaviour
     }
     private void Update()
     {
-        if (GameManager.Instance.State == "GameRun")
+        if (GameManager.Instance.State == GameManager.GameState.GameRun)
         {
             //set camera depending on whose turn it is
             if (GameManager.Instance.CurrentPlayer == 1)
