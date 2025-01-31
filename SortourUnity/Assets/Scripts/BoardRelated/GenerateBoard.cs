@@ -14,7 +14,7 @@ public class GenerateBoard : MonoBehaviour
     [SerializeField] private Material tileMaterial;
     [SerializeField] private float tileSize = 1;
     [SerializeField] private float yOffset = 0f;
-    [SerializeField] private float deathSize = 0.3f;
+    [SerializeField] private float deathSize = 0.2f;
     [SerializeField] private float deathSpacing = 0.4f;
     [SerializeField] private float dragOffset = 1f;
 
@@ -45,6 +45,9 @@ public class GenerateBoard : MonoBehaviour
 
     private PieceType selectedPieceForTransformation = null;
     public bool hasMoved = false; // Flag, um zu überprüfen, ob eine Figur bewegt wurde
+    public bool hasTransformed = false; // Flag, um zu überprüfen, ob eine Transformation durchgeführt wurde
+    private List<PieceType> deadWhiteTransformations = new List<PieceType>();
+    private List<PieceType> deadBlackTransformations = new List<PieceType>();
 
     private void Awake()
     {
@@ -329,6 +332,7 @@ public class GenerateBoard : MonoBehaviour
 
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
+        // Ist das Zielfeld besetzt?
         if (allChessPieces[x, y] != null)
         {
             PieceType ocp = allChessPieces[x, y];
@@ -339,33 +343,9 @@ public class GenerateBoard : MonoBehaviour
                 return false;
             }
 
-            GenerateBoard.Instance.ProcessDefeatedPiece(ocp);
+            // Gegnerische Figur besiegen
+            ProcessDefeatedPiece(ocp); // Rufe ProcessDefeatedPiece auf, um die Figur zu verschieben
             allChessPieces[x, y] = null;
-
-            if (ocp.team == 0)
-            {
-                deadWhites.Add(ocp);
-                ocp.SetScale(Vector3.one * deathSize);
-                ocp.SetPosition(
-                    new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
-                    - bounds
-                    + new Vector3(tileSize / 2, 0, tileSize / 2)
-                    + (Vector3.forward * deathSpacing) * deadWhites.Count);
-
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) hat {ocp.GetType().Name} (Team Weiß) auf Feld ({x}, {y}) geschlagen.");
-            }
-            else
-            {
-                deadBlacks.Add(ocp);
-                ocp.SetScale(Vector3.one * deathSize);
-                ocp.SetPosition(
-                    new Vector3(-1 * tileSize, yOffset - 0.23f, 8 * tileSize)
-                    - bounds
-                    + new Vector3(tileSize / 2, 0, tileSize / 2)
-                    + (Vector3.back * deathSpacing) * deadBlacks.Count);
-
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
-            }
 
             if (ocp.type == ChessPieceType.King)
             {
@@ -374,12 +354,14 @@ public class GenerateBoard : MonoBehaviour
             }
         }
 
+        // Wenn die Figur ein Golem ist, besiege alle Figuren auf dem Weg
         if (cp.type == ChessPieceType.Golem)
         {
             Golem golem = cp as Golem;
             golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
         }
 
+        // Figur bewegen
         allChessPieces[x, y] = cp;
         allChessPieces[previousPosition.x, previousPosition.y] = null;
         positionSinglePiece(x, y);
@@ -540,25 +522,74 @@ public class GenerateBoard : MonoBehaviour
             return;
         }
 
-        if (defeatedPiece.team == 0)
+        // Überprüfen, ob die besiegte Figur eine Transformationsfigur ist
+        bool isTransformationPiece = defeatedPiece.type == ChessPieceType.Golem || defeatedPiece.type == ChessPieceType.Kelpie;
+
+        if (defeatedPiece.team == 0) // Weiße Figur
         {
-            deadWhites.Add(defeatedPiece);
-            defeatedPiece.SetScale(Vector3.one * deathSize);
-            defeatedPiece.SetPosition(
-                new Vector3(8 * tileSize, yOffset - 0.23f, -1 * tileSize)
-                - bounds
-                + new Vector3(tileSize / 2, 0, tileSize / 2)
-                + (Vector3.forward * deathSpacing) * deadWhites.Count);
+            if (isTransformationPiece)
+            {
+                // Transformationsfigur: Platziere sie in einer separaten Reihe
+                deadWhiteTransformations.Add(defeatedPiece);
+                defeatedPiece.SetScale(Vector3.one * deathSize);
+
+                // Positionierung der besiegten weißen Transformationsfiguren
+                Vector3 deathPosition = new Vector3(
+                    9 * tileSize, // Eine Spalte weiter rechts als die normalen besiegten Figuren
+                    yOffset - 0.23f,
+                    -1 * tileSize
+                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.forward * deathSpacing * deadWhiteTransformations.Count);
+
+                defeatedPiece.SetPosition(deathPosition);
+            }
+            else
+            {
+                // Normale Figur: Platziere sie in der normalen Reihe
+                deadWhites.Add(defeatedPiece);
+                defeatedPiece.SetScale(Vector3.one * deathSize);
+
+                // Positionierung der besiegten weißen Figuren
+                Vector3 deathPosition = new Vector3(
+                    8 * tileSize,
+                    yOffset - 0.23f,
+                    -1 * tileSize
+                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.forward * deathSpacing * deadWhites.Count);
+
+                defeatedPiece.SetPosition(deathPosition);
+            }
         }
-        else
+        else // Schwarze Figur
         {
-            deadBlacks.Add(defeatedPiece);
-            defeatedPiece.SetScale(Vector3.one * deathSize);
-            defeatedPiece.SetPosition(
-                new Vector3(-1 * tileSize, yOffset - 0.23f, 8 * tileSize)
-                - bounds
-                + new Vector3(tileSize / 2, 0, tileSize / 2)
-                + (Vector3.back * deathSpacing) * deadBlacks.Count);
+            if (isTransformationPiece)
+            {
+                // Transformationsfigur: Platziere sie in einer separaten Reihe
+                deadBlackTransformations.Add(defeatedPiece);
+                defeatedPiece.SetScale(Vector3.one * deathSize);
+
+                // Positionierung der besiegten schwarzen Transformationsfiguren
+                Vector3 deathPosition = new Vector3(
+                    -2 * tileSize, // Eine Spalte weiter links als die normalen besiegten Figuren
+                    yOffset - 0.23f,
+                    8 * tileSize
+                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.back * deathSpacing * deadBlackTransformations.Count);
+
+                defeatedPiece.SetPosition(deathPosition);
+            }
+            else
+            {
+                // Normale Figur: Platziere sie in der normalen Reihe
+                deadBlacks.Add(defeatedPiece);
+                defeatedPiece.SetScale(Vector3.one * deathSize);
+
+                // Positionierung der besiegten schwarzen Figuren
+                Vector3 deathPosition = new Vector3(
+                    -1 * tileSize,
+                    yOffset - 0.23f,
+                    8 * tileSize
+                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.back * deathSpacing * deadBlacks.Count);
+
+                defeatedPiece.SetPosition(deathPosition);
+            }
         }
 
         Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
@@ -586,6 +617,16 @@ public class GenerateBoard : MonoBehaviour
         GameObject golemPrefab = (rook.team == 0) ? WhiteTeamPrefabs[(int)ChessPieceType.Golem - 1] : BlackTeamPrefabs[(int)ChessPieceType.Golem - 1];
         GameObject golemObject = Instantiate(golemPrefab, transform);
         PieceType golem = golemObject.GetComponent<PieceType>();
+
+        // Setze die Rotation basierend auf dem Team
+        if (rook.team == 0) // Weiß
+        {
+            golemObject.transform.rotation = Quaternion.Euler(0, 270, 0); // Schaut nach oben
+        }
+        else // Schwarz
+        {
+            golemObject.transform.rotation = Quaternion.Euler(0, 90, 0); // Schaut nach unten
+        }
 
         golem.type = ChessPieceType.Golem;
         golem.team = rook.team;
@@ -619,6 +660,16 @@ public class GenerateBoard : MonoBehaviour
         GameObject kelpieObject = Instantiate(kelpiePrefab, transform);
         PieceType kelpie = kelpieObject.GetComponent<PieceType>();
 
+        // Setze die Rotation basierend auf dem Team
+        if (knight.team == 0) // Weiß
+        {
+            kelpieObject.transform.rotation = Quaternion.Euler(0, 180, 0); // Schaut nach oben
+        }
+        else // Schwarz
+        {
+            kelpieObject.transform.rotation = Quaternion.Euler(0, 0, 0); // Schaut nach unten
+        }
+
         kelpie.type = ChessPieceType.Kelpie;
         kelpie.team = knight.team;
         kelpie.currentX = x;
@@ -631,5 +682,56 @@ public class GenerateBoard : MonoBehaviour
         selectedPieceForTransformation = null;
 
         Debug.Log($"Knight transformed into Kelpie at ({x}, {y}).");
+    }
+    public void ResetDraggingPiece()
+    {
+        if (currentlyDragging != null)
+        {
+            // Setze die Figur zurück auf ihre ursprüngliche Position
+            currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
+            currentlyDragging = null;
+            RemoveHighlightTiles();
+        }
+    }
+    public void TransformPiece()
+    {
+        if (hasTransformed)
+        {
+            Debug.Log("You can only transform one piece per turn.");
+            return;
+        }
+
+        PieceType selectedPiece = GetSelectedPieceForTransformation();
+        if (selectedPiece != null)
+        {
+            // Überprüfen, ob die ausgewählte Figur dem aktuellen Spieler gehört
+            if (selectedPiece.team == GameManager.Instance.CurrentPlayer - 1)
+            {
+                if (selectedPiece.type == ChessPieceType.Rook)
+                {
+                    TransformRookToGolem(selectedPiece);
+                    Debug.Log("Rook transformed to Golem.");
+                    hasTransformed = true; // Setze das Flag, dass eine Transformation durchgeführt wurde
+                }
+                else if (selectedPiece.type == ChessPieceType.Knight)
+                {
+                    TransformKnightToKelpie(selectedPiece);
+                    Debug.Log("Knight transformed to Kelpie.");
+                    hasTransformed = true; // Setze das Flag, dass eine Transformation durchgeführt wurde
+                }
+                else
+                {
+                    Debug.Log("Selected piece cannot be transformed.");
+                }
+            }
+            else
+            {
+                Debug.Log("You can only transform your own pieces.");
+            }
+        }
+        else
+        {
+            Debug.Log("No piece selected for transformation.");
+        }
     }
 }

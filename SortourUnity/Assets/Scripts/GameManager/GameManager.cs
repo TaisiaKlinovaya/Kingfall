@@ -117,7 +117,7 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);
 
-        transformButton.onClick.AddListener(TransformPiece);
+        transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
     }
 
     public void UpdateRoundTimerText()
@@ -127,38 +127,20 @@ public class GameManager : MonoBehaviour
         roundTimerText.text = $"{minutes:00}:{seconds:00}";
     }
 
-    public void TransformPiece()
-    {
-        PieceType selectedPiece = GenerateBoard.Instance.GetSelectedPieceForTransformation();
-        if (selectedPiece != null)
-        {
-            if (selectedPiece.type == ChessPieceType.Rook)
-            {
-                GenerateBoard.Instance.TransformRookToGolem(selectedPiece);
-                Debug.Log("Rook transformed to Golem.");
-            }
-            else if (selectedPiece.type == ChessPieceType.Knight)
-            {
-                GenerateBoard.Instance.TransformKnightToKelpie(selectedPiece);
-                Debug.Log("Knight transformed to Kelpie.");
-            }
-            else
-            {
-                Debug.Log("Selected piece cannot be transformed.");
-            }
-        }
-        else
-        {
-            Debug.Log("No piece selected for transformation.");
-        }
-    }
-
     public void MoveFinished()
     {
         Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");
         roundTime = 120f;
         isRoundActive = true;
-        GenerateBoard.Instance.hasMoved = false; // Setze das Flag zurück
+
+        // Setze die angehobene Figur zurück
+        GenerateBoard.Instance.ResetDraggingPiece();
+
+        // Setze die Flags zurück
+        GenerateBoard.Instance.hasMoved = false;
+        GenerateBoard.Instance.hasTransformed = false; // Setze das Transformations-Flag zurück
+
+        // Wechsle den Spieler
         SwitchPlayer();
     }
 

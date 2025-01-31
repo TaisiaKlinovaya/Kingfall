@@ -3697,8 +3697,8 @@ MonoBehaviour:
   tileMaterial: {fileID: 2100000, guid: 7cc2af1d49e87b648aa772e53d81e33c, type: 2}
   tileSize: 1
   yOffset: 0
-  deathSize: 0.75
-  deathSpacing: 0.5025
+  deathSize: 0.8
+  deathSpacing: 0.7
   dragOffset: 1
   BlackTeamPrefabs:
   - {fileID: 8371137057724265051, guid: c4216fb004bd9b14e91327afef52b3fd, type: 3}
@@ -3718,6 +3718,8 @@ MonoBehaviour:
   - {fileID: 7886964639542890800, guid: 5b874f6dc1a16d6439ae9deeab6c532d, type: 3}
   - {fileID: 844422296258543121, guid: 12391527830daf4488aa6c5e2651d6cd, type: 3}
   - {fileID: 894283207713372211, guid: cc681d098240ff5488199ec346fa40e6, type: 3}
+  hasMoved: 0
+  hasTransformed: 0
 --- !u!4 &1407249037
 Transform:
   m_ObjectHideFlags: 0
