@@ -1585,7 +1585,7 @@ GameObject:
   m_Component:
   - component: {fileID: 688919140}
   m_Layer: 0
-  m_Name: '>>>>>>>>>>>>>   CAMERA / LIGHT   ####'
+  m_Name: ^(o.O)^..^(O.o)^   CAMERA / LIGHT   ^(o.O)^..^(O.o)^
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3060,7 +3060,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1089495050}
   m_Layer: 0
-  m_Name: '>>>>>>>>>>>>>   ARTIST   ####'
+  m_Name: ^(o.O)^..^(O.o)^   ARTIST   ^(o.O)^..^(O.o)^
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4130,7 +4130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1769982182}
   m_Layer: 0
-  m_Name: '>>>>>>>>>>>>>   UI ELEMENTE   ####'
+  m_Name: ^(o.O)^..^(O.o)^   UI ELEMENTE   ^(o.O)^..^(O.o)^
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4161,7 +4161,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1780733703}
   m_Layer: 0
-  m_Name: '>>>>>>>>>>>>>   CHESSBOARD   ####'
+  m_Name: ^(o.O)^..^(O.o)^   CHESSBOARD   ^(o.O)^..^(O.o)^
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5151,7 +5151,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2131698713}
   m_Layer: 0
-  m_Name: '>>>>>>>>>>>>>   GAME MANAGER   ####'
+  m_Name: ^(o.O)^..^(O.o)^   GAME MANAGER   ^(o.O)^..^(O.o)^
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
