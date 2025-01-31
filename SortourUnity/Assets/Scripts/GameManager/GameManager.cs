@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
     public Text roundTimerText;
     public Button finishedButton;
     private float roundTime = 120f;
-    private bool isRoundActive = true;    
+    private bool isRoundActive = true;
     private bool isGameStarted = false;
     //private bool isGameFinished = false;    --> AUSKOMMENTIERT: keine Verwendung
 
@@ -56,6 +56,8 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+
+        ResetGame(); // Reset the game state when the StartScene is loaded
 
         startScene.SetActive(true);
         gameScene.SetActive(false);
@@ -218,6 +220,11 @@ public class GameManager : MonoBehaviour
         startScene.SetActive(true);
 
         // Spielzustände zurücksetzen
+        ResetGame();
+    }
+
+    private void ResetGame()
+    {
         isGameStarted = false;
         isPaused = false;
         roundTime = 120f; // Timer zurücksetzen

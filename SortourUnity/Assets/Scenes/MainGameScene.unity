@@ -1585,7 +1585,7 @@ GameObject:
   m_Component:
   - component: {fileID: 688919140}
   m_Layer: 0
-  m_Name: ~~~~~~~~~~~~   CAMERA / LIGHT   ~~~~~~~~~~~~
+  m_Name: '>>>>>>>>>>>>>   CAMERA / LIGHT   ####'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2255,18 +2255,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 782223432}
-        m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
-        m_MethodName: 
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &782223433
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2483,7 +2471,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -400, y: -205}
+  m_AnchoredPosition: {x: -155, y: -239}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &860727220
@@ -3072,7 +3060,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1089495050}
   m_Layer: 0
-  m_Name: ~~~~~~~~~~~~~~~   ARTIST   ~~~~~~~~~~~~~~~~
+  m_Name: '>>>>>>>>>>>>>   ARTIST   ####'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3415,7 +3403,7 @@ RectTransform:
   m_GameObject: {fileID: 1319962658}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9, y: 0.9, z: 1}
+  m_LocalScale: {x: 0.95, y: 0.95, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1335799708}
@@ -3423,7 +3411,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 400, y: -205}
+  m_AnchoredPosition: {x: 155, y: -239}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1319962660
@@ -4142,7 +4130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1769982182}
   m_Layer: 0
-  m_Name: ~~~~~~~~~~~~~   UI ELEMENTE   ~~~~~~~~~~~~~~
+  m_Name: '>>>>>>>>>>>>>   UI ELEMENTE   ####'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4173,7 +4161,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1780733703}
   m_Layer: 0
-  m_Name: ~~~~~~~~~~~~~   CHESSBOARD   ~~~~~~~~~~~~~
+  m_Name: '>>>>>>>>>>>>>   CHESSBOARD   ####'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4470,7 +4458,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -115}
+  m_AnchoredPosition: {x: -69, y: -115}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1946421723
@@ -4841,7 +4829,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 112}
+  m_AnchoredPosition: {x: 0, y: -34}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2044074990
@@ -4891,13 +4879,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 25
-  m_fontSizeBase: 25
+  m_fontSize: 17
+  m_fontSizeBase: 17
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -5163,7 +5151,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2131698713}
   m_Layer: 0
-  m_Name: ~~~~~~~~~~~~   GAME MANAGER   ~~~~~~~~~~~~
+  m_Name: '>>>>>>>>>>>>>   GAME MANAGER   ####'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
