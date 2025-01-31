@@ -2,14 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 #if UNITY_EDITOR
-using TreeEditor;
 using Unity.VisualScripting;
 #endif
-
 using UnityEngine;
 
 public class GenerateBoard : MonoBehaviour
 {
+    public static GenerateBoard ChessboardInstance { get; private set; }
+
     [Header("Art stuff")]
     [SerializeField] private Material tileMaterial;
     [SerializeField] private float tileSize = 1;
@@ -26,27 +26,25 @@ public class GenerateBoard : MonoBehaviour
     private bool isKingDead = false;
     private String winTeam;
 
-
     private List<Vector2Int> availableMoves = new List<Vector2Int>();
     [SerializeField] private GameObject[] BlackTeamPrefabs;
     [SerializeField] private GameObject[] WhiteTeamPrefabs;
     private PieceType[,] allChessPieces;
-    private Chessboard chessboard; // Chessboard-Klasse f r das Hovern
+    private Chessboard chessboard;
     private PieceType currentlyDragging;
     private List<PieceType> deadWhites = new List<PieceType>();
     private List<PieceType> deadBlacks = new List<PieceType>();
 
-    //Chessboard
-    public static Chessboard ChessboardInstance { get; private set; }
+    public static GenerateBoard Instance { get; private set; }
     GameObject tile;
     private Collider[] overlappingColliders;
     private Vector2Int currentHover;
-    //private Camera currentCamera;
-    private const int TILE_COUNT = 8; // 8 by 8 chessboard
+    private const int TILE_COUNT = 8;
     private bool isBoardGenerated = false;
     private bool isSpawningInProgress = false;
 
-    public static GenerateBoard Instance { get; private set; }
+    private PieceType selectedPieceForTransformation = null;
+    public bool hasMoved = false; // Flag, um zu überprüfen, ob eine Figur bewegt wurde
 
     private void Awake()
     {
@@ -60,7 +58,6 @@ public class GenerateBoard : MonoBehaviour
         }
         GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
 
-        // Initialize the allChessPieces array
         allChessPieces = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
 
         chessboard = gameObject.AddComponent<Chessboard>();
@@ -71,11 +68,11 @@ public class GenerateBoard : MonoBehaviour
     {
         if (ChessboardInstance != null && ChessboardInstance != this)
         {
-            Destroy(this);
+            Destroy(gameObject);
         }
         else
         {
-            //ChessboardInstance = this;
+            ChessboardInstance = this;
         }
 
         if (currentCamera == null)
@@ -86,20 +83,18 @@ public class GenerateBoard : MonoBehaviour
 
     private void Update()
     {
-        // Spawn and delete all chesspieces based on game state
         if (GameManager.Instance.State == "GameRun" && !isBoardGenerated && !isSpawningInProgress)
         {
-            isSpawningInProgress = true;  // Set flag before starting spawn
+            isSpawningInProgress = true;
             StartCoroutine(SpawnAndPositionPiecesWithDelay());
         }
         if (GameManager.Instance.State == "StartMenu")
         {
             isBoardGenerated = false;
-            isSpawningInProgress = false;  // Reset the flag when returning to menu
+            isSpawningInProgress = false;
             DeleteAllPieces();
         }
 
-        // Check if king is dead, activate win scene if he is
         if (isKingDead == true)
         {
             GameManager.Instance.WinGame(winTeam);
@@ -114,7 +109,6 @@ public class GenerateBoard : MonoBehaviour
 
         if (GameManager.Instance.State == "GameRun")
         {
-            // Set camera depending on whose turn it is
             if (GameManager.Instance.CurrentPlayer == 1)
             {
                 currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
@@ -124,7 +118,6 @@ public class GenerateBoard : MonoBehaviour
                 currentCamera = GameObject.Find("Player2Camera").GetComponent<Camera>();
             }
 
-            // Only interactable if board is fully generated
             if (isBoardGenerated)
             {
                 RaycastHit info;
@@ -133,14 +126,12 @@ public class GenerateBoard : MonoBehaviour
                 {
                     Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
 
-                    // If we are hovering a tile after not hovering any tiles
                     if (currentHover == -Vector2Int.one)
                     {
                         currentHover = hitPosition;
                         tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
                     }
 
-                    // If we were already hovering a tile, change the previous one
                     if (currentHover != hitPosition)
                     {
                         tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
@@ -148,25 +139,22 @@ public class GenerateBoard : MonoBehaviour
                         tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
                     }
 
-                    // If we press down on the mouse
                     if (Input.GetMouseButtonDown(0))
                     {
                         if (currentlyDragging == null)
                         {
                             if (allChessPieces[hitPosition.x, hitPosition.y] != null)
                             {
-                                // Is it our turn?
-                                if (true) // Hier sollten Sie die Logik f r den Spielerwechsel einf gen
+                                // Überprüfen, ob die Figur dem aktuellen Spieler gehört
+                                if (allChessPieces[hitPosition.x, hitPosition.y].team == GameManager.Instance.CurrentPlayer - 1 && !hasMoved)
                                 {
                                     currentlyDragging = allChessPieces[hitPosition.x, hitPosition.y];
 
-                                    // Hier wird die Information  ber die angeklickte Figur ausgegeben
                                     if (currentlyDragging != null)
                                     {
                                         Debug.Log(currentlyDragging.GetPieceInfo());
                                     }
 
-                                    // Get a list of where i can go, highlight tiles as well
                                     availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
                                     HighlightTiles();
                                 }
@@ -174,7 +162,6 @@ public class GenerateBoard : MonoBehaviour
                         }
                         else
                         {
-                            // Try to move the piece to the new position
                             Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
 
                             bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
@@ -182,9 +169,30 @@ public class GenerateBoard : MonoBehaviour
                             {
                                 currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
                             }
+                            else
+                            {
+                                hasMoved = true; // Setze das Flag, dass eine Figur bewegt wurde
+                            }
 
                             currentlyDragging = null;
                             RemoveHighlightTiles();
+                        }
+                    }
+
+                    if (Input.GetMouseButtonDown(1))
+                    {
+                        if (allChessPieces[hitPosition.x, hitPosition.y] != null)
+                        {
+                            if (allChessPieces[hitPosition.x, hitPosition.y].type == ChessPieceType.Rook)
+                            {
+                                selectedPieceForTransformation = allChessPieces[hitPosition.x, hitPosition.y];
+                                Debug.Log("Rook selected for transformation.");
+                            }
+                            else if (allChessPieces[hitPosition.x, hitPosition.y].type == ChessPieceType.Knight)
+                            {
+                                selectedPieceForTransformation = allChessPieces[hitPosition.x, hitPosition.y];
+                                Debug.Log("Knight selected for transformation.");
+                            }
                         }
                     }
                 }
@@ -197,7 +205,6 @@ public class GenerateBoard : MonoBehaviour
                     }
                 }
 
-                // If we are dragging a piece
                 if (currentlyDragging)
                 {
                     Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
@@ -210,19 +217,20 @@ public class GenerateBoard : MonoBehaviour
             }
         }
     }
+
     public void SetCamera(int activeTeam)
     {
         if (activeTeam == 1)
         {
-            currentCamera = GameManager.Instance.player1Camera; // Reference to Player 1's camera
+            currentCamera = GameManager.Instance.player1Camera;
         }
         else if (activeTeam == 2)
         {
-            currentCamera = GameManager.Instance.player2Camera; // Reference to Player 2's camera
+            currentCamera = GameManager.Instance.player2Camera;
             Debug.Log("camera set to player2 in setCamera");
         }
     }
-    //!W
+
     private GameObject GenerateSingleTile(float tileSize, int x, int y)
     {
         GameObject tileObject = new GameObject($"Tile{x}{y}");
@@ -232,7 +240,6 @@ public class GenerateBoard : MonoBehaviour
         tileObject.AddComponent<MeshFilter>().mesh = mesh;
         tileObject.AddComponent<MeshRenderer>().material = tileMaterial;
 
-        //Array of 4 vertices to create a square
         Vector3[] vertices = new Vector3[4];
         vertices[0] = new Vector3(0, yOffset, 0);
         vertices[1] = new Vector3(0, yOffset, tileSize);
@@ -241,19 +248,16 @@ public class GenerateBoard : MonoBehaviour
 
         int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
 
-        //assigning the arrays to the actual mesh component
         mesh.vertices = vertices;
         mesh.triangles = tris;
         mesh.RecalculateNormals();
 
-        // Set the position of the tile based on its grid coordinates
         tileObject.transform.localPosition = new Vector3(x * tileSize, 0, y * tileSize);
         tileObject.layer = LayerMask.NameToLayer("Tile");
 
-        // Create a BoxCollider for the tile
         BoxCollider collider = tileObject.AddComponent<BoxCollider>();
-        collider.size = new Vector3(tileSize, 0.5f, tileSize); // thin in the y-axis
-        collider.center = new Vector3(tileSize / 2, 0, tileSize / 2); // Center the collider
+        collider.size = new Vector3(tileSize, 0.5f, tileSize);
+        collider.center = new Vector3(tileSize / 2, 0, tileSize / 2);
 
         tileObject.layer = LayerMask.NameToLayer("Tile");
 
@@ -283,11 +287,9 @@ public class GenerateBoard : MonoBehaviour
 
     private Vector3 GetTileCenter(int x, int y)
     {
-        //return new Vector3(x * tileSize + (tileSize / 2), yOffset, y * tileSize + (tileSize / 2));
         return new Vector3(x * tileSize, yOffset, y * tileSize) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2);
     }
 
-    // HighlightTiles
     private void HighlightTiles()
     {
         for (int i = 0; i < availableMoves.Count; i++)
@@ -305,7 +307,6 @@ public class GenerateBoard : MonoBehaviour
         availableMoves.Clear();
     }
 
-    // Operations
     private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2 pos)
     {
         for (int i = 0; i < moves.Count; i++)
@@ -322,27 +323,25 @@ public class GenerateBoard : MonoBehaviour
     {
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log("Ung ltiger Zug: Das Ziel ist kein g ltiges Feld.");
+            Debug.Log("Ungültiger Zug: Das Ziel ist kein gültiges Feld.");
             return false;
         }
 
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
-        // Ist das Zielfeld besetzt?
         if (allChessPieces[x, y] != null)
         {
             PieceType ocp = allChessPieces[x, y];
 
             if (cp.team == ocp.team)
             {
-                Debug.Log("Ung ltiger Zug: Eigene Figur auf dem Zielfeld.");
+                Debug.Log("Ungültiger Zug: Eigene Figur auf dem Zielfeld.");
                 return false;
             }
 
-            // Gegnerische Figur besiegen
             GenerateBoard.Instance.ProcessDefeatedPiece(ocp);
             allChessPieces[x, y] = null;
-            // If it's the enemy team
+
             if (ocp.team == 0)
             {
                 deadWhites.Add(ocp);
@@ -353,8 +352,7 @@ public class GenerateBoard : MonoBehaviour
                     + new Vector3(tileSize / 2, 0, tileSize / 2)
                     + (Vector3.forward * deathSpacing) * deadWhites.Count);
 
-                // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei  " : "Schwarz")}) hat {ocp.GetType().Name} (Team Wei  ) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) hat {ocp.GetType().Name} (Team Weiß) auf Feld ({x}, {y}) geschlagen.");
             }
             else
             {
@@ -366,38 +364,30 @@ public class GenerateBoard : MonoBehaviour
                     + new Vector3(tileSize / 2, 0, tileSize / 2)
                     + (Vector3.back * deathSpacing) * deadBlacks.Count);
 
-                // Meldung: Gegnerische Figur geschlagen
-                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei  " : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
+                Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) hat {ocp.GetType().Name} (Team Schwarz) auf Feld ({x}, {y}) geschlagen.");
             }
-
 
             if (ocp.type == ChessPieceType.King)
             {
                 isKingDead = true;
                 winTeam = (ocp.team == 1) ? "White" : "Black";
-
             }
         }
 
-        // Wenn die Figur ein Golem ist, besiege alle Figuren auf dem Weg
         if (cp.type == ChessPieceType.Golem)
         {
             Golem golem = cp as Golem;
             golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
         }
 
-        // Figur bewegen
         allChessPieces[x, y] = cp;
         allChessPieces[previousPosition.x, previousPosition.y] = null;
         positionSinglePiece(x, y);
 
-        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei " : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
-        // Meldung der neuen Position
-        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Wei?" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
+        Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) wurde von ({previousPosition.x}, {previousPosition.y}) nach ({x}, {y}) verschoben.");
 
         return true;
     }
-
 
     public Vector2Int LookupTileIndex(GameObject hitInfo)
     {
@@ -411,13 +401,11 @@ public class GenerateBoard : MonoBehaviour
                 }
             }
         }
-        return -Vector2Int.one; //Invalid
+        return -Vector2Int.one;
     }
 
-    // Chess piece spawn methods
     private PieceType SpawnSinglePiece(ChessPieceType type, int team)
     {
-        //checks what team the piece is and chooses black or white prefab accordingly
         GameObject prefab = (team == 0) ? WhiteTeamPrefabs[(int)type - 1] : BlackTeamPrefabs[(int)type - 1];
 
         PieceType piece = Instantiate(prefab, transform).GetComponent<PieceType>();
@@ -436,14 +424,12 @@ public class GenerateBoard : MonoBehaviour
 
     private IEnumerator SpawnAndPositionPiecesWithDelay()
     {
-        // Clear the board first
         DeleteAllPieces();
         allChessPieces = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
 
         int whiteTeam = 0;
         int blackTeam = 1;
 
-        // Helper method to spawn and position a piece
         void SpawnAndPositionPiece(ChessPieceType type, int team, int x, int y)
         {
             if (allChessPieces[x, y] != null)
@@ -456,7 +442,6 @@ public class GenerateBoard : MonoBehaviour
             positionSinglePiece(x, y, true);
         }
 
-        // Spawn and position white team
         SpawnAndPositionPiece(ChessPieceType.Rook, whiteTeam, 0, 0);
         yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, whiteTeam, 1, 0);
@@ -480,7 +465,6 @@ public class GenerateBoard : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
         }
 
-        // Spawn and position black team
         SpawnAndPositionPiece(ChessPieceType.Rook, blackTeam, 0, 7);
         yield return new WaitForSeconds(0.1f);
         SpawnAndPositionPiece(ChessPieceType.Knight, blackTeam, 1, 7);
@@ -504,7 +488,7 @@ public class GenerateBoard : MonoBehaviour
         }
 
         isBoardGenerated = true;
-        isSpawningInProgress = false;  // Reset flag after spawning is complete
+        isSpawningInProgress = false;
         yield break;
     }
 
@@ -518,7 +502,6 @@ public class GenerateBoard : MonoBehaviour
 
     public void DeleteAllPieces()
     {
-        // Iterate through the array and destroy each piece
         for (int x = 0; x < TILE_COUNT_X; x++)
         {
             for (int y = 0; y < TILE_COUNT_Y; y++)
@@ -526,12 +509,10 @@ public class GenerateBoard : MonoBehaviour
                 if (allChessPieces[x, y] != null)
                 {
                     Destroy(allChessPieces[x, y].gameObject);
-                    allChessPieces[x, y] = null; // Clear reference in the array
+                    allChessPieces[x, y] = null;
                 }
             }
         }
-
-        //deletes all dead pieces and clears the lists
 
         foreach (PieceType deadPiece in deadWhites)
         {
@@ -551,6 +532,7 @@ public class GenerateBoard : MonoBehaviour
         }
         deadBlacks.Clear();
     }
+
     public void ProcessDefeatedPiece(PieceType defeatedPiece)
     {
         if (defeatedPiece == null)
@@ -579,6 +561,75 @@ public class GenerateBoard : MonoBehaviour
                 + (Vector3.back * deathSpacing) * deadBlacks.Count);
         }
 
-        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Wei " : "Schwarz")}) wurde besiegt.");
+        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
+    }
+
+    public PieceType GetSelectedPieceForTransformation()
+    {
+        return selectedPieceForTransformation;
+    }
+
+    public void TransformRookToGolem(PieceType rook)
+    {
+        if (rook.type != ChessPieceType.Rook)
+        {
+            Debug.LogError("Only Rooks can be transformed into Golems.");
+            return;
+        }
+
+        int x = rook.currentX;
+        int y = rook.currentY;
+
+        allChessPieces[x, y] = null;
+        Destroy(rook.gameObject);
+
+        GameObject golemPrefab = (rook.team == 0) ? WhiteTeamPrefabs[(int)ChessPieceType.Golem - 1] : BlackTeamPrefabs[(int)ChessPieceType.Golem - 1];
+        GameObject golemObject = Instantiate(golemPrefab, transform);
+        PieceType golem = golemObject.GetComponent<PieceType>();
+
+        golem.type = ChessPieceType.Golem;
+        golem.team = rook.team;
+        golem.currentX = x;
+        golem.currentY = y;
+        golem.gameObject.layer = LayerMask.NameToLayer("Piece");
+
+        allChessPieces[x, y] = golem;
+        positionSinglePiece(x, y, true);
+
+        selectedPieceForTransformation = null;
+
+        Debug.Log($"Rook transformed into Golem at ({x}, {y}).");
+    }
+
+    public void TransformKnightToKelpie(PieceType knight)
+    {
+        if (knight.type != ChessPieceType.Knight)
+        {
+            Debug.LogError("Only Knights can be transformed into Kelpies.");
+            return;
+        }
+
+        int x = knight.currentX;
+        int y = knight.currentY;
+
+        allChessPieces[x, y] = null;
+        Destroy(knight.gameObject);
+
+        GameObject kelpiePrefab = (knight.team == 0) ? WhiteTeamPrefabs[(int)ChessPieceType.Kelpie - 1] : BlackTeamPrefabs[(int)ChessPieceType.Kelpie - 1];
+        GameObject kelpieObject = Instantiate(kelpiePrefab, transform);
+        PieceType kelpie = kelpieObject.GetComponent<PieceType>();
+
+        kelpie.type = ChessPieceType.Kelpie;
+        kelpie.team = knight.team;
+        kelpie.currentX = x;
+        kelpie.currentY = y;
+        kelpie.gameObject.layer = LayerMask.NameToLayer("Piece");
+
+        allChessPieces[x, y] = kelpie;
+        positionSinglePiece(x, y, true);
+
+        selectedPieceForTransformation = null;
+
+        Debug.Log($"Knight transformed into Kelpie at ({x}, {y}).");
     }
 }

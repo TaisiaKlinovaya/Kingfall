@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.02805158, g: 0.023316467, b: 0.020225631, a: 1}
+  m_IndirectSpecularColor: {r: 0.028051583, g: 0.02331647, b: 0.02022564, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3707,6 +3707,8 @@ MonoBehaviour:
   - {fileID: 841951212914518022, guid: e92fdebe80602d949baa5ede571938e9, type: 3}
   - {fileID: 2120123564452270812, guid: 774c600e64687a04b9cb0c5bf5a9245c, type: 3}
   - {fileID: 2162507986182748001, guid: f98bda84e2225024ebe83cde9505f51f, type: 3}
+  - {fileID: 844422296258543121, guid: b3ac508a2aa4ad043846a163b4644dcc, type: 3}
+  - {fileID: 894283207713372211, guid: 334d997daa3ac4e4480ba09e638b7576, type: 3}
   WhiteTeamPrefabs:
   - {fileID: 8136827764730858393, guid: f592e6afef9abe24e875ab0c7615adde, type: 3}
   - {fileID: 5200633497699764783, guid: 81522c5c8be343246a9468d49742f6ae, type: 3}
@@ -3714,6 +3716,8 @@ MonoBehaviour:
   - {fileID: 6007263896112012174, guid: 523ff490d1a9d8944b2d7e515dcfc747, type: 3}
   - {fileID: 831783141443313000, guid: 67d802d12813df7478b02e0124a24a02, type: 3}
   - {fileID: 7886964639542890800, guid: 5b874f6dc1a16d6439ae9deeab6c532d, type: 3}
+  - {fileID: 844422296258543121, guid: 12391527830daf4488aa6c5e2651d6cd, type: 3}
+  - {fileID: 894283207713372211, guid: cc681d098240ff5488199ec346fa40e6, type: 3}
 --- !u!4 &1407249037
 Transform:
   m_ObjectHideFlags: 0

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2209129196604644564}
+  - component: {fileID: -4851904096868476054}
   m_Layer: 0
   m_Name: KelpieWhite
   m_TagString: Untagged
@@ -32,6 +33,22 @@ Transform:
   - {fileID: 15775504881286735}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-4851904096868476054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894283207713372211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87daf37a4cd1ee14db9e6a03a628f36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 0
+  currentX: 0
+  currentY: 0
+  type: 0
 --- !u!1001 &554702248436079012
 PrefabInstance:
   m_ObjectHideFlags: 0

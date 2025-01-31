@@ -107,6 +107,8 @@ public class Chessboard : MonoBehaviour
             ChessPieceType.Queen => "Queen",
             ChessPieceType.King => "King",
             ChessPieceType.Golem => "Golem",
+            ChessPieceType.Kelpie => "Kelpie",
+
             _ => "Unknown"
         };
     }

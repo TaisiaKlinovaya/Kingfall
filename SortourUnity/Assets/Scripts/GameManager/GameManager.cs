@@ -12,44 +12,37 @@ public class GameManager : MonoBehaviour
     public int CurrentPlayer { get { return currentPlayer; } }
     public String State { get { return state; } }
 
-    //  ####    Start Scene UI_Elemente  ###
     [Header("Start Scene UI Elemente")]
-    public GameObject startScene;           // Referenz zum Startmenü UI
-    public Button startButton;              // Button, um das Spiel zu starten
+    public GameObject startScene;
+    public Button startButton;
 
-    //
-    //  ####    Game Scene UI_Elemente  ####
     [Header("Game Scene UI Elemente")]
     public GameObject gameScene;
-    public Text roundTimerText;             // UI-Textfeld für den Runden-Timer
-    public Button finishedButton;           // Button um vor der Zeit seinen Spielzug zu beenden 
-    private float roundTime = 120f;         // 2 Minuten in Sekunden
+    public Text roundTimerText;
+    public Button finishedButton;
+    private float roundTime = 120f;
     private bool isRoundActive = true;
-    private bool isGameStarted = false;     // Bool, um zu überprüfen, ob das Spiel gestartet ist
-    private bool isGameFinished = false;    // Bool, um zu überprüfen, ob der Spielzug früher beendet wurde
-    //  ####    Transformation  ####
-    public Button transformButton;          // Button für die Figuren-Transformation
+    private bool isGameStarted = false;
+    private bool isGameFinished = false;
 
-    //
-    //  ####    Break Scene UI_Elemente     ####
+    [Header("Transformation")]
+    public Button transformButton;
+
     [Header("Break Scene UI Elemente")]
     public GameObject breakScene;
     public Button resumeButton;
     public Button quitButton;
-    private bool isPaused = false;                  // Bool, um zu überprüfen, ob das Spiel sich in Pause befindet
+    private bool isPaused = false;
 
-    //win scene UI
     [Header("Win Scene UI")]
     public GameObject winScene;
     public Button ReturnToMain;
     public TMP_Text winnerText;
 
-    //
-    //  ####    Spieler 1 & 2 hinzufügen    ####
     [Header("Spieler Kameras")]
     public Camera player1Camera;
     public Camera player2Camera;
-    private int currentPlayer = 1;          // 1 für Spieler 1, 2 für Spieler 2
+    private int currentPlayer = 1;
 
     void Start()
     {
@@ -63,49 +56,40 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
 
-        // Startmenü anzeigen & Game/Break Scene zu beginn deaktivieren
         startScene.SetActive(true);
         gameScene.SetActive(false);
         breakScene.SetActive(false);
         winScene.SetActive(false);
         Time.timeScale = 0f;
 
-        // Spieler Camera auf true oder false setzen
         player1Camera.enabled = true;
         player2Camera.enabled = false;
 
-        // Transformations-Button und Timer ausblenden, bis das Spiel gestartet ist
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
 
-        // Listener für den Start-Button, Resume-Button, Quit-Button und Finished-Button
         startButton.onClick.AddListener(StartGame);
         resumeButton.onClick.AddListener(ResumeGame);
         quitButton.onClick.AddListener(QuitGame);
-        finishedButton.onClick.AddListener(MoveFinished);  // << Hinzugefügt
+        finishedButton.onClick.AddListener(MoveFinished);
         ReturnToMain.onClick.AddListener(QuitGame);
     }
 
     void Update()
     {
-        // Wenn das Spiel gestartet ist, den Timer laufen lassen
         if (isGameStarted && roundTime > 0)
         {
-            roundTime -= Time.deltaTime; // Timer herunterzählen
-            UpdateRoundTimerText();      // Timer-Anzeige aktualisieren
+            roundTime -= Time.deltaTime;
+            UpdateRoundTimerText();
 
-            // Wenn die Zeit abgelaufen ist, kann man zusätzliche Logik hinzufügen
             if (roundTime <= 0)
             {
                 roundTime = 0;
-
-                Debug.Log("Rundenzeit abgelaufen.");    //  Debug Information
-
-                // Hier kann man eine Funktion aufrufen, die das Ende der Runde anzeigt
+                Debug.Log("Rundenzeit abgelaufen.");
+                MoveFinished();
             }
         }
 
-        // Prüfen, ob die ESC gedrückt wurde
         if (Input.GetKeyUp(KeyCode.Escape))
         {
             if (isPaused)
@@ -117,75 +101,75 @@ public class GameManager : MonoBehaviour
                 PauseGame();
             }
         }
-
-        if (isRoundActive)
-        {
-            if (roundTime <= 0)
-            {
-                Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
-                MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
-            }
-        }
     }
 
     public void StartGame()
     {
         state = "GameRun";
-        // Startmenü deaktivieren und das Spiel fortsetzen
         startScene.SetActive(false);
-        gameScene.SetActive(true);             // << Aktiviert die Game Scene
+        gameScene.SetActive(true);
         Time.timeScale = 1f;
         isGameStarted = true;
         isPaused = true;
 
-        // Runden-Timer und Transformations-Button anzeigen
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
 
-        Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);  // Debug Information
+        Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);
 
-
-        // Den Listener für den Transformations-Button hinzufügen
         transformButton.onClick.AddListener(TransformPiece);
     }
 
     public void UpdateRoundTimerText()
     {
-        // Konvertiere die Zeit in Minuten und Sekunden und aktualisiere die Anzeige
         int minutes = Mathf.FloorToInt(roundTime / 60);
         int seconds = Mathf.FloorToInt(roundTime % 60);
         roundTimerText.text = $"{minutes:00}:{seconds:00}";
     }
 
-    //
-    //  ###     Bearbeitung - Transformation bestimmter Schachfiguren (später)     ###
     public void TransformPiece()
     {
-        Debug.Log("Transformation der Schachfigur durchgeführt!");  // Debug Information
-        // Hier wird eine Beispielausgabe gezeigt, man kann jedoch beliebige Transformationslogik hinzufügen.
+        PieceType selectedPiece = GenerateBoard.Instance.GetSelectedPieceForTransformation();
+        if (selectedPiece != null)
+        {
+            if (selectedPiece.type == ChessPieceType.Rook)
+            {
+                GenerateBoard.Instance.TransformRookToGolem(selectedPiece);
+                Debug.Log("Rook transformed to Golem.");
+            }
+            else if (selectedPiece.type == ChessPieceType.Knight)
+            {
+                GenerateBoard.Instance.TransformKnightToKelpie(selectedPiece);
+                Debug.Log("Knight transformed to Kelpie.");
+            }
+            else
+            {
+                Debug.Log("Selected piece cannot be transformed.");
+            }
+        }
+        else
+        {
+            Debug.Log("No piece selected for transformation.");
+        }
     }
 
-    //
-    //  ###     Spielzug früher beenden     ###     NEU Funktioniert 
     public void MoveFinished()
     {
-        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");  // Debug: Überprüft, ob der Finished Button funktioniert
-
-        roundTime = 120f;       //  Runden zeit zurücksetzen
-        isRoundActive = true;   //  Runde erneut aktivieren
-        SwitchPlayer();         //  Spieler wird gewechselt
+        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");
+        roundTime = 120f;
+        isRoundActive = true;
+        GenerateBoard.Instance.hasMoved = false; // Setze das Flag zurück
+        SwitchPlayer();
     }
 
-    //
-    //  ###     Break Menü     ###
     public void PauseGame()
     {
         state = "PauseMenu";
         breakScene.SetActive(true);
-        Time.timeScale = 0f;            // Zeit anhalten
+        Time.timeScale = 0f;
         isPaused = true;
 
-        Debug.Log("Spiel pausiert. State: " + state);   //  Debug Information 
+        Debug.Log("Spiel pausiert. State: " + state);
     }
 
     public void WinGame(String winTeam)
@@ -197,16 +181,16 @@ public class GameManager : MonoBehaviour
 
         Time.timeScale = 0f;
         winScene.SetActive(true);
-
     }
+
     public void ResumeGame()
     {
         state = "GameRun";
         breakScene.SetActive(false);
-        Time.timeScale = 1f;                // Zeit fortsetzen
+        Time.timeScale = 1f;
         isPaused = false;
 
-        Debug.Log("Spiel fortgesetzt.");    //  Debug Information 
+        Debug.Log("Spiel fortgesetzt.");
     }
 
     public void QuitGame()
@@ -214,28 +198,21 @@ public class GameManager : MonoBehaviour
         state = "StartMenu";
         Debug.Log("Zurück zum Startbildschirm, State :" + state);
 
-        // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
         breakScene.SetActive(false);
         winScene.SetActive(false);
 
-        // Aktiviere das Startmenü
         startScene.SetActive(true);
 
-        // Spielzustände zurücksetzen
         isGameStarted = false;
         isPaused = false;
-        roundTime = 120f; // Timer zurücksetzen
-        Time.timeScale = 0f; // Zeit anhalten
+        roundTime = 120f;
+        Time.timeScale = 0f;
 
-        // Blende das Timer-Textfeld und den Transformations-Button aus
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
     }
 
-    // 
-    //  ####    Funktion zum wechseln der Spieler   ####
-    // Update: Spiellogik noch hinzufügen, welche Spieler gerade am zug ist
     public void SwitchPlayer()
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
@@ -254,6 +231,5 @@ public class GameManager : MonoBehaviour
             player1Camera.enabled = false;
             player2Camera.enabled = true;
         }
-
     }
 }

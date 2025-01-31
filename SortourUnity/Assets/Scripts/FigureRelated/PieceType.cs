@@ -11,7 +11,8 @@ public enum ChessPieceType
     Bishop = 4,
     Queen = 5,
     King = 6,
-    Golem = 7
+    Golem = 7,
+    Kelpie = 8
 }
 
 public class PieceType : MonoBehaviour
