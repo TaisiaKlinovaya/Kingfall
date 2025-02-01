@@ -1670,7 +1670,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 0.41972297, g: 0.24672478, b: 0.7830189, a: 1}
-  m_Intensity: 2
+  m_Intensity: 2.3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4001,6 +4001,8 @@ MonoBehaviour:
   - {fileID: 6007263896112012174, guid: 523ff490d1a9d8944b2d7e515dcfc747, type: 3}
   - {fileID: 831783141443313000, guid: 67d802d12813df7478b02e0124a24a02, type: 3}
   - {fileID: 7886964639542890800, guid: 5b874f6dc1a16d6439ae9deeab6c532d, type: 3}
+  hasMoved: 0
+  hasTransformed: 0
 --- !u!4 &1407249037
 Transform:
   m_ObjectHideFlags: 0
@@ -4069,7 +4071,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0.6140263, g: 0.7016529, b: 0.9245283, a: 1}
-  m_Intensity: 3.2
+  m_Intensity: 4
   m_Range: 11.39
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
