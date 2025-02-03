@@ -347,6 +347,7 @@ public class GenerateBoard : MonoBehaviour
             ProcessDefeatedPiece(ocp); // Rufe ProcessDefeatedPiece auf, um die Figur zu verschieben
             allChessPieces[x, y] = null;
 
+            // Überprüfen, ob die besiegte Figur ein König ist
             if (ocp.type == ChessPieceType.King)
             {
                 isKingDead = true;
@@ -359,6 +360,17 @@ public class GenerateBoard : MonoBehaviour
         {
             Golem golem = cp as Golem;
             golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
+
+            // Überprüfen, ob der Golem den König geschlagen hat
+            foreach (var defeatedPiece in golem.DefeatedPieces)
+            {
+                if (defeatedPiece.type == ChessPieceType.King)
+                {
+                    isKingDead = true;
+                    winTeam = (defeatedPiece.team == 1) ? "White" : "Black";
+                    break;
+                }
+            }
         }
 
         // Figur bewegen
@@ -513,6 +525,24 @@ public class GenerateBoard : MonoBehaviour
             }
         }
         deadBlacks.Clear();
+
+        foreach (PieceType deadPiece in deadWhiteTransformations)
+        {
+            if (deadPiece != null)
+            {
+                Destroy(deadPiece.gameObject);
+            }
+        }
+        deadWhiteTransformations.Clear();
+
+        foreach (PieceType deadPiece in deadBlackTransformations)
+        {
+            if (deadPiece != null)
+            {
+                Destroy(deadPiece.gameObject);
+            }
+        }
+        deadBlackTransformations.Clear();
     }
 
     public void ProcessDefeatedPiece(PieceType defeatedPiece)

@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class Golem : PieceType
 {
-   public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
+    public List<PieceType> DefeatedPieces = new List<PieceType>(); // Liste der geschlagenen Figuren
+
+    public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
         List<Vector2Int> r = new List<Vector2Int>();
 
         // Bewegungsrichtungen: oben, unten, links, rechts
         Vector2Int[] directions = new Vector2Int[]
         {
-        new Vector2Int(0, 1),  // oben
-        new Vector2Int(0, -1), // unten
-        new Vector2Int(-1, 0), // links
-        new Vector2Int(1, 0)   // rechts
+            new Vector2Int(0, 1),  // oben
+            new Vector2Int(0, -1), // unten
+            new Vector2Int(-1, 0), // links
+            new Vector2Int(1, 0)   // rechts
         };
 
         foreach (var direction in directions)
@@ -42,6 +44,8 @@ public class Golem : PieceType
     // Diese Methode wird aufgerufen, nachdem der Golem sich bewegt hat
     public void DefeatFiguresOnPath(ref PieceType[,] board, Vector2Int startPosition, Vector2Int endPosition)
     {
+        DefeatedPieces.Clear(); // Liste zurücksetzen
+
         // Bestimme die Bewegungsrichtung
         Vector2Int direction = new Vector2Int(
             Mathf.Clamp(endPosition.x - startPosition.x, -1, 1),
@@ -63,6 +67,7 @@ public class Golem : PieceType
                     PieceType defeatedPiece = board[newX, newY];
                     board[newX, newY] = null; // Figur entfernen
                     GenerateBoard.Instance.ProcessDefeatedPiece(defeatedPiece); // Figur an GenerateBoard melden
+                    DefeatedPieces.Add(defeatedPiece); // Geschlagene Figur zur Liste hinzufügen
 
                     Debug.Log($"Golem zerstört Figur {defeatedPiece.GetType().Name} auf ({newX}, {newY})");
                 }
