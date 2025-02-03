@@ -20,31 +20,52 @@ public class Kelpie : PieceType
             }
         }
 
-        // Angriff: Diagonal von dem Kelpie, zwei Felder nach oben, sowie das 3te Feld vor ihm
-        int[] attackOffsetsX = { -1, 1 }; // Zwei Felder nach links und rechts
-        int[] attackOffsetsY = { 2, 2 };  // Zwei Felder nach oben
+        // Angriff: Diagonal von dem Kelpie, ein Feld nach oben (links und rechts)
+        int forwardDirection = (team == 0) ? 1 : -1; // Team 0 bewegt sich nach oben, Team 1 nach unten
 
-        for (int i = 0; i < attackOffsetsX.Length; i++)
+        // Diagonal ein Feld nach vorne (links und rechts)
+        int[] attackOffsetsX1 = { -1, 1 }; // Ein Feld nach links und rechts
+        int[] attackOffsetsY1 = { 1 * forwardDirection, 1 * forwardDirection };  // Ein Feld nach oben oder unten
+
+        for (int i = 0; i < attackOffsetsX1.Length; i++)
         {
-            int newX = currentX + attackOffsetsX[i];
-            int newY = currentY + attackOffsetsY[i];
+            int newX = currentX + attackOffsetsX1[i];
+            int newY = currentY + attackOffsetsY1[i];
 
             if (newX >= 0 && newX < tileCountX && newY >= 0 && newY < tileCountY)
             {
+                // Angriff auf das diagonale Feld
                 if (board[newX, newY] != null && board[newX, newY].team != team)
                 {
                     r.Add(new Vector2Int(newX, newY));
                 }
+
+                // Angriff auf das vertikale Feld über dem diagonalen Feld
+                int verticalY = newY + 1 * forwardDirection;
+                if (verticalY >= 0 && verticalY < tileCountY)
+                {
+                    if (board[newX, verticalY] != null && board[newX, verticalY].team != team)
+                    {
+                        r.Add(new Vector2Int(newX, verticalY));
+                    }
+                }
             }
         }
 
-        // Angriff: Das 3te Feld vor dem Kelpie
-        int forwardY = currentY + 3;
-        if (forwardY < tileCountY)
+        // Angriff: Das 3te Feld vertikal über dem Kelpie
+        int forwardY = currentY + 3 * forwardDirection;
+        int intermediateY1 = currentY + 1 * forwardDirection; // Erstes Feld vor dem dritten Feld
+        int intermediateY2 = currentY + 2 * forwardDirection; // Zweites Feld vor dem dritten Feld
+
+        if (forwardY >= 0 && forwardY < tileCountY)
         {
-            if (board[currentX, forwardY] != null && board[currentX, forwardY].team != team)
+            // Überprüfen, ob die Felder dazwischen frei sind
+            if (board[currentX, intermediateY1] == null && board[currentX, intermediateY2] == null)
             {
-                r.Add(new Vector2Int(currentX, forwardY));
+                if (board[currentX, forwardY] != null && board[currentX, forwardY].team != team)
+                {
+                    r.Add(new Vector2Int(currentX, forwardY));
+                }
             }
         }
 

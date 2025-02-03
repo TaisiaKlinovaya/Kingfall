@@ -21,7 +21,7 @@ public class PulsatingAlphaButton : MonoBehaviour
     {
         if (canvasGroup != null)
         {
-            float alpha = Mathf.Lerp(minAlpha, maxAlpha, Mathf.PingPong(Time.time * pulsateSpeed, 1));
+            float alpha = Mathf.Lerp(minAlpha, maxAlpha, Mathf.PingPong(Time.unscaledTime * pulsateSpeed, 1));
             canvasGroup.alpha = alpha; // Update the alpha value to create a pulsating effect
             //Debug.Log("Pulsing effect running!"); --> AUSKOMMENTIERT: Meldung hat keinen Wert!S
         }
