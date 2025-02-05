@@ -545,6 +545,14 @@ public class GenerateBoard : MonoBehaviour
         deadBlackTransformations.Clear();
     }
 
+    public void ResetBoardState()
+    {
+        hasMoved = false;
+        hasTransformed = false;
+        currentlyDragging = null;
+        RemoveHighlightTiles();
+    }
+
     public void ProcessDefeatedPiece(PieceType defeatedPiece)
     {
         if (defeatedPiece == null)

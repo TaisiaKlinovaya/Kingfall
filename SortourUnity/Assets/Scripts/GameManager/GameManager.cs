@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     private float roundTime = 120f;
     private bool isRoundActive = true;
     private bool isGameStarted = false;
-    //private bool isGameFinished = false;    --> AUSKOMMENTIERT: keine Verwendung
 
     [Header("Transformation")]
     public Button transformButton;
@@ -132,7 +131,11 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);
 
+        transformButton.onClick.RemoveAllListeners(); // Remove previous listeners to avoid duplicates
         transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
+
+        // Reset the board state when starting a new game
+        GenerateBoard.Instance.ResetBoardState();
     }
 
     public void UpdateRoundTimerText()
@@ -221,12 +224,14 @@ public class GameManager : MonoBehaviour
 
         // Spielzustände zurücksetzen
         ResetGame();
+        GenerateBoard.Instance.ResetBoardState();
     }
 
     private void ResetGame()
     {
         isGameStarted = false;
         isPaused = false;
+        isRoundActive = true;
         roundTime = 120f; // Timer zurücksetzen
         Time.timeScale = 0f; // Zeit anhalten
 
@@ -254,7 +259,6 @@ public class GameManager : MonoBehaviour
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
 
-        //board.SetCamera(currentPlayer);  --> AUSKOMMENTIERT: Damit der Finish Button funktioniert
         if (currentPlayer == 1)
         {
             if (player1Camera != null) player1Camera.enabled = true;
