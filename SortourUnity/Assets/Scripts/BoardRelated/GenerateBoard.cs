@@ -17,6 +17,7 @@ public class GenerateBoard : MonoBehaviour
     [SerializeField] private float deathSize = 0.2f;
     [SerializeField] private float deathSpacing = 0.4f;
     [SerializeField] private float dragOffset = 1f;
+    [SerializeField] private int RegenManaAmount = 2;
 
     private const int TILE_COUNT_X = 8;
     private const int TILE_COUNT_Y = 8;
@@ -48,6 +49,10 @@ public class GenerateBoard : MonoBehaviour
     public bool hasTransformed = false; // Flag, um zu überprüfen, ob eine Transformation durchgeführt wurde
     private List<PieceType> deadWhiteTransformations = new List<PieceType>();
     private List<PieceType> deadBlackTransformations = new List<PieceType>();
+
+    [Header("Transformation Costs")]
+    public int golemTransformationCost = 5;
+    public int kelpieTransformationCost = 5;
 
     private void Awake()
     {
@@ -600,7 +605,6 @@ public class GenerateBoard : MonoBehaviour
         {
             if (isTransformationPiece)
             {
-                // Transformationsfigur: Platziere sie in einer separaten Reihe
                 deadBlackTransformations.Add(defeatedPiece);
                 defeatedPiece.SetScale(Vector3.one * deathSize);
 
@@ -628,6 +632,15 @@ public class GenerateBoard : MonoBehaviour
 
                 defeatedPiece.SetPosition(deathPosition);
             }
+        }
+
+        int currentPlayer = GameManager.Instance.CurrentPlayer;
+
+        // Überprüfen, ob die besiegte Figur dem gegnerischen Team angehört
+        if (defeatedPiece.team != currentPlayer - 1)
+        {
+            GameManager.Instance.SetCurrentMana(currentPlayer, GameManager.Instance.GetCurrentMana(currentPlayer) + RegenManaAmount);
+            Debug.Log($"Spieler {currentPlayer} hat {RegenManaAmount} Mana regeneriert, nachdem eine gegnerische Figur besiegt wurde.");
         }
 
         Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
@@ -731,45 +744,97 @@ public class GenerateBoard : MonoBehaviour
             RemoveHighlightTiles();
         }
     }
+
+    private void KillRandomOpponentPiece(int player)
+    {
+        // Bestimme das gegnerische Team
+        int opponentTeam = (player == 1) ? 1 : 0; // Spieler 1 (Team 0) vs. Spieler 2 (Team 1)
+
+        // Sammle alle Figuren des gegnerischen Teams (außer König)
+        List<PieceType> opponentPieces = new List<PieceType>();
+        for (int x = 0; x < GenerateBoard.TILE_COUNT_X; x++)
+        {
+            for (int y = 0; y < GenerateBoard.TILE_COUNT_Y; y++)
+            {
+                PieceType piece = GenerateBoard.Instance.allChessPieces[x, y];
+                if (piece != null && piece.team == opponentTeam && piece.type != ChessPieceType.King)
+                {
+                    opponentPieces.Add(piece);
+                }
+            }
+        }
+
+        // Wenn es Figuren gibt, wähle eine zufällige aus und töte sie
+        if (opponentPieces.Count > 0)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, opponentPieces.Count);
+            PieceType randomPiece = opponentPieces[randomIndex];
+
+            // Töte die zufällige Figur
+            GenerateBoard.Instance.ProcessDefeatedPiece(randomPiece);
+            Debug.Log($"Zufällige gegnerische Figur ({randomPiece.type}) wurde getötet.");
+        }
+        else
+        {
+            Debug.Log("Keine gegnerischen Figuren (außer König) verfügbar, die getötet werden könnten.");
+        }
+    }
     public void TransformPiece()
     {
         if (hasTransformed)
         {
-            Debug.Log("You can only transform one piece per turn.");
+            Debug.Log("Du kannst nur eine Figur pro Zug transformieren.");
             return;
         }
 
         PieceType selectedPiece = GetSelectedPieceForTransformation();
         if (selectedPiece != null)
         {
-            // Überprüfen, ob die ausgewählte Figur dem aktuellen Spieler gehört
+            // Überprüfe, ob die ausgewählte Figur dem aktuellen Spieler gehört
             if (selectedPiece.team == GameManager.Instance.CurrentPlayer - 1)
             {
+                int transformationCost = 0;
                 if (selectedPiece.type == ChessPieceType.Rook)
                 {
-                    TransformRookToGolem(selectedPiece);
-                    Debug.Log("Rook transformed to Golem.");
-                    hasTransformed = true; // Setze das Flag, dass eine Transformation durchgeführt wurde
+                    transformationCost = golemTransformationCost;
                 }
                 else if (selectedPiece.type == ChessPieceType.Knight)
                 {
-                    TransformKnightToKelpie(selectedPiece);
-                    Debug.Log("Knight transformed to Kelpie.");
-                    hasTransformed = true; // Setze das Flag, dass eine Transformation durchgeführt wurde
+                    transformationCost = kelpieTransformationCost;
+                }
+
+                // Überprüfe, ob der Spieler genug Mana hat
+                if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
+                {
+                    if (selectedPiece.type == ChessPieceType.Rook)
+                    {
+                        TransformRookToGolem(selectedPiece);
+                        Debug.Log("Rook wurde in einen Golem transformiert");
+                        hasTransformed = true;
+                    }
+                    else if (selectedPiece.type == ChessPieceType.Knight)
+                    {
+                        TransformKnightToKelpie(selectedPiece);
+                        Debug.Log("Knight wurde in einen Kelpie transformiert");
+                        hasTransformed = true;
+                    }
+
+                    // Mana abziehen
+                    GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
                 }
                 else
                 {
-                    Debug.Log("Selected piece cannot be transformed.");
+                    Debug.Log("Nicht genug Mana für die Transformation!");
                 }
             }
             else
             {
-                Debug.Log("You can only transform your own pieces.");
+                Debug.Log("Du kannst nur deine eigenen Figuren transformieren");
             }
         }
         else
         {
-            Debug.Log("No piece selected for transformation.");
+            Debug.Log("Keine Figur für die Transformation ausgewählt");
         }
     }
 }

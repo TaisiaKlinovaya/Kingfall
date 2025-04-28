@@ -44,6 +44,20 @@ public class GameManager : MonoBehaviour
     private int currentPlayer = 1;
     private GenerateBoard board;
 
+    [Header("Mana System")]
+    public int maxMana = 10;
+    private int[] currentMana = new int[2];
+
+    public int GetCurrentMana(int player)
+    {
+        if (player < 1 || player > 2)
+        {
+            Debug.LogError("Ungültiger Spielerindex!");
+            return 0;
+        }
+        return currentMana[player - 1];
+    }
+
     void Start()
     {
         state = "StartMenu";
@@ -55,6 +69,11 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+
+        SetCurrentMana(1, maxMana);
+        SetCurrentMana(2, maxMana);
+
+        UpdateManaUI();
 
         ResetGame(); // Reset the game state when the StartScene is loaded
 
@@ -114,6 +133,41 @@ public class GameManager : MonoBehaviour
                 MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
             }
         }
+    }
+
+    public void SetCurrentMana(int player, int amount)
+    {
+        if (player < 1 || player > 2)
+        {
+            Debug.LogError("Ungültiger Spielerindex!");
+            return;
+        }
+        currentMana[player - 1] = Mathf.Clamp(amount, 0, maxMana);
+        UpdateManaUI();
+    }
+
+    public void UseMana(int player, int amount)
+    {
+        if (player < 1 || player > 2)
+        {
+            Debug.LogError("Ungültiger Spielerindex!");
+            return;
+        }
+
+        if (currentMana[player - 1] >= amount)
+        {
+            SetCurrentMana(player, currentMana[player - 1] - amount);
+        }
+        else
+        {
+            Debug.Log($"Spieler {player} hat nicht genug Mana!");
+        }
+    }
+
+    private void UpdateManaUI()
+    {
+        // Aktualisiert das Mana-UI für beide Spieler
+        Hud.Instance.UpdateManaUI(currentPlayer, currentMana[0], currentMana[1], maxMana);
     }
 
     public void StartGame()
@@ -241,7 +295,14 @@ public class GameManager : MonoBehaviour
 
         // Setze den currentPlayer auf 1 zurück, damit das Spiel mit der Player1Camera beginnt
         currentPlayer = 1;
-        SetInitialCamera();     //  Stellt sicher das die Kamera zurückgesetzt wird
+        SetInitialCamera();
+
+        // Mana für beide Spieler zurücksetzen
+        SetCurrentMana(1, maxMana);
+        SetCurrentMana(2, maxMana);
+
+        // Aktualisiere das Mana-UI
+        UpdateManaUI();
     }
 
     private void SetInitialCamera()
@@ -269,6 +330,10 @@ public class GameManager : MonoBehaviour
             if (player1Camera != null) player1Camera.enabled = false;
             if (player2Camera != null) player2Camera.enabled = true;
         }
-        Debug.Log("current player after switch Player: " + currentPlayer);
+
+        Debug.Log("Aktueller Spieler nach Wechsel: " + currentPlayer);
+
+        // Aktualisiere das Mana UI, wenn der Spieler wechselt
+        UpdateManaUI();
     }
 }
