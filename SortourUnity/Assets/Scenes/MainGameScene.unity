@@ -4004,6 +4004,7 @@ MonoBehaviour:
   - {fileID: 2162507986182748001, guid: f98bda84e2225024ebe83cde9505f51f, type: 3}
   - {fileID: 844422296258543121, guid: b3ac508a2aa4ad043846a163b4644dcc, type: 3}
   - {fileID: 894283207713372211, guid: 334d997daa3ac4e4480ba09e638b7576, type: 3}
+  - {fileID: 245686498834076640, guid: 090eed2ba82efaa4d8ceceea43326774, type: 3}
   WhiteTeamPrefabs:
   - {fileID: 8136827764730858393, guid: f592e6afef9abe24e875ab0c7615adde, type: 3}
   - {fileID: 5200633497699764783, guid: 81522c5c8be343246a9468d49742f6ae, type: 3}
@@ -4013,10 +4014,12 @@ MonoBehaviour:
   - {fileID: 7886964639542890800, guid: 5b874f6dc1a16d6439ae9deeab6c532d, type: 3}
   - {fileID: 844422296258543121, guid: 12391527830daf4488aa6c5e2651d6cd, type: 3}
   - {fileID: 894283207713372211, guid: cc681d098240ff5488199ec346fa40e6, type: 3}
+  - {fileID: 478155545966345468, guid: 539f7feaecc44484c96cffaea9e9c5b0, type: 3}
   hasMoved: 0
   hasTransformed: 0
   golemTransformationCost: 5
   kelpieTransformationCost: 3
+  mantisTransformationCost: 4
 --- !u!4 &1407249037
 Transform:
   m_ObjectHideFlags: 0

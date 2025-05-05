@@ -199,22 +199,36 @@ public class GameManager : MonoBehaviour
         roundTimerText.text = $"{minutes:00}:{seconds:00}";
     }
 
+    // In GameManager/GameManager.cs
+
     public void MoveFinished()
     {
-        Debug.Log($"Der Spieler {currentPlayer} hat vor der Zeit sein Spielzug beendet!");
-        roundTime = 120f;
+        Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
+        roundTime = 120f; // Reset timer
         isRoundActive = true;
 
-        // Setze die angehobene Figur zurück
         GenerateBoard.Instance.ResetDraggingPiece();
 
-        // Setze die Flags zurück
-        GenerateBoard.Instance.hasMoved = false;
-        GenerateBoard.Instance.hasTransformed = false; // Setze das Transformations-Flag zurück
+        // --- Mantis Trap Setting Logic ---
+        // Die Falle wurde (wenn gewünscht) bereits in GenerateBoard.Update gesetzt.
+        // Wir müssen hier nichts mehr abfragen.
+        // --- Ende Mantis Trap Logic ---
 
-        // Wechsle den Spieler
+        // Reset general turn flags
+        GenerateBoard.Instance.hasMoved = false;
+        GenerateBoard.Instance.hasTransformed = false;
+        GenerateBoard.Instance.ResetSelectedPieceForTransformation();
+
+        // Reset the 'last moved piece' tracker UND die Richtungswahl-Kontrolle
+        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice(); // NEUE Methode benötigt
+
+        // Remove highlights
+        GenerateBoard.Instance.RemoveHighlightTilesPublic();
+
+        // Switch player
         SwitchPlayer();
     }
+
 
     public void PauseGame()
     {
