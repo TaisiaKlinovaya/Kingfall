@@ -37,41 +37,72 @@ public class Mantis : PieceType
     /// <param name="direction">The direction the trap faces (e.g., Vector2Int.up for North).</param>
     public void SetupTrapZone(Vector2Int direction)
     {
-        // Validate direction (must be cardinal: N, E, S, W)
+        // 1. Validate direction (must be cardinal: N, E, S, W)
         if (Mathf.Abs(direction.x) + Mathf.Abs(direction.y) != 1)
         {
-            Debug.LogError($"Mantis ({team}) at ({currentX},{currentY}): Invalid trap direction provided: {direction}. Trap not set.");
-            isTrapSet = false; // Ensure trap is not set on error
+            Debug.LogError($"Mantis ({team}) at ({currentX},{currentY}): Invalid trap direction provided: {direction}. Must be N, E, S, or W. Trap not set.");
+            // Reset state to be safe
+            isTrapSet = false;
             trapZone.Clear();
             trapDirection = Vector2Int.zero;
             return;
         }
 
+        // 2. Set trap state
         isTrapSet = true;
-        trapDirection = direction;
-        trapZone.Clear(); // Clear previous zone
+        trapDirection = direction; // Store the chosen facing direction
+        trapZone.Clear(); // Clear any previous zone definition
 
-        // Calculate the 3 tiles in front based on the direction
-        for (int i = 1; i <= 3; i++)
+        // 3. Calculate the central tile of the trap zone (one step from Mantis)
+        int centerX = currentX + direction.x;
+        int centerY = currentY + direction.y;
+
+        // 4. Define the 3 potential coordinates of the trap zone tiles
+        List<Vector2Int> potentialZoneTiles = new List<Vector2Int>();
+
+        // Add the center tile itself
+        potentialZoneTiles.Add(new Vector2Int(centerX, centerY));
+
+        // Add the two adjacent tiles based on the trap's orientation
+        if (direction.x == 0) // Trap is Vertical (North or South) - Add Left/Right neighbors
         {
-            int targetX = currentX + direction.x * i;
-            int targetY = currentY + direction.y * i;
-
-            // Only add tiles that are within the board boundaries
-            // Use constants if available, otherwise use fixed size 8x8
-            // Assuming GenerateBoard.TILE_COUNT_X and GenerateBoard.TILE_COUNT_Y exist and are accessible
-            // If not, replace with 8 or get the values appropriately.
-            // For simplicity, let's assume 8x8 here if constants aren't easily accessible.
-            const int TILE_COUNT_X = 8;
-            const int TILE_COUNT_Y = 8;
-            if (targetX >= 0 && targetX < TILE_COUNT_X && targetY >= 0 && targetY < TILE_COUNT_Y)
-            {
-                trapZone.Add(new Vector2Int(targetX, targetY));
-            }
+            potentialZoneTiles.Add(new Vector2Int(centerX - 1, centerY)); // Tile to the left
+            potentialZoneTiles.Add(new Vector2Int(centerX + 1, centerY)); // Tile to the right
         }
-        Debug.Log($"Mantis (Team {team}) at ({currentX},{currentY}) set trap facing {direction}. Zone: [{string.Join(", ", trapZone)}]");
-    }
+        else // Trap is Horizontal (East or West) - Add Above/Below neighbors
+        {
+            potentialZoneTiles.Add(new Vector2Int(centerX, centerY - 1)); // Tile below
+            potentialZoneTiles.Add(new Vector2Int(centerX, centerY + 1)); // Tile above
+        }
 
+        // 5. Validate each potential tile against board boundaries and add valid ones
+        // Use constants if accessible from GenerateBoard, otherwise assume 8x8
+        const int TILE_COUNT_X = 8;
+        const int TILE_COUNT_Y = 8;
+
+        foreach (Vector2Int tile in potentialZoneTiles)
+        {
+            // Check if the tile coordinates are within the valid board range
+            if (tile.x >= 0 && tile.x < TILE_COUNT_X && tile.y >= 0 && tile.y < TILE_COUNT_Y)
+            {
+                // If valid, add it to the actual trap zone
+                trapZone.Add(tile);
+            }
+            // Optional: Log if a potential tile was skipped due to being out of bounds
+            // else { Debug.Log($"  Skipped potential trap tile {tile} (out of bounds)."); }
+        }
+
+        // 6. Log the result
+        Debug.Log($"Mantis (Team {team}) at ({currentX},{currentY}) set trap facing {direction}. Zone now covers tiles: [{string.Join(", ", trapZone)}]");
+
+        // Safety check: If the trap zone is empty after validation (e.g., Mantis is at edge facing out), deactivate trap
+        if (trapZone.Count == 0)
+        {
+            Debug.LogWarning($"  Trap zone for Mantis at ({currentX},{currentY}) facing {direction} resulted in zero valid tiles. Deactivating trap.");
+            isTrapSet = false;
+            trapDirection = Vector2Int.zero;
+        }
+    }
     /// <summary>
     /// Resets the trap, clearing its state and zone.
     /// Called when the trap triggers or the Mantis moves.
