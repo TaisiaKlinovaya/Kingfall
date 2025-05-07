@@ -430,44 +430,31 @@ public class GenerateBoard : MonoBehaviour
         }
         return null;
     }
+    // In BoardRelated/GenerateBoard.cs
+
     private bool MoveTo(PieceType cp, int x, int y)
     {
         // --- Check for opponent Mantis traps at the target destination ---
-        int opponentTeam = 1 - cp.team; // Determine the opponent's team index (0 or 1)
-                                        // Iterate through all board tiles to find opponent Mantis pieces
+        int opponentTeam = 1 - cp.team;
         for (int mx = 0; mx < TILE_COUNT_X; mx++)
         {
             for (int my = 0; my < TILE_COUNT_Y; my++)
             {
                 PieceType potentialMantis = allChessPieces[mx, my];
-                // Check if there's a piece, it belongs to the opponent, it's a Mantis, and its trap is set
                 if (potentialMantis != null &&
                     potentialMantis.team == opponentTeam &&
-                    potentialMantis is Mantis mantis && // Use 'is' pattern matching for type check and cast
+                    potentialMantis is Mantis mantis &&
                     mantis.IsTrapActive())
                 {
-                    // Check if the target coordinates (x, y) of the current move fall within this Mantis's trap zone
                     if (mantis.GetTrapZone().Contains(new Vector2Int(x, y)))
                     {
                         Debug.LogWarning($"MANTIS TRAP TRIGGERED! Piece {cp.type} (Team {cp.team}) moving to ({x},{y}) stepped into Mantis (Team {opponentTeam}) trap originating from ({mantis.currentX},{mantis.currentY}).");
-
-                        Vector2Int originalPosition = new Vector2Int(cp.currentX, cp.currentY); // Store original pos before removing
-
-                        // Process the piece that stepped into the trap as defeated (handles visuals, dead list, mana gain)
+                        Vector2Int originalPosition = new Vector2Int(cp.currentX, cp.currentY);
                         ProcessDefeatedPiece(cp);
-
-                        // Remove the trapped piece from its starting position on the logical board
-                        // It never reaches the destination (x, y)
                         allChessPieces[originalPosition.x, originalPosition.y] = null;
-
-                        // Reset the trap of the Mantis that caught the piece
                         mantis.ResetTrap();
-
-                        // Mark the turn flags as if a move happened, consuming the action
                         hasMoved = true;
-                        lastMovedOrTransformedPiece = null; // No piece successfully completed the move
-
-                        // Return true because an action occurred and the turn should proceed (Highlights removed, player switched)
+                        lastMovedOrTransformedPiece = null;
                         return true;
                     }
                 }
@@ -475,93 +462,80 @@ public class GenerateBoard : MonoBehaviour
         }
         // --- End of Mantis Trap Check ---
 
-
-        // --- Standard Move Validation ---
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
-        // Check if the target tile (x, y) is among the available moves calculated earlier
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            // If not a valid destination based on piece movement rules
             Debug.Log($"Invalid Move for {cp.type}: Target ({x},{y}) is not in the list of available moves.");
-            // The piece visually snaps back in the Update loop if dragging was involved
-            return false; // Indicate the move was illegal/impossible
+            return false;
         }
 
-
-        // --- Handle Capturing ---
         PieceType targetPiece = allChessPieces[x, y];
-        if (targetPiece != null) // Is the destination tile occupied?
+        if (targetPiece != null)
         {
-            // Check if the occupying piece is an ally
             if (targetPiece.team == cp.team)
             {
                 Debug.Log($"Invalid Move for {cp.type}: Cannot capture own piece ({targetPiece.type}) at ({x},{y}).");
-                // The piece visually snaps back
-                return false; // Indicate illegal move
+                return false;
             }
             else
             {
-                // It's an enemy piece, capture it
                 Debug.Log($"{cp.type} (Team {cp.team}) captures {targetPiece.type} (Team {targetPiece.team}) at ({x},{y}).");
-                ProcessDefeatedPiece(targetPiece); // Handle visual removal, dead list, mana gain
-
-                // Check if the captured piece was a King (Game Over condition)
+                ProcessDefeatedPiece(targetPiece);
                 if (targetPiece.type == ChessPieceType.King)
                 {
-                    isKingDead = true; // Flag for game over check in Update
-                    winTeam = (targetPiece.team == 1) ? "White" : "Black"; // Determine winner
+                    isKingDead = true;
+                    winTeam = (targetPiece.team == 1) ? "White" : "Black";
                     Debug.LogWarning($"KING CAPTURED! Team {winTeam} wins!");
                 }
-                // The target square will be logically overwritten by the moving piece later
             }
         }
 
         // --- Handle Special Piece Logic (Golem Trample) ---
         if (cp.type == ChessPieceType.Golem)
         {
-            // If the moving piece is a Golem, execute its trample effect
-            Golem golem = cp as Golem; // Safe cast
+            Golem golem = cp as Golem;
             if (golem != null)
             {
-                // Call the method to defeat pieces along the path (excluding the Golem itself and the final target square piece which was already handled)
-                golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
+                // Rufe DefeatFiguresOnPath NUR EINMAL auf und speichere das Ergebnis
+                bool trampledAnyPieces = golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
 
-                // Check if the Golem's trample defeated a King
-                foreach (var defeatedPiece in golem.DefeatedPieces) // Check list populated by DefeatFiguresOnPath
+                // Löse Kamera-Shake aus, BASIEREND AUF DEM ERGEBNIS DES ERSTEN AUFRUFS
+                if (trampledAnyPieces)
                 {
-                    if (defeatedPiece.type == ChessPieceType.King)
+                    Debug.Log("Golem trampled pieces, triggering camera shake.");
+                    GameManager.Instance.TriggerActiveCameraShake(0.6f, 0.15f); // Du kannst Dauer/Stärke anpassen
+                }
+
+                // Überprüfe, ob der König durch das Trampeln besiegt wurde
+                // Diese Liste (golem.DefeatedPieces) wird durch den obigen Aufruf von DefeatFiguresOnPath gefüllt
+                foreach (var defeatedPieceInPath in golem.DefeatedPieces)
+                {
+                    if (defeatedPieceInPath.type == ChessPieceType.King)
                     {
                         isKingDead = true;
-                        winTeam = (defeatedPiece.team == 1) ? "White" : "Black";
+                        winTeam = (defeatedPieceInPath.team == 1) ? "White" : "Black"; // Bestimme Gewinner basierend auf Team der besiegten Königsfigur
                         Debug.LogWarning($"KING TRAMPLED BY GOLEM! Team {winTeam} wins!");
-                        break; // No need to check further
+                        break; // König gefunden, Schleife kann beendet werden
                     }
                 }
             }
         }
+        // --- End of Golem Trample Logic ---
 
 
         // --- Finalize the Move ---
-        // Update the logical board state:
-        allChessPieces[x, y] = cp; // Place the moving piece at the destination
-        allChessPieces[previousPosition.x, previousPosition.y] = null; // Clear the starting square
+        allChessPieces[x, y] = cp;
+        allChessPieces[previousPosition.x, previousPosition.y] = null;
 
-        // Update the piece's internal coordinates
-        // (positionSinglePiece updates currentX/currentY and handles visual positioning)
-        positionSinglePiece(x, y); // Use force=false for smooth Lerp movement
+        positionSinglePiece(x, y);
 
-        // Track the piece that just completed its move (for potential Mantis trap setup)
         lastMovedOrTransformedPiece = cp;
-
-        // Set flag indicating a piece has moved this turn
         hasMoved = true;
 
         Debug.Log($"Piece {cp.GetType().Name} (Team {(cp.team == 0 ? "White" : "Black")}) moved from ({previousPosition.x}, {previousPosition.y}) to ({x}, {y}).");
 
-        // If a Mantis moved, its trap should be reset (handled in Mantis.GetAvailableMoves now)
-
-        return true; // Move was successful
+        return true;
     }
     public Vector2Int LookupTileIndex(GameObject hitInfo)
     {

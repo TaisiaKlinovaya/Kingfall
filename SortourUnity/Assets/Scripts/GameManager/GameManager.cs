@@ -7,6 +7,10 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("Kamera Shake Komponenten")]
+    public CameraShake player1CameraShake;
+    public CameraShake player2CameraShake;
+
     public static GameManager Instance { get; private set; }
     private String state;
     public int CurrentPlayer { get { return currentPlayer; } }
@@ -91,6 +95,19 @@ public class GameManager : MonoBehaviour
         // startButton.gameObject.SetActive(true);         //  --> Neu Hinzugefügt
 
         SetInitialCamera();
+        
+
+        if (player1Camera != null)
+        {
+            player1CameraShake = player1Camera.GetComponent<CameraShake>();
+            if (player1CameraShake == null) Debug.LogError("Player1Camera hat keine CameraShake Komponente!");
+        }
+        if (player2Camera != null)
+        {
+            player2CameraShake = player2Camera.GetComponent<CameraShake>();
+            if (player2CameraShake == null) Debug.LogError("Player2Camera hat keine CameraShake Komponente!");
+        }
+
 
         if (finishedButton != null)
         {
@@ -103,6 +120,23 @@ public class GameManager : MonoBehaviour
         quitButton.onClick.AddListener(QuitGame);
         finishedButton.onClick.AddListener(MoveFinished);
         ReturnToMain.onClick.AddListener(QuitGame);
+    }
+
+    // Neue Methode, um den Shake auf der aktuellen Kamera auszulösen:
+    public void TriggerActiveCameraShake(float duration, float amount)
+    {
+        if (currentPlayer == 1 && player1CameraShake != null && player1Camera.enabled)
+        {
+            player1CameraShake.TriggerShake(duration, amount);
+        }
+        else if (currentPlayer == 2 && player2CameraShake != null && player2Camera.enabled)
+        {
+            player2CameraShake.TriggerShake(duration, amount);
+        }
+        else
+        {
+            Debug.LogWarning("Konnte keinen aktiven CameraShake für den aktuellen Spieler finden.");
+        }
     }
 
     void Update()

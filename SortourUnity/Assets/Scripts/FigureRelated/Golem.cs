@@ -42,46 +42,50 @@ public class Golem : PieceType
     }
 
     // Diese Methode wird aufgerufen, nachdem der Golem sich bewegt hat
-    public void DefeatFiguresOnPath(ref PieceType[,] board, Vector2Int startPosition, Vector2Int endPosition)
+    public bool DefeatFiguresOnPath(ref PieceType[,] board, Vector2Int startPosition, Vector2Int endPosition)
     {
-        DefeatedPieces.Clear(); // Liste zurücksetzen
+        DefeatedPieces.Clear(); // Reset list from previous moves
+        bool hasDefeatedAny = false; // Track if any piece is defeated
 
-        // Bestimme die Bewegungsrichtung
+        // Determine movement direction (normalized)
         Vector2Int direction = new Vector2Int(
             Mathf.Clamp(endPosition.x - startPosition.x, -1, 1),
             Mathf.Clamp(endPosition.y - startPosition.y, -1, 1)
         );
 
-        // Gehe den Weg des Golems ab und besiege alle Figuren, aber NICHT den Golem selbst
-        for (int i = 1; i <= 5; i++)
+        // Determine path length (max steps between start and end)
+        int pathLength = Mathf.Max(Mathf.Abs(endPosition.x - startPosition.x), Mathf.Abs(endPosition.y - startPosition.y));
+
+        // Iterate along the path, EXCLUDING the start and end tiles themselves
+        // The end tile is handled by the main MoveTo capture logic.
+        for (int i = 1; i < pathLength; i++) // Stop BEFORE reaching endPosition
         {
-            int newX = startPosition.x + direction.x * i;
-            int newY = startPosition.y + direction.y * i;
+            int pathX = startPosition.x + direction.x * i;
+            int pathY = startPosition.y + direction.y * i;
 
-            // Prüfen, ob das Feld innerhalb des Spielfelds liegt
-            if (newX >= 0 && newX < board.GetLength(0) && newY >= 0 && newY < board.GetLength(1))
+            // Check bounds
+            if (pathX >= 0 && pathX < board.GetLength(0) && pathY >= 0 && pathY < board.GetLength(1))
             {
-                if (board[newX, newY] != null && board[newX, newY] != this) // Golem darf nicht sich selbst zerstören
+                PieceType pieceOnPath = board[pathX, pathY];
+                if (pieceOnPath != null && pieceOnPath != this) // Piece exists and is not the Golem itself
                 {
-                    // Figur besiegen
-                    PieceType defeatedPiece = board[newX, newY];
-                    board[newX, newY] = null; // Figur entfernen
-                    GenerateBoard.Instance.ProcessDefeatedPiece(defeatedPiece); // Figur an GenerateBoard melden
-                    DefeatedPieces.Add(defeatedPiece); // Geschlagene Figur zur Liste hinzufügen
+                    Debug.Log($"Golem tramples {pieceOnPath.type} (Team {pieceOnPath.team}) at ({pathX},{pathY}) on its way to ({endPosition.x},{endPosition.y}).");
 
-                    Debug.Log($"Golem zerstört Figur {defeatedPiece.GetType().Name} auf ({newX}, {newY})");
-                }
+                    // Use GenerateBoard.Instance to process the defeated piece (handles dead list, mana etc.)
+                    GenerateBoard.Instance.ProcessDefeatedPiece(pieceOnPath);
+                    DefeatedPieces.Add(pieceOnPath); // Add to Golem's personal list of trample victims
 
-                // Bewegung stoppen, wenn das Endfeld erreicht ist
-                if (newX == endPosition.x && newY == endPosition.y)
-                {
-                    break;
+                    // Remove the piece from the logical board
+                    board[pathX, pathY] = null;
+                    hasDefeatedAny = true; // Mark that at least one piece was defeated
                 }
             }
             else
             {
-                break; // Bewegung stoppen, wenn das Spielfeldende erreicht ist
+                // Path went out of bounds, should not happen if endPosition is valid
+                break;
             }
         }
+        return hasDefeatedAny; // Return whether any pieces were trampled
     }
 }
