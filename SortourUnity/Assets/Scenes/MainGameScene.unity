@@ -4023,6 +4023,8 @@ MonoBehaviour:
   deathSpacing: 0.7
   dragOffset: 1
   RegenManaAmount: 2
+  lightningEffectPrefab: {fileID: 488501208790643526, guid: 899ad805eaf54254c84206c70c5d4cdf, type: 3}
+  lightningDuration: 2
   BlackTeamPrefabs:
   - {fileID: 8371137057724265051, guid: c4216fb004bd9b14e91327afef52b3fd, type: 3}
   - {fileID: 4092411331329298651, guid: c3a06a60db639854a8d07749e473074a, type: 3}
@@ -4048,6 +4050,7 @@ MonoBehaviour:
   golemTransformationCost: 5
   kelpieTransformationCost: 3
   mantisTransformationCost: 4
+  disabledTileMaterial: {fileID: 2100000, guid: cd00807983842414abbd5f24845f9576, type: 2}
 --- !u!4 &1407249037
 Transform:
   m_ObjectHideFlags: 0

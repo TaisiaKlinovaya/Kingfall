@@ -6,6 +6,15 @@ using Unity.VisualScripting;
 #endif
 using UnityEngine;
 
+[System.Serializable]
+public class TileState
+{
+    public Vector2Int position;
+    public int disabledRounds = 1;
+    [System.NonSerialized] public GameObject tileObject;
+    public bool isDisabled => disabledRounds > 0;
+}
+
 public class GenerateBoard : MonoBehaviour
 {
     public static GenerateBoard ChessboardInstance { get; private set; }
@@ -18,6 +27,8 @@ public class GenerateBoard : MonoBehaviour
     [SerializeField] private float deathSpacing = 0.4f;
     [SerializeField] private float dragOffset = 1f;
     [SerializeField] private int RegenManaAmount = 2;
+    [SerializeField] private GameObject lightningEffectPrefab;
+    [SerializeField] private int lightningDuration = 20;
 
     private const int TILE_COUNT_X = 8;
     private const int TILE_COUNT_Y = 8;
@@ -93,6 +104,7 @@ public class GenerateBoard : MonoBehaviour
         {
             currentCamera = GameObject.Find("Player1Camera").GetComponent<Camera>();
         }
+        TileManager.Instance.Initialize(tiles, tileMaterial);
     }
 
     private void Update()
@@ -370,7 +382,6 @@ public class GenerateBoard : MonoBehaviour
     private void GenerateAllTiles(float tileSize, int tileCountX, int tileCountY)
     {
         bounds = new Vector3((tileCountX / 2) * tileSize, 0, (tileCountX / 2) * tileSize);
-
         tiles = new GameObject[tileCountX, tileCountY];
 
         for (int x = 0; x < tileCountX; x++)
@@ -434,6 +445,12 @@ public class GenerateBoard : MonoBehaviour
 
     private bool MoveTo(PieceType cp, int x, int y)
     {
+        if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
+        {
+            Debug.Log($"Cannot move to ({x},{y}) - tile is disabled!");
+            return false;
+        }
+
         // --- Check for opponent Mantis traps at the target destination ---
         int opponentTeam = 1 - cp.team;
         for (int mx = 0; mx < TILE_COUNT_X; mx++)
@@ -707,92 +724,79 @@ public class GenerateBoard : MonoBehaviour
         RemoveHighlightTiles();
     }
 
-    public void ProcessDefeatedPiece(PieceType defeatedPiece)
+    public void ProcessDefeatedPiece(PieceType defeatedPiece, bool fromManaStorm = false)
     {
-        if (defeatedPiece == null)
+        if (defeatedPiece == null) return;
+
+        // Double-check removal from board
+        if (allChessPieces[defeatedPiece.currentX, defeatedPiece.currentY] == defeatedPiece)
         {
-            return;
+            allChessPieces[defeatedPiece.currentX, defeatedPiece.currentY] = null;
         }
 
-        // Überprüfen, ob die besiegte Figur eine Transformationsfigur ist
-        bool isTransformationPiece = defeatedPiece.type == ChessPieceType.Golem || defeatedPiece.type == ChessPieceType.Kelpie;
+        MoveToGraveyard(defeatedPiece);
 
-        if (defeatedPiece.team == 0) // Weiße Figur
+        if (!fromManaStorm && IsOpponentsPiece(defeatedPiece))
         {
-            if (isTransformationPiece)
-            {
-                // Transformationsfigur: Platziere sie in einer separaten Reihe
-                deadWhiteTransformations.Add(defeatedPiece);
-                defeatedPiece.SetScale(Vector3.one * deathSize);
-
-                // Positionierung der besiegten weißen Transformationsfiguren
-                Vector3 deathPosition = new Vector3(
-                    9 * tileSize, // Eine Spalte weiter rechts als die normalen besiegten Figuren
-                    yOffset - 0.23f,
-                    -1 * tileSize
-                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.forward * deathSpacing * deadWhiteTransformations.Count);
-
-                defeatedPiece.SetPosition(deathPosition);
-            }
-            else
-            {
-                // Normale Figur: Platziere sie in der normalen Reihe
-                deadWhites.Add(defeatedPiece);
-                defeatedPiece.SetScale(Vector3.one * deathSize);
-
-                // Positionierung der besiegten weißen Figuren
-                Vector3 deathPosition = new Vector3(
-                    8 * tileSize,
-                    yOffset - 0.23f,
-                    -1 * tileSize
-                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.forward * deathSpacing * deadWhites.Count);
-
-                defeatedPiece.SetPosition(deathPosition);
-            }
-        }
-        else // Schwarze Figur
-        {
-            if (isTransformationPiece)
-            {
-                deadBlackTransformations.Add(defeatedPiece);
-                defeatedPiece.SetScale(Vector3.one * deathSize);
-
-                // Positionierung der besiegten schwarzen Transformationsfiguren
-                Vector3 deathPosition = new Vector3(
-                    -2 * tileSize, // Eine Spalte weiter links als die normalen besiegten Figuren
-                    yOffset - 0.23f,
-                    8 * tileSize
-                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.back * deathSpacing * deadBlackTransformations.Count);
-
-                defeatedPiece.SetPosition(deathPosition);
-            }
-            else
-            {
-                // Normale Figur: Platziere sie in der normalen Reihe
-                deadBlacks.Add(defeatedPiece);
-                defeatedPiece.SetScale(Vector3.one * deathSize);
-
-                // Positionierung der besiegten schwarzen Figuren
-                Vector3 deathPosition = new Vector3(
-                    -1 * tileSize,
-                    yOffset - 0.23f,
-                    8 * tileSize
-                ) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2) + (Vector3.back * deathSpacing * deadBlacks.Count);
-
-                defeatedPiece.SetPosition(deathPosition);
-            }
+            HandleManaGain(defeatedPiece);
         }
 
+        Debug.Log($"{defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "White" : "Black")}) defeated");
+    }
+
+    private void MoveToGraveyard(PieceType piece)
+    {
+        bool isTransformation = piece.type == ChessPieceType.Golem ||
+                              piece.type == ChessPieceType.Kelpie ||
+                              piece.type == ChessPieceType.Mantis;
+
+        List<PieceType> graveyard = piece.team == 0 ?
+            (isTransformation ? deadWhiteTransformations : deadWhites) :
+            (isTransformation ? deadBlackTransformations : deadBlacks);
+
+        graveyard.Add(piece);
+        piece.SetScale(Vector3.one * deathSize);
+
+        // Positionierung basierend auf Team und Typ
+        Vector3 basePosition = piece.team == 0 ?
+            new Vector3(isTransformation ? 9 : 8, yOffset - 0.23f, -1) :
+            new Vector3(isTransformation ? -2 : -1, yOffset - 0.23f, 8);
+
+        Vector3 offset = piece.team == 0 ?
+            Vector3.forward :
+            Vector3.back;
+
+        Vector3 deathPosition = (basePosition * tileSize) - bounds +
+                              new Vector3(tileSize / 2, 0, tileSize / 2) +
+                              (offset * deathSpacing * graveyard.Count);
+
+        piece.SetPosition(deathPosition);
+    }
+
+    private bool IsOpponentsPiece(PieceType piece)
+    {
         int currentPlayer = GameManager.Instance.CurrentPlayer;
+        int opponentTeam = 1 - (currentPlayer - 1);
+        return piece.team == opponentTeam;
+    }
 
-        // Überprüfen, ob die besiegte Figur dem gegnerischen Team angehört
-        if (defeatedPiece.team != currentPlayer - 1)
+    private void HandleManaGain(PieceType defeatedPiece)
+    {
+        int currentPlayer = GameManager.Instance.CurrentPlayer;
+        int currentMana = GameManager.Instance.GetCurrentMana(currentPlayer);
+        int newMana = currentMana + RegenManaAmount;
+
+        if (newMana > 10)
         {
-            GameManager.Instance.SetCurrentMana(currentPlayer, GameManager.Instance.GetCurrentMana(currentPlayer) + RegenManaAmount);
-            Debug.Log($"Spieler {currentPlayer} hat {RegenManaAmount} Mana regeneriert, nachdem eine gegnerische Figur besiegt wurde.");
+            GameManager.Instance.SetCurrentMana(currentPlayer, 10);
+            Debug.Log($"Mana overflow! Triggering Mana Storm.");
+            TriggerManaStorm(currentPlayer);
         }
-
-        Debug.Log($"Figur {defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "Weiß" : "Schwarz")}) wurde besiegt.");
+        else
+        {
+            GameManager.Instance.SetCurrentMana(currentPlayer, newMana);
+            Debug.Log($"Player {currentPlayer} gained {RegenManaAmount} mana (now: {newMana}/10)");
+        }
     }
 
     public PieceType GetSelectedPieceForTransformation()
@@ -984,56 +988,22 @@ public class GenerateBoard : MonoBehaviour
             RemoveHighlightTiles();
         }
     }
-
-    private void KillRandomOpponentPiece(int player)
-    {
-        // Bestimme das gegnerische Team
-        int opponentTeam = (player == 1) ? 1 : 0; // Spieler 1 (Team 0) vs. Spieler 2 (Team 1)
-
-        // Sammle alle Figuren des gegnerischen Teams (außer König)
-        List<PieceType> opponentPieces = new List<PieceType>();
-        for (int x = 0; x < GenerateBoard.TILE_COUNT_X; x++)
-        {
-            for (int y = 0; y < GenerateBoard.TILE_COUNT_Y; y++)
-            {
-                PieceType piece = GenerateBoard.Instance.allChessPieces[x, y];
-                if (piece != null && piece.team == opponentTeam && piece.type != ChessPieceType.King)
-                {
-                    opponentPieces.Add(piece);
-                }
-            }
-        }
-
-        // Wenn es Figuren gibt, wähle eine zufällige aus und töte sie
-        if (opponentPieces.Count > 0)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, opponentPieces.Count);
-            PieceType randomPiece = opponentPieces[randomIndex];
-
-            // Töte die zufällige Figur
-            GenerateBoard.Instance.ProcessDefeatedPiece(randomPiece);
-            Debug.Log($"Zufällige gegnerische Figur ({randomPiece.type}) wurde getötet.");
-        }
-        else
-        {
-            Debug.Log("Keine gegnerischen Figuren (außer König) verfügbar, die getötet werden könnten.");
-        }
-    }
-    // In BoardRelated/GenerateBoard.cs
-
     public void TransformPiece()
     {
+        // Überprüfe, ob bereits eine Bewegung gemacht wurde
+        if (!hasMoved)
+        {
+            Debug.Log("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
+            return;
+        }
+
         if (hasTransformed)
         {
             Debug.Log("Du kannst nur eine Figur pro Zug transformieren.");
             return;
         }
-        // NEU: Variable für letzte bewegte/transformierte Figur hinzufügen (ganz oben in GenerateBoard.cs)
-        // private PieceType lastMovedOrTransformedPiece = null;
-        // (Diese Variable wird später in MoveTo und den Transform-Methoden gesetzt)
 
-
-        PieceType selectedPiece = GetSelectedPieceForTransformation(); // Diese Methode existiert bereits
+        PieceType selectedPiece = GetSelectedPieceForTransformation();
         if (selectedPiece != null)
         {
             // Überprüfe, ob die ausgewählte Figur dem aktuellen Spieler gehört
@@ -1052,7 +1022,6 @@ public class GenerateBoard : MonoBehaviour
                     transformationCost = kelpieTransformationCost;
                     canTransform = true;
                 }
-                // NEU: Bishop prüfen
                 else if (selectedPiece.type == ChessPieceType.Bishop)
                 {
                     transformationCost = mantisTransformationCost;
@@ -1062,58 +1031,82 @@ public class GenerateBoard : MonoBehaviour
                 if (!canTransform)
                 {
                     Debug.Log($"Figur vom Typ {selectedPiece.type} kann nicht transformiert werden.");
-                    selectedPieceForTransformation = null; // Auswahl zurücksetzen
+                    selectedPieceForTransformation = null;
                     return;
                 }
-
 
                 // Überprüfe, ob der Spieler genug Mana hat
                 if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
                 {
-                    // Führe die Transformation durch
-                    PieceType transformedPiece = null; // NEU: Um die neue Figur zu speichern
+                    PieceType transformedPiece = null;
 
                     if (selectedPiece.type == ChessPieceType.Rook)
                     {
-                        transformedPiece = TransformRookToGolem(selectedPiece); // Methode muss PieceType zurückgeben
+                        transformedPiece = TransformRookToGolem(selectedPiece);
                         Debug.Log("Rook wurde in einen Golem transformiert");
                     }
                     else if (selectedPiece.type == ChessPieceType.Knight)
                     {
-                        transformedPiece = TransformKnightToKelpie(selectedPiece); // Methode muss PieceType zurückgeben
+                        transformedPiece = TransformKnightToKelpie(selectedPiece);
                         Debug.Log("Knight wurde in einen Kelpie transformiert");
                     }
-                    // NEU: Bishop transformieren
                     else if (selectedPiece.type == ChessPieceType.Bishop)
                     {
-                        transformedPiece = TransformBishopToMantis(selectedPiece); // Neue Methode, muss PieceType zurückgeben
+                        transformedPiece = TransformBishopToMantis(selectedPiece);
                         Debug.Log("Bishop wurde in einen Mantis transformiert");
                     }
 
                     // Mana abziehen
                     GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
                     hasTransformed = true;
-                    lastMovedOrTransformedPiece = transformedPiece; // Die NEUE Figur merken
-
-                    // Auswahl zurücksetzen (passiert jetzt in den Transform-Methoden)
-                    // selectedPieceForTransformation = null; // Wird in den Transform... Methoden gemacht
+                    lastMovedOrTransformedPiece = transformedPiece;
                 }
                 else
                 {
                     Debug.Log("Nicht genug Mana für die Transformation!");
-                    // Optional: Auswahl zurücksetzen, damit Spieler etwas anderes tun kann
-                    // selectedPieceForTransformation = null;
                 }
             }
             else
             {
                 Debug.Log("Du kannst nur deine eigenen Figuren transformieren");
-                selectedPieceForTransformation = null; // Auswahl zurücksetzen
+                selectedPieceForTransformation = null;
             }
         }
         else
         {
             Debug.Log("Keine Figur für die Transformation ausgewählt");
         }
+    }
+
+    private void TriggerManaStorm(int player)
+    {
+        Vector2Int randomTile = new Vector2Int(
+            UnityEngine.Random.Range(0, TILE_COUNT_X),
+            UnityEngine.Random.Range(0, TILE_COUNT_Y)
+        );
+
+        // Block the tile first
+        TileManager.Instance.DisableTile(randomTile, 2);
+
+        // Handle piece on tile
+        PieceType piece = allChessPieces[randomTile.x, randomTile.y];
+        if (piece != null && piece.type != ChessPieceType.King)
+        {
+            // Remove from board array FIRST
+            allChessPieces[randomTile.x, randomTile.y] = null;
+
+            // Then process defeat (moves to graveyard)
+            ProcessDefeatedPiece(piece, true);
+        }
+
+        // Visual effects
+        if (lightningEffectPrefab)
+        {
+            Vector3 strikePosition = GetTileCenter(randomTile.x, randomTile.y) + Vector3.up * 0.5f;
+            GameObject lightning = Instantiate(lightningEffectPrefab, strikePosition, Quaternion.identity);
+            Destroy(lightning, lightningDuration);
+        }
+
+        GameManager.Instance.SetCurrentMana(player, 0);
     }
 }
