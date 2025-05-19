@@ -1,9 +1,52 @@
-using System.Collections;
-using System.Collections.Generic;
+// In FigureRelated/Kelpie.cs
+
 using UnityEngine;
+using System.Collections.Generic; // Hinzugefügt für List<Vector2Int>
 
 public class Kelpie : PieceType
 {
+    // Variablen für die Wellenanimation
+    private float waveTimer = 0f;
+    public float waveAmplitude = 0.05f; // Wie hoch die "Welle" ist
+    public float waveSpeed = 5f;     // Wie schnell die "Welle" oszilliert
+
+    // Überschreibe die Update-Methode der Basisklasse PieceType
+    private void Update()
+    {
+        // Die problematische Zeile wurde entfernt.
+
+        // Prüfe, ob sich das Kelpie bewegt (d.h. aktuelle Position ist nicht die Zielposition)
+        // Da wir in der Kelpie-Klasse sind, ist this.type == ChessPieceType.Kelpie implizit.
+        if (transform.position != desiredPosition)
+        {
+            waveTimer += Time.deltaTime * waveSpeed;
+            float waveOffsetY = Mathf.Sin(waveTimer) * waveAmplitude;
+
+            // Erstelle eine temporäre Zielposition für die visuelle Bewegung,
+            // die den Wellenoffset auf der Y-Achse beinhaltet.
+            // Die 'desiredPosition' selbst (logisches Ziel) bleibt unverändert.
+            Vector3 visualTargetPosition = new Vector3(desiredPosition.x, desiredPosition.y + waveOffsetY, desiredPosition.z);
+
+            // Bewege die Figur sanft (Lerp) zur visuellen Zielposition
+            transform.position = Vector3.Lerp(transform.position, visualTargetPosition, Time.deltaTime * 10);
+        }
+        else
+        {
+            // Wenn das Kelpie seine Zielposition erreicht hat (oder sich nicht bewegt),
+            // stelle sicher, dass es genau auf der desiredPosition ist und resette den waveTimer.
+            if (transform.position != desiredPosition) // Finale Korrektur, falls Lerp nicht exakt war
+            {
+                transform.position = desiredPosition;
+            }
+            waveTimer = 0f; // Reset für die nächste Bewegung
+        }
+
+        // Die Skalierung wird weiterhin von der Basislogik gehandhabt, da Kelpie.Update
+        // die PieceType.Update überschreibt und diese Logik hier enthalten sein muss.
+        transform.localScale = Vector3.Lerp(transform.localScale, desiredScale, Time.deltaTime * 10);
+    }
+
+    // Deine GetAvailableMoves-Methode für Kelpie...
     public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
         List<Vector2Int> r = new List<Vector2Int>();
@@ -68,7 +111,6 @@ public class Kelpie : PieceType
                 }
             }
         }
-
         return r;
     }
 }

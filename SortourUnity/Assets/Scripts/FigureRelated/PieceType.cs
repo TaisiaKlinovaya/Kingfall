@@ -23,8 +23,8 @@ public class PieceType : MonoBehaviour
     public int currentY;
     public ChessPieceType type;
 
-    private Vector3 desiredPosition;
-    private Vector3 desiredScale = Vector3.one;
+    protected Vector3 desiredPosition;
+    protected Vector3 desiredScale = Vector3.one;
 
     private void Update()
     {
