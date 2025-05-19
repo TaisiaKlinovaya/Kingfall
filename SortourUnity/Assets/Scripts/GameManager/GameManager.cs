@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
         // startButton.gameObject.SetActive(true);         //  --> Neu Hinzugefügt
 
         SetInitialCamera();
-        
+
 
         if (player1Camera != null)
         {
@@ -237,19 +237,31 @@ public class GameManager : MonoBehaviour
 
     public void MoveFinished()
     {
-        // Verarbeite blockierte Tiles über den TileManager
-        TileManager.Instance.ProcessDisabledTurns();
+        GenerateBoard.Instance.ProcessDisabledTurns();
 
-        // Rest der Logik...
-        roundTime = 120f;
+        Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
+        roundTime = 120f; // Reset timer
         isRoundActive = true;
+
         GenerateBoard.Instance.ResetDraggingPiece();
+
+        // --- Mantis Trap Setting Logic ---
+        // Die Falle wurde (wenn gewünscht) bereits in GenerateBoard.Update gesetzt.
+        // Wir müssen hier nichts mehr abfragen.
+        // --- Ende Mantis Trap Logic ---
+
+        // Reset general turn flags
         GenerateBoard.Instance.hasMoved = false;
         GenerateBoard.Instance.hasTransformed = false;
         GenerateBoard.Instance.ResetSelectedPieceForTransformation();
-        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice();
+
+        // Reset the 'last moved piece' tracker UND die Richtungswahl-Kontrolle
+        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice(); // NEUE Methode benötigt
+
+        // Remove highlights
         GenerateBoard.Instance.RemoveHighlightTilesPublic();
 
+        // Switch player
         SwitchPlayer();
     }
 
@@ -358,6 +370,8 @@ public class GameManager : MonoBehaviour
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
 
+        // Force refresh all tile visuals
+        GenerateBoard.Instance.RefreshAllTileVisuals();
 
         // Camera switching logic
         if (currentPlayer == 1)
@@ -374,6 +388,4 @@ public class GameManager : MonoBehaviour
         Debug.Log("Switched to player " + currentPlayer);
         UpdateManaUI();
     }
-
-
 }
