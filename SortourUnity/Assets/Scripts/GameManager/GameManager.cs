@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     public GameObject gameScene;
     public Text roundTimerText;
     public Button finishedButton;
-    private float roundTime = 120f;
+    private float roundTime = 20f;
     private bool isRoundActive = true;
     private bool isGameStarted = false;
 
@@ -56,7 +56,6 @@ public class GameManager : MonoBehaviour
     {
         if (player < 1 || player > 2)
         {
-            Debug.LogError("Ungültiger Spielerindex!");
             return 0;
         }
         return currentMana[player - 1];
@@ -163,7 +162,6 @@ public class GameManager : MonoBehaviour
         {
             if (roundTime <= 0)
             {
-                Debug.Log($"Zeit abgelaufen! Spieler {currentPlayer} wird automatisch gewechselt.");
                 MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
             }
         }
@@ -217,8 +215,6 @@ public class GameManager : MonoBehaviour
         transformButton.gameObject.SetActive(true);
         finishedButton.gameObject.SetActive(true);
 
-        Debug.Log("Runden-Timer und Transformations-Button aktiviert, state: " + state);
-
         transformButton.onClick.RemoveAllListeners(); // Remove previous listeners to avoid duplicates
         transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
 
@@ -237,29 +233,17 @@ public class GameManager : MonoBehaviour
 
     public void MoveFinished()
     {
-        GenerateBoard.Instance.ProcessDisabledTurns();
-
-        Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
-        roundTime = 120f; // Reset timer
+        roundTime = 20f; // Reset timer
         isRoundActive = true;
 
         GenerateBoard.Instance.ResetDraggingPiece();
-
-        // --- Mantis Trap Setting Logic ---
-        // Die Falle wurde (wenn gewünscht) bereits in GenerateBoard.Update gesetzt.
-        // Wir müssen hier nichts mehr abfragen.
-        // --- Ende Mantis Trap Logic ---
-
-        // Reset general turn flags
         GenerateBoard.Instance.hasMoved = false;
         GenerateBoard.Instance.hasTransformed = false;
         GenerateBoard.Instance.ResetSelectedPieceForTransformation();
-
-        // Reset the 'last moved piece' tracker UND die Richtungswahl-Kontrolle
-        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice(); // NEUE Methode benötigt
-
-        // Remove highlights
+        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice();
         GenerateBoard.Instance.RemoveHighlightTilesPublic();
+
+        TileManager.Instance.ProcessEndOfRound();
 
         // Switch player
         SwitchPlayer();
@@ -273,7 +257,6 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
         isPaused = true;
 
-        Debug.Log("Spiel pausiert. State: " + state);
 
         finishedButton.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
@@ -309,14 +292,11 @@ public class GameManager : MonoBehaviour
 
         finishedButton.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
-
-        Debug.Log("Spiel fortgesetzt.");    //  Debug Information 
     }
 
     public void QuitGame()
     {
         state = "StartMenu";
-        Debug.Log("Zurück zum Startbildschirm, State :" + state);
 
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
@@ -338,6 +318,7 @@ public class GameManager : MonoBehaviour
         isRoundActive = true;
         roundTime = 120f; // Timer zurücksetzen
         Time.timeScale = 0f; // Zeit anhalten
+        TileManager.Instance.ResetDisabledTiles();
 
         // Blende das Timer-Textfeld und den Transformations-Button aus
         roundTimerText.gameObject.SetActive(false);
@@ -370,8 +351,6 @@ public class GameManager : MonoBehaviour
     {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
 
-        // Force refresh all tile visuals
-        GenerateBoard.Instance.RefreshAllTileVisuals();
 
         // Camera switching logic
         if (currentPlayer == 1)
@@ -384,8 +363,6 @@ public class GameManager : MonoBehaviour
             player1Camera.enabled = false;
             player2Camera.enabled = true;
         }
-
-        Debug.Log("Switched to player " + currentPlayer);
         UpdateManaUI();
     }
 }

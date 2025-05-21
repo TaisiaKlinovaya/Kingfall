@@ -1,29 +1,31 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-
 
 public class TileManager : MonoBehaviour
 {
     public static TileManager Instance { get; private set; }
 
     [SerializeField] private Material disabledTileMaterial;
-    private Material defaultTileMaterial;
+    public Material defaultTileMaterial;
     private List<TileState> disabledTiles = new List<TileState>();
     private GameObject[,] tiles;
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
+        {
             Destroy(gameObject);
-        else
-            Instance = this;
+            return;
+        }
+        Instance = this;
     }
 
-    public void Initialize(GameObject[,] boardTiles, Material defaultMaterial)
+    public void Initialize(GameObject[,] boardTiles, Material defaultMaterial, Material disabledMaterial)
     {
         tiles = boardTiles;
         defaultTileMaterial = defaultMaterial;
+        disabledTileMaterial = disabledMaterial;
     }
 
     public void DisableTile(Vector2Int position, int rounds)
@@ -42,44 +44,81 @@ public class TileManager : MonoBehaviour
                 tileObject = tiles[position.x, position.y]
             });
         }
-        UpdateTileVisual(position);
+        UpdateTileVisual(position, true);
     }
 
-    public void ProcessDisabledTurns()
+    public void ProcessEndOfRound()
     {
-        Debug.Log($"Processing disabled turns. Current disabled tiles: {disabledTiles.Count}");
-
+        Debug.Log("disabledTiles.Count: " + disabledTiles.Count);
         for (int i = disabledTiles.Count - 1; i >= 0; i--)
         {
-            disabledTiles[i].disabledRounds--;
-            Debug.Log($"Tile at {disabledTiles[i].position} now has {disabledTiles[i].disabledRounds} rounds left");
+            var tile = disabledTiles[i];
+            
+            Debug.Log($"Tile at {tile.position} has {tile.disabledRounds} rounds left.");
 
-            if (disabledTiles[i].disabledRounds <= 0)
+            if (tile.disabledRounds < 0)
             {
-                Debug.Log($"Removing tile at {disabledTiles[i].position} (expired)");
-                UpdateTileVisual(disabledTiles[i].position);
-                disabledTiles.RemoveAt(i);
+                UpdateTileVisual(tile.position, false); 
+                disabledTiles.RemoveAt(i);            
             }
+            tile.disabledRounds--;
         }
     }
+
+
 
     public bool IsTileDisabled(Vector2Int position)
     {
         return disabledTiles.Exists(t => t.position == position && t.disabledRounds > 0);
     }
 
-    private void UpdateTileVisual(Vector2Int position)
+    private void UpdateTileVisual(Vector2Int position, bool isDisabled)
     {
-        var tileState = disabledTiles.Find(t => t.position == position);
-        var renderer = tiles[position.x, position.y].GetComponent<MeshRenderer>();
-
-        if (tileState != null && tileState.disabledRounds > 0)
+        if (position.x < 0 || position.x >= tiles.GetLength(0) ||
+            position.y < 0 || position.y >= tiles.GetLength(1))
         {
-            renderer.sharedMaterial = disabledTileMaterial;
+            Debug.LogError($"Invalid tile position: {position}");
+            return;
+        }
+
+        var tileObj = tiles[position.x, position.y];
+        if (tileObj == null)
+        {
+            Debug.LogError($"Tile at {position} is null!");
+            return;
+        }
+
+        var renderer = tileObj.GetComponent<MeshRenderer>();
+        if (renderer == null)
+        {
+            Debug.LogError($"No renderer found on tile at {position}");
+            return;
+        }
+
+        Debug.Log($"Updating tile at {position} - Disabled: {isDisabled}");
+
+        if (isDisabled)
+        {
+            if (disabledTileMaterial == null)
+                Debug.LogError("disabledTileMaterial is not assigned!");
+            renderer.material = disabledTileMaterial;
         }
         else
         {
-            renderer.sharedMaterial = defaultTileMaterial;
+            if (defaultTileMaterial == null)
+                Debug.LogError("defaultTileMaterial is not assigned!");
+            renderer.material = defaultTileMaterial;
         }
     }
+
+    public void ResetDisabledTiles()
+    {
+        foreach (var tileState in disabledTiles)
+        {
+            UpdateTileVisual(tileState.position, false);
+        }
+        disabledTiles.Clear();
+    }
+
+
 }

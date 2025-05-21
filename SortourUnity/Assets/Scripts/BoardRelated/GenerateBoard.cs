@@ -12,7 +12,7 @@ public class TileState
     public Vector2Int position;
     public int disabledRounds;
     [System.NonSerialized] public GameObject tileObject;
-    public bool isDisabled => disabledRounds > 0;
+    public bool isDisabled => disabledRounds >= 0;
 }
 
 public class GenerateBoard : MonoBehaviour
@@ -71,23 +71,35 @@ public class GenerateBoard : MonoBehaviour
     private PieceType lastMovedOrTransformedPiece = null;
     private bool mantisTrapDirectionChosenThisTurn = false;
     private List<TileState> disabledTiles = new List<TileState>();
-    [SerializeField] private Material disabledTileMaterial; // Assign in Inspector
+    [SerializeField] public Material disabledTileMaterial; // Assign in Inspector
     private Material defaultTileMaterial;
 
+    private TileManager tileManager;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
+        Instance = this;
 
+        GenerateAllTiles(tileSize, TILE_COUNT_X, TILE_COUNT_Y);
         allChessPieces = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
+
+        // TileManager sicher initialisieren
+        if (TileManager.Instance == null)
+        {
+            var tileManagerObj = new GameObject("TileManager");
+            tileManagerObj.AddComponent<TileManager>();
+        }
+
+        // Stellen Sie sicher, dass disabledTileMaterial im Inspector zugewiesen ist
+        if (disabledTileMaterial == null)
+            Debug.LogError("disabledTileMaterial is not assigned in GenerateBoard!");
+
+        TileManager.Instance.Initialize(tiles, tileMaterial, disabledTileMaterial);
 
         chessboard = gameObject.AddComponent<Chessboard>();
         chessboard.Initialize(tiles);
@@ -182,13 +194,12 @@ public class GenerateBoard : MonoBehaviour
                                     if (currentlyDragging != null)
                                     {
                                         // NEUES LOG 1: Welche Figur wurde ausgewählt?
-                                        Debug.Log($"[GenerateBoard.Update] Selected piece: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY})");
+                                        //Debug.Log($"[GenerateBoard.Update] Selected piece: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY})");
 
                                         // Get available moves
                                         availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
 
-                                        // NEUES LOG 2: Wie viele Züge wurden von GetAvailableMoves zurückgegeben?
-                                        Debug.Log($"[GenerateBoard.Update] Received {availableMoves.Count} moves from GetAvailableMoves.");
+                                        // NEUES LOG 2: Wie viele Züge wurden von GetAvailableMoves zurückgegeben?s
 
                                         HighlightTiles(); // Highlight the moves
                                     }
@@ -449,11 +460,23 @@ public class GenerateBoard : MonoBehaviour
 
     private bool MoveTo(PieceType cp, int x, int y)
     {
-        if (IsTileDisabled(new Vector2Int(x, y)))
+        // Null-Überprüfung für TileManager
+        if (TileManager.Instance == null)
         {
-            Debug.Log($"Cannot move to ({x},{y}) - tile disabled by lightning!");
+            Debug.LogError("TileManager ist nicht initialisiert!");
             return false;
         }
+        else
+        {
+            // Überprüfe auf deaktivierte Kacheln
+            if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
+            {
+                Debug.Log($"Cannot move to disabled tile at ({x},{y})");
+                return false;
+            }
+        }
+
+
 
         // --- Check for opponent Mantis traps at the target destination ---
         int opponentTeam = 1 - cp.team;
@@ -501,7 +524,6 @@ public class GenerateBoard : MonoBehaviour
             }
             else
             {
-                Debug.Log($"{cp.type} (Team {cp.team}) captures {targetPiece.type} (Team {targetPiece.team}) at ({x},{y}).");
                 ProcessDefeatedPiece(targetPiece);
                 if (targetPiece.type == ChessPieceType.King)
                 {
@@ -542,7 +564,6 @@ public class GenerateBoard : MonoBehaviour
                 }
             }
         }
-        // --- End of Golem Trample Logic ---
 
 
         // --- Finalize the Move ---
@@ -554,7 +575,7 @@ public class GenerateBoard : MonoBehaviour
         lastMovedOrTransformedPiece = cp;
         hasMoved = true;
 
-        Debug.Log($"Piece {cp.GetType().Name} (Team {(cp.team == 0 ? "White" : "Black")}) moved from ({previousPosition.x}, {previousPosition.y}) to ({x}, {y}).");
+        //Debug.Log($"Piece {cp.GetType().Name} (Team {(cp.team == 0 ? "White" : "Black")}) moved from ({previousPosition.x}, {previousPosition.y}) to ({x}, {y}).");
 
         return true;
     }
@@ -738,12 +759,12 @@ public class GenerateBoard : MonoBehaviour
         {
             HandleManaGain(defeatedPiece);
         }
-
-        Debug.Log($"{defeatedPiece.GetType().Name} (Team {(defeatedPiece.team == 0 ? "White" : "Black")}) defeated");
     }
 
-    private void MoveToGraveyard(PieceType piece)
+    private void MoveToGraveyard(PieceType piece, bool fromManaStorm = false)
     {
+        if (piece == null) return;
+
         bool isTransformation = piece.type == ChessPieceType.Golem ||
                               piece.type == ChessPieceType.Kelpie ||
                               piece.type == ChessPieceType.Mantis;
@@ -768,7 +789,17 @@ public class GenerateBoard : MonoBehaviour
                               new Vector3(tileSize / 2, 0, tileSize / 2) +
                               (offset * deathSpacing * graveyard.Count);
 
-        piece.SetPosition(deathPosition);
+        // Besondere Behandlung für Mana-Sturm-Opfer
+        if (fromManaStorm)
+        {
+            // Sofortige Positionierung ohne Animation
+            piece.transform.position = deathPosition;
+        }
+        else
+        {
+            // Normale sanfte Bewegung
+            piece.SetPosition(deathPosition);
+        }
     }
 
     // Hilfsmethode: Überprüft ob Figur dem Gegner gehört
@@ -1081,97 +1112,66 @@ public class GenerateBoard : MonoBehaviour
     private void TriggerManaStorm(int player)
     {
         // Wähle eine zufällige Kachel
-        Vector2Int randomTile = new Vector2Int(
-            UnityEngine.Random.Range(0, TILE_COUNT_X),
-            UnityEngine.Random.Range(0, TILE_COUNT_Y)
-        );
+        Vector2Int randomTile;
+        int attempts = 0;
+        const int maxAttempts = 10;
 
-        var existingTile = disabledTiles.Find(t => t.position == randomTile);
-        if (existingTile != null)
+        do
         {
-            existingTile.disabledRounds = 2;
-        }
-        else
-        {
-            disabledTiles.Add(new TileState
+            randomTile = new Vector2Int(
+                UnityEngine.Random.Range(0, TILE_COUNT_X),
+                UnityEngine.Random.Range(0, TILE_COUNT_Y)
+            );
+            attempts++;
+
+            if (attempts >= maxAttempts)
             {
-                position = randomTile,
-                disabledRounds = 2,
-                tileObject = tiles[randomTile.x, randomTile.y]
-            });
+                Debug.LogWarning("Couldn't find non-king tile after 10 attempts!");
+                GameManager.Instance.SetCurrentMana(player, 0);
+                return;
+            }
         }
+        while (allChessPieces[randomTile.x, randomTile.y]?.type == ChessPieceType.King);
 
-        UpdateTileVisual(randomTile, true);
+        // Deaktiviere die Kachel
+        TileManager.Instance.DisableTile(randomTile, 2);
 
-        Debug.Log($"Lightning struck tile {randomTile}! Disabled for 2 turns.");
 
         // Blitz-Effekt
         if (lightningEffectPrefab)
         {
-            Vector3 strikePosition = GetTileCenter(randomTile.x, randomTile.y) + Vector3.up * 0.5f;
+            Vector3 strikePosition = GetTileCenter(randomTile.x, randomTile.y) + Vector3.up * 1f;
             GameObject lightning = Instantiate(lightningEffectPrefab, strikePosition, Quaternion.identity);
             Destroy(lightning, lightningDuration);
         }
 
-        // Überprüfe die Kachel
+        // Überprüfe die Kachel auf Figuren
         PieceType piece = allChessPieces[randomTile.x, randomTile.y];
-        if (piece != null && piece.type != ChessPieceType.King)
+        if (piece != null)
         {
             Debug.Log($"{piece.type} (Team {piece.team}) was struck by lightning!");
-            ProcessDefeatedPiece(piece, true); // true = fromManaStorm
+
+            // Besondere Behandlung für Mana-Sturm-Opfer
+            if (piece.type == ChessPieceType.King)
+            {
+                Debug.LogWarning("King was struck but shouldn't be defeated by mana storm!");
+            }
+            else
+            {
+                // Direkte Entfernung der Figur (ohne Mana-Belohnung)
+                allChessPieces[randomTile.x, randomTile.y] = null;
+                MoveToGraveyard(piece);
+
+                // Optional: Spezialeffekte für bestimmte Figurentypen
+                if (piece is Golem)
+                {
+                    GameManager.Instance.TriggerActiveCameraShake(0.7f, 0.2f);
+                }
+            }
         }
 
         // Setze Mana auf 0
         GameManager.Instance.SetCurrentMana(player, 0);
     }
 
-    private bool IsTileDisabled(Vector2Int position)
-    {
-        return disabledTiles.Exists(t => t.position == position && t.disabledRounds > 0);
-    }
-
-    public void ProcessDisabledTurns()
-    {
-        // decrement all counters
-        for (int i = disabledTiles.Count - 1; i >= 0; i--)
-        {
-            disabledTiles[i].disabledRounds--;
-        }
-
-        //update visuals in a separate pass
-        foreach (var tileState in disabledTiles)
-        {
-            UpdateTileVisual(tileState.position);
-        }
-
-        //remove expired tiles
-        disabledTiles.RemoveAll(t => t.disabledRounds <= 0);
-    }
-
-    private void UpdateTileVisual(Vector2Int tilePos, bool forceUpdate = false)
-    {
-        var tileState = disabledTiles.Find(t => t.position == tilePos);
-        if (tileState != null)
-        {
-            var renderer = tileState.tileObject.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                // Only update if necessary or forced
-                if (forceUpdate ||
-                    (renderer.sharedMaterial == disabledTileMaterial && !tileState.isDisabled) ||
-                    (renderer.sharedMaterial != disabledTileMaterial && tileState.isDisabled))
-                {
-                    renderer.sharedMaterial = tileState.isDisabled ? disabledTileMaterial : defaultTileMaterial;
-                }
-            }
-        }
-    }
-    public void RefreshAllTileVisuals()
-    {
-        foreach (var tile in tiles)
-        {
-            Vector2Int pos = LookupTileIndex(tile);
-            UpdateTileVisual(pos, true);
-        }
-    }
 }

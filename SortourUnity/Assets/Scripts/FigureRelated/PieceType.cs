@@ -41,6 +41,11 @@ public class PieceType : MonoBehaviour
         r.Add(new Vector2Int(4, 3));
         r.Add(new Vector2Int(4, 4));
 
+        if (TileManager.Instance != null)
+        {
+            r.RemoveAll(move => TileManager.Instance.IsTileDisabled(move));
+        }
+
         return r;
 
     }
