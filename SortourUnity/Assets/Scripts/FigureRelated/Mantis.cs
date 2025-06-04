@@ -15,6 +15,12 @@ public class Mantis : PieceType
     public float lauerScaleXZAmount = 0.02f;
     public float lauerAnimationDuration = 0.7f;
 
+    // Oben in der Mantis.cs Klasse, bei den anderen Variablen
+    public Color lauerFarbe = new Color(0.7f, 1f, 0.7f, 1f); // z.B. ein leicht helleres, sattes Grün
+                                                             // Alpha (der letzte Wert) ist hier 1 (opak).
+                                                             // Wenn dein Material Transparenz unterstützt und du willst,
+                                                             // dass es leicht durchsichtig wird, setze Alpha < 1.
+
     // Die Update()-Methode wurde hier entfernt, damit PieceType.Update() für die Mantis ausgeführt wird.
 
     public override void SetPosition(Vector3 position, bool force = false)
@@ -47,54 +53,132 @@ public class Mantis : PieceType
         }
     }
 
+    // In Mantis.cs
+    // In Mantis.cs
+
     private IEnumerator LauerHaltungAnimation(Vector3 targetMovementPosition)
     {
         Debug.Log($"[Mantis.LauerHaltungAnimation] Coroutine STARTED. Waiting for target: {targetMovementPosition}. Current Pos: {transform.position}");
-
         // Warte, bis die Figur ihre Zielposition (desiredPosition aus PieceType) ungefähr erreicht hat.
-        // Die Bewegung selbst wird durch PieceType.Update() gesteuert.
-        while (Vector3.Distance(transform.position, targetMovementPosition) > 0.01f)
+        while (Vector3.Distance(transform.position, targetMovementPosition) > 0.015f)
         {
-            // Debug.Log($"[Mantis.LauerHaltungAnimation] Waiting... Distance: {Vector3.Distance(transform.position, targetMovementPosition)}");
-            yield return null;
+            yield return null; // Warte auf den nächsten Frame
+        }
+        Debug.Log($"[Mantis.LauerHaltungAnimation] Target REACHED ({transform.position}). Starting scale and color animation. Normal Scale: {desiredScale}");
+
+        // Materialien und Originalfarben sammeln
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true); // true, um auch inaktive Renderer zu finden (falls relevant)
+        List<Material> materialsToChange = new List<Material>();
+        List<Color> originalColors = new List<Color>();
+
+        foreach (Renderer rend in renderers)
+        {
+            // Hole alle Materialien des aktuellen Renderers (können mehrere sein)
+            foreach (Material matInstance in rend.materials) // Wichtig: rend.materials erstellt Instanzen!
+            {
+                if (matInstance.HasProperty("_Color")) // Nur Materialien mit der Standard "_Color" Eigenschaft berücksichtigen
+                {
+                    materialsToChange.Add(matInstance);
+                    originalColors.Add(matInstance.color);
+                }
+                // Optional: Hier könntest du auch nach "_EmissionColor" suchen, wenn du ein Glühen über Emission steuern willst.
+            }
         }
 
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Target REACHED ({transform.position}). Starting scale animation. Normal Scale: {desiredScale}");
+        if (materialsToChange.Count == 0)
+        {
+            Debug.LogWarning("[Mantis.LauerHaltungAnimation] No materials with '_Color' property found on Mantis. Skipping color animation.");
+        }
 
-        Vector3 normaleSkala = desiredScale; // Hole die normale Skala von der Basisklasse
+        // Skalierungs- und Zeitvariablen
+        Vector3 normaleSkala = desiredScale;
         Vector3 lauerSkala = new Vector3(
             normaleSkala.x + lauerScaleXZAmount,
             normaleSkala.y - lauerDuckAmount,
             normaleSkala.z + lauerScaleXZAmount
         );
 
-        float halbeDauer = lauerAnimationDuration / 2f;
+        float anpassungsDauer = lauerAnimationDuration * 0.3f;
+        float halteDauer = lauerAnimationDuration * 0.4f;
+        float rueckkehrDauer = lauerAnimationDuration * 0.3f;
         float timer = 0f;
 
-        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 1: Scaling to Lauerhaltung.");
-        while (timer < halbeDauer)
+        // Phase 1: Sanft in die Lauerhaltung skalieren UND Farbe ändern
+        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 1: Scaling and tinting to Lauerhaltung.");
+        Vector3 startSkalaPhase1 = transform.localScale;
+        // Wir verwenden die bereits gesammelten originalColors als Startfarben für den Lerp
+        while (timer < anpassungsDauer)
         {
-            transform.localScale = Vector3.Lerp(normaleSkala, lauerSkala, timer / halbeDauer);
+            float t = timer / anpassungsDauer;
+            float easedT = t * t; // Einfacher quadratischer Ease-In
+
+            transform.localScale = Vector3.Lerp(startSkalaPhase1, lauerSkala, easedT);
+            for (int i = 0; i < materialsToChange.Count; i++)
+            {
+                materialsToChange[i].color = Color.Lerp(originalColors[i], lauerFarbe, easedT);
+            }
             timer += Time.deltaTime;
             yield return null;
         }
+        transform.localScale = lauerSkala; // Sicherstellen der Endskala
+        for (int i = 0; i < materialsToChange.Count; i++) { materialsToChange[i].color = lauerFarbe; } // Sicherstellen der Endfarbe
+
+        // Phase 2: In der Lauerhaltung "atmen" (Skalierung) und Farbe ggf. leicht pulsieren
+        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 2: Breathing in Lauerhaltung.");
+        timer = 0f;
+        float atemAmplitudeFaktor = 0.2f;
+        // Sicherstellen, dass halteDauer nicht 0 ist, um Division durch Null zu vermeiden
+        float atemGeschwindigkeit = (halteDauer > 0) ? (Mathf.PI * 2f / halteDauer * 2f) : 0; // z.B. 2 volle Zyklen
+        Vector3 basisLauerSkala = lauerSkala;
+
+        while (timer < halteDauer && atemGeschwindigkeit > 0) // Nur atmen, wenn Dauer und Geschwindigkeit sinnvoll sind
+        {
+            float sinValue = Mathf.Sin(timer * atemGeschwindigkeit);
+            transform.localScale = new Vector3(
+                basisLauerSkala.x + (sinValue * lauerScaleXZAmount * atemAmplitudeFaktor),
+                basisLauerSkala.y - (sinValue * lauerDuckAmount * atemAmplitudeFaktor * 0.5f),
+                basisLauerSkala.z + (sinValue * lauerScaleXZAmount * atemAmplitudeFaktor)
+            );
+
+            // Optional: Farbpulsieren um die lauerFarbe herum
+            // float colorPulseFactor = (sinValue + 1f) / 2f; // Normalisiert sinValue auf 0..1
+            // for (int i = 0; i < materialsToChange.Count; i++)
+            // {
+            //     materialsToChange[i].color = Color.Lerp(lauerFarbe, Color.Lerp(lauerFarbe, originalColors[i], 0.2f), colorPulseFactor); // Pulsiert leicht zur Originalfarbe hin
+            // }
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        // Nach der Atmung sicherstellen, dass wir auf der exakten Lauer-Skala und -Farbe sind (falls Farbpulsieren aktiv war)
         transform.localScale = lauerSkala;
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Reached Lauer Scale: {transform.localScale}");
+        for (int i = 0; i < materialsToChange.Count; i++) { materialsToChange[i].color = lauerFarbe; }
 
-        timer = 0f; // Timer für die zweite Phase zurücksetzen
-        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 2: Scaling back to Normal.");
-        while (timer < halbeDauer)
+
+        // Phase 3: Sanft zurück zur normalen Haltung skalieren UND Farbe zurücksetzen
+        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 3: Scaling and tinting back to Normal.");
+        timer = 0f;
+        Vector3 startSkalaPhase3 = transform.localScale; // Sollte lauerSkala sein
+                                                         // Wir verwenden die lauerFarbe als Startfarbe für den Lerp zurück zum Original
+        while (timer < rueckkehrDauer)
         {
-            transform.localScale = Vector3.Lerp(lauerSkala, normaleSkala, timer / halbeDauer);
+            float t = timer / rueckkehrDauer;
+            float easedT = t * t; // Einfacher quadratischer Ease-In
+
+            transform.localScale = Vector3.Lerp(startSkalaPhase3, normaleSkala, easedT);
+            for (int i = 0; i < materialsToChange.Count; i++)
+            {
+                materialsToChange[i].color = Color.Lerp(lauerFarbe, originalColors[i], easedT);
+            }
             timer += Time.deltaTime;
             yield return null;
         }
-        transform.localScale = normaleSkala;
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Reached Normal Scale: {transform.localScale}. Coroutine FINISHED.");
-        lauerAnimationCoroutine = null;
-    }
+        transform.localScale = normaleSkala; // Sicherstellen der Originalskala
+        for (int i = 0; i < materialsToChange.Count; i++) { materialsToChange[i].color = originalColors[i]; } // Sicherstellen der Originalfarben
 
-    // --- Deine bestehenden Methoden für die Falle (IsTrapActive, GetTrapZone, SetupTrapZone, ResetTrap) ---
+        Debug.Log($"[Mantis.LauerHaltungAnimation] Coroutine FINISHED.");
+        lauerAnimationCoroutine = null; // Coroutine-Referenz zurücksetzen
+    }    // --- Deine bestehenden Methoden für die Falle (IsTrapActive, GetTrapZone, SetupTrapZone, ResetTrap) ---
     public bool IsTrapActive() { return isTrapSet; }
     public List<Vector2Int> GetTrapZone() { return new List<Vector2Int>(trapZone); }
     public void SetupTrapZone(Vector2Int direction)

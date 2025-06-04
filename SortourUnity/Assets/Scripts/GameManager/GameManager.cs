@@ -229,21 +229,28 @@ public class GameManager : MonoBehaviour
         roundTimerText.text = $"{minutes:00}:{seconds:00}";
     }
 
-    // In GameManager/GameManager.cs
 
     public void MoveFinished()
     {
-        roundTime = 20f; // Reset timer
+        Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
+        roundTime = 120f;
         isRoundActive = true;
 
         GenerateBoard.Instance.ResetDraggingPiece();
+
+        // WICHTIG: Setze den Mantis-Fallen-Modus zurück, falls er aktiv war und keine Falle gestellt wurde
+        GenerateBoard.Instance.ResetMantisTrapMode(); // NEUE METHODE
+
+        // Reset general turn flags
         GenerateBoard.Instance.hasMoved = false;
         GenerateBoard.Instance.hasTransformed = false;
         GenerateBoard.Instance.ResetSelectedPieceForTransformation();
-        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice();
-        GenerateBoard.Instance.RemoveHighlightTilesPublic();
 
-        TileManager.Instance.ProcessEndOfRound();
+        // Reset the 'last moved piece' tracker
+        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice(); // Diese Methode existiert schon und setzt auch mantisTrapDirectionChosenThisTurn zurück
+
+        // Remove highlights
+        GenerateBoard.Instance.RemoveHighlightTilesPublic();
 
         // Switch player
         SwitchPlayer();
