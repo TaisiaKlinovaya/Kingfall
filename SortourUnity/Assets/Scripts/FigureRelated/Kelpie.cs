@@ -47,70 +47,92 @@ public class Kelpie : PieceType
     }
 
     // Deine GetAvailableMoves-Methode für Kelpie...
+    // In FigureRelated/Kelpie.cs
+
     public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
         List<Vector2Int> r = new List<Vector2Int>();
 
-        // Bewegung: Die gesamte Horizontale Reihe, auf der das Kelpie steht (nur bewegen, nicht schlagen)
+        // 1. Horizontale Bewegung (bleibt unverändert)
+        // Kann sich auf jedes leere Feld in der aktuellen Reihe bewegen.
         for (int x = 0; x < tileCountX; x++)
         {
-            if (x != currentX) // Das aktuelle Feld wird ausgeschlossen
+            if (x != currentX) // Das aktuelle Feld ausschließen
             {
-                if (board[x, currentY] == null) // Nur leere Felder können betreten werden
+                if (board[x, currentY] == null) // Nur wenn das Feld leer ist
                 {
                     r.Add(new Vector2Int(x, currentY));
                 }
+                // Kein Schlagen in der horizontalen Bewegung
             }
         }
 
-        // Angriff: Diagonal von dem Kelpie, ein Feld nach oben (links und rechts)
-        int forwardDirection = (team == 0) ? 1 : -1; // Team 0 bewegt sich nach oben, Team 1 nach unten
+        // Bestimme die Vorwärtsrichtung basierend auf dem Team
+        int forwardDirection = (team == 0) ? 1 : -1; // Team 0 (Weiß) bewegt sich typischerweise in positive Y-Richtung
 
-        // Diagonal ein Feld nach vorne (links und rechts)
-        int[] attackOffsetsX1 = { -1, 1 }; // Ein Feld nach links und rechts
-        int[] attackOffsetsY1 = { 1 * forwardDirection, 1 * forwardDirection };  // Ein Feld nach oben oder unten
+        // 2. Spezielle "Angriffs-/Bewegungs"-Felder
 
-        for (int i = 0; i < attackOffsetsX1.Length; i++)
+        // A. Diagonal ein Feld nach vorne (links und rechts)
+        int[] XOffsets = { -1, 1 }; // (-1 für links, +1 für rechts)
+
+        foreach (int dx in XOffsets)
         {
-            int newX = currentX + attackOffsetsX1[i];
-            int newY = currentY + attackOffsetsY1[i];
+            int zielX = currentX + dx;
+            int zielY = currentY + forwardDirection; // Ein Feld nach vorne
 
-            if (newX >= 0 && newX < tileCountX && newY >= 0 && newY < tileCountY)
+            // Prüfen, ob das Zielfeld innerhalb des Bretts liegt
+            if (zielX >= 0 && zielX < tileCountX && zielY >= 0 && zielY < tileCountY)
             {
-                // Angriff auf das diagonale Feld
-                if (board[newX, newY] != null && board[newX, newY].team != team)
+                // Das Kelpie kann auf dieses Feld ziehen, wenn es leer ist ODER von einem Gegner besetzt ist.
+                if (board[zielX, zielY] == null || board[zielX, zielY].team != team)
                 {
-                    r.Add(new Vector2Int(newX, newY));
+                    r.Add(new Vector2Int(zielX, zielY));
                 }
+            }
 
-                // Angriff auf das vertikale Feld über dem diagonalen Feld
-                int verticalY = newY + 1 * forwardDirection;
-                if (verticalY >= 0 && verticalY < tileCountY)
+            // B. Vertikal ein Feld *über* dem gerade geprüften diagonalen Feld
+            // Dieses Feld ist nur relevant, wenn das diagonale Feld existiert.
+            // (Die vorherige Logik hat dieses Feld nur als Angriffsziel betrachtet,
+            // wir erweitern es jetzt auch für Bewegung, wenn leer).
+            if (zielX >= 0 && zielX < tileCountX && zielY >= 0 && zielY < tileCountY) // Sicherstellen, dass das diagonale Feld gültig war
+            {
+                int vertikalUeberDiagonalY = zielY + forwardDirection; // Ein weiteres Feld nach vorne
+
+                // Prüfen, ob dieses "darüberliegende" Feld innerhalb des Bretts liegt
+                if (vertikalUeberDiagonalY >= 0 && vertikalUeberDiagonalY < tileCountY)
                 {
-                    if (board[newX, verticalY] != null && board[newX, verticalY].team != team)
+                    // Das Kelpie kann auf dieses Feld ziehen, wenn es leer ist ODER von einem Gegner besetzt ist.
+                    if (board[zielX, vertikalUeberDiagonalY] == null || board[zielX, vertikalUeberDiagonalY].team != team)
                     {
-                        r.Add(new Vector2Int(newX, verticalY));
+                        r.Add(new Vector2Int(zielX, vertikalUeberDiagonalY));
                     }
                 }
             }
         }
 
-        // Angriff: Das 3te Feld vertikal über dem Kelpie
-        int forwardY = currentY + 3 * forwardDirection;
-        int intermediateY1 = currentY + 1 * forwardDirection; // Erstes Feld vor dem dritten Feld
-        int intermediateY2 = currentY + 2 * forwardDirection; // Zweites Feld vor dem dritten Feld
 
-        if (forwardY >= 0 && forwardY < tileCountY)
+        // C. Das 3. Feld vertikal direkt vor dem Kelpie
+        int direktVorneY1 = currentY + forwardDirection;      // Erstes Feld davor
+        int direktVorneY2 = currentY + 2 * forwardDirection;  // Zweites Feld davor
+        int direktVorneY3 = currentY + 3 * forwardDirection;  // Drittes Feld davor (Ziel)
+
+        // Prüfen, ob alle drei Felder (inklusive Ziel) auf dem Brett liegen
+        // und die ersten beiden Felder davor frei sind.
+        if (direktVorneY1 >= 0 && direktVorneY1 < tileCountY &&
+            direktVorneY2 >= 0 && direktVorneY2 < tileCountY &&
+            direktVorneY3 >= 0 && direktVorneY3 < tileCountY)
         {
-            // Überprüfen, ob die Felder dazwischen frei sind
-            if (board[currentX, intermediateY1] == null && board[currentX, intermediateY2] == null)
+            // Die ersten beiden Felder müssen leer sein für diesen speziellen Sprung/Zug
+            if (board[currentX, direktVorneY1] == null && board[currentX, direktVorneY2] == null)
             {
-                if (board[currentX, forwardY] != null && board[currentX, forwardY].team != team)
+                // Das Kelpie kann auf das 3. Feld ziehen, wenn es leer ist ODER von einem Gegner besetzt ist.
+                if (board[currentX, direktVorneY3] == null || board[currentX, direktVorneY3].team != team)
                 {
-                    r.Add(new Vector2Int(currentX, forwardY));
+                    r.Add(new Vector2Int(currentX, direktVorneY3));
                 }
             }
         }
+
         return r;
     }
 }
