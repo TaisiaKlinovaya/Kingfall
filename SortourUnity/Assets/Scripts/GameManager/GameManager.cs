@@ -52,6 +52,12 @@ public class GameManager : MonoBehaviour
     public int maxMana = 10;
     private int[] currentMana = new int[2];
 
+    [Header("Audio Quellen")]
+    public AudioClip menuClip;
+    public AudioClip gameClip;
+
+    private AudioSource audioSource;
+
     public int GetCurrentMana(int player)
     {
         if (player < 1 || player > 2)
@@ -72,6 +78,11 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.loop = true;
+        audioSource.playOnAwake = false;
+        ReturnToMain.onClick.AddListener(QuitGame);
+        UpdateMusic();
 
         SetCurrentMana(1, maxMana);
         SetCurrentMana(2, maxMana);
@@ -137,6 +148,31 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Konnte keinen aktiven CameraShake für den aktuellen Spieler finden.");
         }
     }
+
+    private void UpdateMusic()
+    {
+        if (state == "StartMenu" || state == "PauseMenu")
+        {
+            if (audioSource.clip != menuClip)
+            {
+                audioSource.clip = menuClip;
+                audioSource.Play();
+            }
+        }
+        else if (state == "GameRun")
+        {
+            if (audioSource.clip != gameClip)
+            {
+                audioSource.clip = gameClip;
+                audioSource.Play();
+            }
+        }
+        else if (state == "Win")
+        {
+            audioSource.Stop();
+        }
+    }
+
 
     void Update()
     {
@@ -210,6 +246,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         isGameStarted = true;
         isPaused = false;
+        UpdateMusic();
 
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
@@ -263,6 +300,7 @@ public class GameManager : MonoBehaviour
         breakScene.SetActive(true);
         Time.timeScale = 0f;
         isPaused = true;
+        UpdateMusic();
 
 
         finishedButton.gameObject.SetActive(false);
@@ -272,6 +310,7 @@ public class GameManager : MonoBehaviour
     public void WinGame(String winTeam)
     {
         state = "Win";
+        UpdateMusic();
 
         //  Formatierung der Farbe hinzugefügt, für das Gewinner Team
         if (winTeam == "Black")
@@ -296,6 +335,7 @@ public class GameManager : MonoBehaviour
         breakScene.SetActive(false);
         Time.timeScale = 1f;                // Zeit fortsetzen
         isPaused = false;
+        UpdateMusic();
 
         finishedButton.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
@@ -304,6 +344,7 @@ public class GameManager : MonoBehaviour
     public void QuitGame()
     {
         state = "StartMenu";
+        UpdateMusic();
 
         // Deaktiviere die Game Scene und das Pausenmenü
         gameScene.SetActive(false);
