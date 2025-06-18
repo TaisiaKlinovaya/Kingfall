@@ -2228,7 +2228,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 739816373}
-  m_Enabled: 0
+  m_Enabled: 1
 --- !u!4 &739816377
 Transform:
   m_ObjectHideFlags: 0
@@ -2848,6 +2848,8 @@ MonoBehaviour:
   player1Camera: {fileID: 739816374}
   player2Camera: {fileID: 246866480}
   maxMana: 10
+  menuClip: {fileID: 8300000, guid: 7d7f616276a8f1942b6516d9c323de9d, type: 3}
+  gameClip: {fileID: 8300000, guid: 6c925cf4338106a46be6b2bc7470b63d, type: 3}
 --- !u!4 &883939668
 Transform:
   m_ObjectHideFlags: 0
