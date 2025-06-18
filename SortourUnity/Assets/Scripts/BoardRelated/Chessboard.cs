@@ -15,6 +15,7 @@ public class Chessboard : MonoBehaviour
     private const int TILE_COUNT = 8; // 8 by 8 chessboard
     private ChessPieceMovement selectedPiece = null;
 
+
     public void Initialize(GameObject[,] tiles)
     {
         this.tiles = tiles;
