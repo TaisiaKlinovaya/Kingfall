@@ -176,32 +176,44 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (isGameStarted && roundTime > 0)
+        if (!isGameStarted || isPaused) return;
+
+        if (isRoundActive && roundTime > 0)
         {
             roundTime -= Time.deltaTime;
             UpdateRoundTimerText();
-        }
 
-        if (Input.GetKeyUp(KeyCode.Escape))
-        {
-            if (isPaused)
-            {
-                ResumeGame();
-            }
-            else
-            {
-                PauseGame();
-            }
-        }
-
-        if (isRoundActive)
-        {
             if (roundTime <= 0)
             {
-                MoveFinished();             //  Spielzug beendet und Spieler wechsel wird aufgerufen
+                HandleTimeExpired(); // wird korrekt ausgelöst
             }
         }
     }
+
+    private void HandleTimeExpired()
+    {
+        Debug.Log($"Zeit abgelaufen für Spieler {currentPlayer}!");
+
+        // Falls der Spieler nichts gemacht hat, trotzdem den Zug beenden
+        if (!GenerateBoard.Instance.HasPlayerPerformedActionThisTurn())
+        {
+            Debug.Log("Keine Aktion ausgeführt – Zug wird trotzdem beendet wegen Zeitablauf.");
+        }
+
+        roundTime = 10f; // Timer zurücksetzen
+        isRoundActive = true; // Runde aktiv halten
+
+        GenerateBoard.Instance.ResetDraggingPiece();
+        GenerateBoard.Instance.ResetMantisTrapMode();
+        GenerateBoard.Instance.hasMoved = false;
+        GenerateBoard.Instance.hasTransformed = false;
+        GenerateBoard.Instance.ResetSelectedPieceForTransformation();
+        GenerateBoard.Instance.ResetLastMovedPiece();
+        GenerateBoard.Instance.RemoveHighlightTilesPublic();
+
+        SwitchPlayer();
+    }
+
 
     public void SetCurrentMana(int player, int amount)
     {
@@ -246,17 +258,19 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         isGameStarted = true;
         isPaused = false;
+        isRoundActive = true; 
+        roundTime = 60f;
         UpdateMusic();
 
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
         finishedButton.gameObject.SetActive(true);
 
-        transformButton.onClick.RemoveAllListeners(); // Remove previous listeners to avoid duplicates
+        transformButton.onClick.RemoveAllListeners();
         transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
 
-        // Reset the board state when starting a new game
         GenerateBoard.Instance.ResetBoardState();
+        UpdateRoundTimerText(); // Timer-Text aktualisieren
     }
 
     public void UpdateRoundTimerText()
@@ -271,7 +285,6 @@ public class GameManager : MonoBehaviour
 
     public void MoveFinished()
     {
-        // NEU: Prüfen, ob der Spieler eine Aktion ausgeführt hat
         if (!GenerateBoard.Instance.HasPlayerPerformedActionThisTurn())
         {
             // Überprüfen, ob wir im Mantis-Fallenmodus sind. Wenn ja, und keine Falle gestellt wurde,
@@ -286,45 +299,27 @@ public class GameManager : MonoBehaviour
             // Deine aktuelle ResetMantisTrapMode() in GenerateBoard macht letzteres, was gut ist.
 
             // Wenn also hasMoved false ist, hat der Spieler definitiv nichts Gültiges getan.
-            if (!GenerateBoard.Instance.hasMoved) // Strenge Prüfung: Es muss eine Bewegung stattgefunden haben
+            if (!GenerateBoard.Instance.hasMoved)
             {
                 Debug.Log("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur.");
-                // Optional: Zeige eine UI-Nachricht an den Spieler.
-                // UI_Manager.Instance.ShowNotification("Du musst zuerst eine Aktion ausführen!");
-                return; // Beende die Methode hier, der Zug wird NICHT gewechselt.
+                return;
             }
-            // Wenn hasMoved true ist, aber der Spieler ist im Mantis-Fallenmodus und hat noch keine Richtung gewählt,
-            // dann ist das Beenden des Zuges jetzt eine bewusste Entscheidung, die Falle nicht zu stellen.
-            // GenerateBoard.Instance.ResetMantisTrapMode() wird das dann handhaben.
         }
 
-        // Wenn wir hier ankommen, wurde eine Aktion ausgeführt ODER der Spieler hat bewusst
-        // das Stellen der Mantis-Falle übersprungen (nachdem er sich bewegt hat).
-
         Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
-        roundTime = 120f; // Oder deine Standardzeit
-        isRoundActive = true;
+        roundTime = 60f; // Timer auf 1 Minuten zurücksetzen
+        isRoundActive = true; // Runde wieder aktivieren
 
         GenerateBoard.Instance.ResetDraggingPiece();
-
-        // Setzt den Mantis-Fallen-Modus zurück, FALLS er aktiv war (wird in der Methode geprüft)
         GenerateBoard.Instance.ResetMantisTrapMode();
-
-        // Setze die allgemeinen Zug-Flags zurück
         GenerateBoard.Instance.hasMoved = false;
         GenerateBoard.Instance.hasTransformed = false;
         GenerateBoard.Instance.ResetSelectedPieceForTransformation();
-
-        // Setze den Tracker für die zuletzt bewegte Figur zurück
-        // Die Methode heißt jetzt nur noch ResetLastMovedPiece, da mantisTrapDirectionChosenThisTurn nicht mehr existiert
-        GenerateBoard.Instance.ResetLastMovedPiece(); // Stelle sicher, dass diese Methode existiert und nur lastMovedOrTransformedPiece zurücksetzt
-
+        GenerateBoard.Instance.ResetLastMovedPiece();
         GenerateBoard.Instance.RemoveHighlightTilesPublic();
 
         SwitchPlayer();
     }
-
-
     public void PauseGame()
     {
         state = "PauseMenu";
