@@ -267,29 +267,60 @@ public class GameManager : MonoBehaviour
     }
 
 
+    // In GameManager/GameManager.cs
+
     public void MoveFinished()
     {
+        // NEU: Prüfen, ob der Spieler eine Aktion ausgeführt hat
+        if (!GenerateBoard.Instance.HasPlayerPerformedActionThisTurn())
+        {
+            // Überprüfen, ob wir im Mantis-Fallenmodus sind. Wenn ja, und keine Falle gestellt wurde,
+            // könnte dies als "keine Aktion" zählen, es sei denn, das Fallenstellen selbst ist die Aktion.
+            // Fürs Erste: Wenn keine Bewegung UND keine Transformation, dann keine Aktion.
+            // Das Stellen der Mantis-Falle selbst (nach der Bewegung) beendet den Zug NICHT automatisch.
+            // Der Spieler MUSS sich bewegt haben, um den Fallenstellmodus überhaupt zu erreichen.
+
+            // Wenn die Mantis bewegt wurde (hasMoved = true), aber die Falle noch nicht gestellt ist
+            // (currentMantisTrapState == AwaitingDirectionInput), dann darf der Zug noch nicht beendet werden,
+            // ODER das Beenden des Zuges ohne Falleneingabe bricht das Fallenstellen ab.
+            // Deine aktuelle ResetMantisTrapMode() in GenerateBoard macht letzteres, was gut ist.
+
+            // Wenn also hasMoved false ist, hat der Spieler definitiv nichts Gültiges getan.
+            if (!GenerateBoard.Instance.hasMoved) // Strenge Prüfung: Es muss eine Bewegung stattgefunden haben
+            {
+                Debug.Log("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur.");
+                // Optional: Zeige eine UI-Nachricht an den Spieler.
+                // UI_Manager.Instance.ShowNotification("Du musst zuerst eine Aktion ausführen!");
+                return; // Beende die Methode hier, der Zug wird NICHT gewechselt.
+            }
+            // Wenn hasMoved true ist, aber der Spieler ist im Mantis-Fallenmodus und hat noch keine Richtung gewählt,
+            // dann ist das Beenden des Zuges jetzt eine bewusste Entscheidung, die Falle nicht zu stellen.
+            // GenerateBoard.Instance.ResetMantisTrapMode() wird das dann handhaben.
+        }
+
+        // Wenn wir hier ankommen, wurde eine Aktion ausgeführt ODER der Spieler hat bewusst
+        // das Stellen der Mantis-Falle übersprungen (nachdem er sich bewegt hat).
+
         Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
-        roundTime = 120f;
+        roundTime = 120f; // Oder deine Standardzeit
         isRoundActive = true;
 
         GenerateBoard.Instance.ResetDraggingPiece();
 
-        // WICHTIG: Setze den Mantis-Fallen-Modus zurück, falls er aktiv war und keine Falle gestellt wurde
-        GenerateBoard.Instance.ResetMantisTrapMode(); // NEUE METHODE
+        // Setzt den Mantis-Fallen-Modus zurück, FALLS er aktiv war (wird in der Methode geprüft)
+        GenerateBoard.Instance.ResetMantisTrapMode();
 
-        // Reset general turn flags
+        // Setze die allgemeinen Zug-Flags zurück
         GenerateBoard.Instance.hasMoved = false;
         GenerateBoard.Instance.hasTransformed = false;
         GenerateBoard.Instance.ResetSelectedPieceForTransformation();
 
-        // Reset the 'last moved piece' tracker
-        GenerateBoard.Instance.ResetLastMovedPieceAndTrapChoice(); // Diese Methode existiert schon und setzt auch mantisTrapDirectionChosenThisTurn zurück
+        // Setze den Tracker für die zuletzt bewegte Figur zurück
+        // Die Methode heißt jetzt nur noch ResetLastMovedPiece, da mantisTrapDirectionChosenThisTurn nicht mehr existiert
+        GenerateBoard.Instance.ResetLastMovedPiece(); // Stelle sicher, dass diese Methode existiert und nur lastMovedOrTransformedPiece zurücksetzt
 
-        // Remove highlights
         GenerateBoard.Instance.RemoveHighlightTilesPublic();
 
-        // Switch player
         SwitchPlayer();
     }
 

@@ -129,6 +129,11 @@ public class GenerateBoard : MonoBehaviour
 
     // In BoardRelated/GenerateBoard.cs
 
+
+    public bool HasPlayerPerformedActionThisTurn()
+    {
+        return hasMoved || hasTransformed;
+    }
     private void Update()
     {
         // Spielstart und Initialisierungslogik (unverändert)
@@ -389,12 +394,10 @@ public class GenerateBoard : MonoBehaviour
         // mantisTrapDirectionChosenThisTurn wird von ResetLastMovedPieceAndTrapChoice() gehandhabt
     }
     // In BoardRelated/GenerateBoard.cs
-    public void ResetLastMovedPieceAndTrapChoice() // Name könnte jetzt vereinfacht werden zu ResetLastMovedPiece
+    public void ResetLastMovedPieceAndTrapChoice() // Oder umbenennen zu ResetLastMovedPiece
     {
         lastMovedOrTransformedPiece = null;
-        // mantisTrapDirectionChosenThisTurn wird nicht mehr benötigt.
-        // Der Zustand wird über currentMantisTrapState = MantisTrapState.None; in ResetMantisTrapMode()
-        // oder nach erfolgreicher Falleneingabe zurückgesetzt.
+        // mantisTrapDirectionChosenThisTurn = false; // Diese Zeile ist nicht mehr nötig
     }
     // Füge diese Methoden zu GenerateBoard.cs hinzu:
     public void ResetSelectedPieceForTransformation()
