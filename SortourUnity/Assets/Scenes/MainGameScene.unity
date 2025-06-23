@@ -2928,7 +2928,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 883939667}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: UnlockCard
+        m_MethodName: UnlockCardForTeam
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3015,12 +3015,25 @@ MonoBehaviour:
   transformButton: {fileID: 1319962660}
   transformButton2: {fileID: 983131489}
   transformButton3: {fileID: 1471826806}
-  cards:
+  whiteTeamCards:
   - cardName: Rook
+    team: 0
     coverImage: {fileID: 1362274830}
   - cardName: Kelpie
+    team: 0
     coverImage: {fileID: 865244328}
   - cardName: Mantis
+    team: 0
+    coverImage: {fileID: 1981302234}
+  blackTeamCards:
+  - cardName: Rook
+    team: 1
+    coverImage: {fileID: 1362274830}
+  - cardName: Kelpie
+    team: 1
+    coverImage: {fileID: 865244328}
+  - cardName: Mantis
+    team: 1
     coverImage: {fileID: 1981302234}
   breakScene: {fileID: 732720482}
   resumeButton: {fileID: 434023229}
@@ -4511,7 +4524,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 883939667}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: UnlockCard
+        m_MethodName: UnlockCardForTeam
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6408,7 +6421,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 883939667}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: UnlockCard
+        m_MethodName: UnlockCardForTeam
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
