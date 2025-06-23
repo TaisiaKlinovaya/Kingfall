@@ -1,9 +1,11 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System;
-using UnityEngine.Rendering.PostProcessing;
+using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -30,6 +32,16 @@ public class GameManager : MonoBehaviour
 
     [Header("Transformation")]
     public Button transformButton;
+    public Button transformButton2;
+    public Button transformButton3;
+
+    [Header("Weiße Karten (Spieler 1)")]
+    public List<Card> whiteTeamCards = new List<Card>();
+    private List<bool> whiteTeamUnlockedCards;
+
+    [Header("Schwarze Karten (Spieler 2)")]
+    public List<Card> blackTeamCards = new List<Card>();
+    private List<bool> blackTeamUnlockedCards;
 
     [Header("Break Scene UI Elemente")]
     public GameObject breakScene;
@@ -102,6 +114,8 @@ public class GameManager : MonoBehaviour
 
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
+        transformButton2.gameObject.SetActive(false);
+        transformButton3.gameObject.SetActive(false);
         // startButton.gameObject.SetActive(true);         //  --> Neu Hinzugefügt
 
         SetInitialCamera();
@@ -200,7 +214,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Keine Aktion ausgeführt – Zug wird trotzdem beendet wegen Zeitablauf.");
         }
 
-        roundTime = 10f; // Timer zurücksetzen
+        roundTime = 60f; // Timer zurücksetzen
         isRoundActive = true; // Runde aktiv halten
 
         GenerateBoard.Instance.ResetDraggingPiece();
@@ -264,10 +278,16 @@ public class GameManager : MonoBehaviour
 
         roundTimerText.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
+        transformButton2.gameObject.SetActive(true);
+        transformButton3.gameObject.SetActive(true);
         finishedButton.gameObject.SetActive(true);
 
         transformButton.onClick.RemoveAllListeners();
+        transformButton2.onClick.RemoveAllListeners();
+        transformButton3.onClick.RemoveAllListeners();
         transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
+        transformButton2.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
+        transformButton3.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
 
         GenerateBoard.Instance.ResetBoardState();
         UpdateRoundTimerText(); // Timer-Text aktualisieren
@@ -331,6 +351,8 @@ public class GameManager : MonoBehaviour
 
         finishedButton.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
+        transformButton2.gameObject.SetActive(false);
+        transformButton3.gameObject.SetActive(false);
     }
 
     public void WinGame(String winTeam)
@@ -365,6 +387,8 @@ public class GameManager : MonoBehaviour
 
         finishedButton.gameObject.SetActive(true);
         transformButton.gameObject.SetActive(true);
+        transformButton2.gameObject.SetActive(true);
+        transformButton3.gameObject.SetActive(true);
     }
 
     public void QuitGame()
@@ -393,10 +417,18 @@ public class GameManager : MonoBehaviour
         roundTime = 120f; // Timer zurücksetzen
         Time.timeScale = 0f; // Zeit anhalten
         TileManager.Instance.ResetDisabledTiles();
+        whiteTeamUnlockedCards = new List<bool>(new bool[whiteTeamCards.Count]);
+        blackTeamUnlockedCards = new List<bool>(new bool[blackTeamCards.Count]);
+
+        // Stelle sicher, dass alle Karten visuell als gelockt erscheinen
+        foreach (var card in whiteTeamCards) card.Lock();
+        foreach (var card in blackTeamCards) card.Lock();
 
         // Blende das Timer-Textfeld und den Transformations-Button aus
         roundTimerText.gameObject.SetActive(false);
         transformButton.gameObject.SetActive(false);
+        transformButton2.gameObject.SetActive(false);
+        transformButton3.gameObject.SetActive(false);
 
         // Setze den currentPlayer auf 1 zurück, damit das Spiel mit der Player1Camera beginnt
         currentPlayer = 1;
@@ -438,5 +470,53 @@ public class GameManager : MonoBehaviour
             player2Camera.enabled = true;
         }
         UpdateManaUI();
+        // Kartenanzeige aktualisieren
+        UpdateCardVisibility();
+    }
+
+    public void UnlockCardForTeam(int index)
+    {
+        List<Card> teamCards = (currentPlayer == 1) ? whiteTeamCards : blackTeamCards;
+        List<bool> unlockedList = (currentPlayer == 1) ? whiteTeamUnlockedCards : blackTeamUnlockedCards;
+
+        if (index < 0 || index >= teamCards.Count)
+        {
+            Debug.LogWarning("Ungültiger Kartenindex!");
+            return;
+        }
+
+        if (unlockedList[index])
+        {
+            Debug.Log("Diese Karte wurde bereits freigeschaltet.");
+            return;
+        }
+
+        if (GetCurrentMana(currentPlayer) < 3)
+        {
+            Debug.Log($"Spieler {currentPlayer} hat nicht genug Mana!");
+            return;
+        }
+
+        unlockedList[index] = true;
+        teamCards[index].Unlock();
+        UseMana(currentPlayer, 3);
+        Debug.Log($"Spieler {currentPlayer} hat Karte {index} freigeschaltet.");
+    }
+
+    private void UpdateCardVisibility()
+    {
+        for (int i = 0; i < whiteTeamCards.Count; i++)
+        {
+            if (currentPlayer == 1)
+            {
+                whiteTeamCards[i].SetVisibility(whiteTeamUnlockedCards[i]);
+                blackTeamCards[i].SetVisibility(false); // Schwarze Karten nicht sichtbar für Spieler 1
+            }
+            else
+            {
+                whiteTeamCards[i].SetVisibility(false); // Weiße Karten nicht sichtbar für Spieler 2
+                blackTeamCards[i].SetVisibility(blackTeamUnlockedCards[i]);
+            }
+        }
     }
 }
