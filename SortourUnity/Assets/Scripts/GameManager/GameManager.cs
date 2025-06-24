@@ -186,11 +186,24 @@ public class GameManager : MonoBehaviour
             audioSource.Stop();
         }
     }
-
-
     void Update()
     {
-        if (!isGameStarted || isPaused) return;
+        if (!isGameStarted) return;
+
+        // ESC zum Pausieren
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!isPaused)
+            {
+                PauseGame();
+            }
+            else
+            {
+                ResumeGame();
+            }
+        }
+
+        if (isPaused) return;
 
         if (isRoundActive && roundTime > 0)
         {
@@ -199,7 +212,7 @@ public class GameManager : MonoBehaviour
 
             if (roundTime <= 0)
             {
-                HandleTimeExpired(); // wird korrekt ausgelöst
+                HandleTimeExpired();
             }
         }
     }
