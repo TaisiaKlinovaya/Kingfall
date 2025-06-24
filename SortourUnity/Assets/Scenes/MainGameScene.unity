@@ -3327,7 +3327,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 370.7, y: 9}
+  m_AnchoredPosition: {x: 420, y: 9}
   m_SizeDelta: {x: 193.4729, y: 35.1262}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &983131487
@@ -3798,7 +3798,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1089495050}
   m_Layer: 0
-  m_Name: ^(o.O)^..^(O.o)^   ARTIST   ^(o.O)^..^(O.o)^
+  m_Name: '### ARTIST ###'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4206,7 +4206,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 370.7, y: -216}
+  m_AnchoredPosition: {x: 420, y: -216}
   m_SizeDelta: {x: 193.4729, y: 35.1262}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1319962660
@@ -5275,7 +5275,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 370.7, y: -103.4}
+  m_AnchoredPosition: {x: 420, y: -103.4}
   m_SizeDelta: {x: 193.4729, y: 35.1262}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1474568504
@@ -5682,7 +5682,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1769982182}
   m_Layer: 0
-  m_Name: ^(o.O)^..^(O.o)^   UI ELEMENTE   ^(o.O)^..^(O.o)^
+  m_Name: '### UI ELEMENTE ###'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5713,7 +5713,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1780733703}
   m_Layer: 0
-  m_Name: ^(o.O)^..^(O.o)^   CHESSBOARD   ^(o.O)^..^(O.o)^
+  m_Name: '### CHESSBOARD ###'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6986,7 +6986,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2131698713}
   m_Layer: 0
-  m_Name: ^(o.O)^..^(O.o)^   GAME MANAGER   ^(o.O)^..^(O.o)^
+  m_Name: '### GAME MANAGER ###'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
