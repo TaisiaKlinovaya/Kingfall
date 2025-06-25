@@ -63,7 +63,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 695dfcce735b4a548abfff4d65584a22, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: f497e8cb60b20c049ad73bbe34f46246, type: 2}
+      objectReference: {fileID: 2100000, guid: ae7e667323753fc4da300bed73c84c6f, type: 2}
     - target: {fileID: -5754084199372789682, guid: 695dfcce735b4a548abfff4d65584a22, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -101,3 +101,4 @@ MonoBehaviour:
   currentX: 0
   currentY: 0
   type: 0
+  DefeatedPieces: []
