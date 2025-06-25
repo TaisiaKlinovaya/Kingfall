@@ -526,27 +526,23 @@ public class GenerateBoard : MonoBehaviour
     }
     // In BoardRelated/GenerateBoard.cs
 
+    // In BoardRelated/GenerateBoard.cs
+
     private bool MoveTo(PieceType cp, int x, int y)
     {
-        // Null-Überprüfung für TileManager
+        // --- Vorabprüfungen (TileManager, Mantis Trap) ---
         if (TileManager.Instance == null)
         {
-            Debug.LogError("TileManager ist nicht initialisiert!");
+            Debug.LogError("TileManager ist nicht initialisiert in MoveTo!");
             return false;
         }
-        else
+        if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
         {
-            // Überprüfe auf deaktivierte Kacheln
-            if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
-            {
-                Debug.Log($"Cannot move to disabled tile at ({x},{y})");
-                return false;
-            }
+            Debug.Log($"Ungültiger Zug: Zielfeld ({x},{y}) ist deaktiviert.");
+            return false;
         }
 
-
-
-        // --- Check for opponent Mantis traps at the target destination ---
+        // Mantis-Fallenprüfung (wie in deinem Code)
         int opponentTeam = 1 - cp.team;
         for (int mx = 0; mx < TILE_COUNT_X; mx++)
         {
@@ -560,93 +556,179 @@ public class GenerateBoard : MonoBehaviour
                 {
                     if (mantis.GetTrapZone().Contains(new Vector2Int(x, y)))
                     {
-                        Debug.LogWarning($"MANTIS TRAP TRIGGERED! Piece {cp.type} (Team {cp.team}) moving to ({x},{y}) stepped into Mantis (Team {opponentTeam}) trap originating from ({mantis.currentX},{mantis.currentY}).");
+                        Debug.LogWarning($"MANTIS FALLE AUSGELÖST! Figur {cp.type} (Team {cp.team}) wollte nach ({x},{y}) ziehen und trat in Falle von Mantis (Team {opponentTeam}) auf ({mantis.currentX},{mantis.currentY}).");
                         Vector2Int originalPosition = new Vector2Int(cp.currentX, cp.currentY);
-                        ProcessDefeatedPiece(cp);
-                        allChessPieces[originalPosition.x, originalPosition.y] = null;
+                        ProcessDefeatedPiece(cp); // Die Figur, die in die Falle getreten ist
+                        allChessPieces[originalPosition.x, originalPosition.y] = null; // Vom Startfeld entfernen
                         mantis.ResetTrap();
-                        hasMoved = true;
-                        lastMovedOrTransformedPiece = null;
-                        return true;
+                        hasMoved = true; // Zählt als Aktion für den Zug
+                        lastMovedOrTransformedPiece = null; // Keine Figur hat den Zug erfolgreich abgeschlossen
+                        return true; // Zug beendet (durch Falle)
                     }
                 }
             }
         }
-        // --- End of Mantis Trap Check ---
+        // --- Ende Mantis-Fallenprüfung ---
 
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
+        // Standard-Zugvalidierung (ob das Feld prinzipiell aus der Figurenlogik erreichbar ist)
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log($"Invalid Move for {cp.type}: Target ({x},{y}) is not in the list of available moves.");
+            Debug.Log($"Ungültiger Zug für {cp.type}: Ziel ({x},{y}) ist nicht in der Liste der verfügbaren Züge.");
             return false;
         }
 
-        PieceType targetPiece = allChessPieces[x, y];
-        if (targetPiece != null)
+        // === NEU: SIMULATION UND ÜBERPRÜFUNG AUF SELBST-SCHACH ===
+        // 1. Erstelle eine temporäre Kopie des Bretts für die Simulation.
+        //    Dies stellt sicher, dass wir das echte 'allChessPieces'-Array nicht verändern,
+        //    bevor der Zug als legal bestätigt wurde.
+        PieceType[,] simulatedBoard = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
+        System.Array.Copy(allChessPieces, simulatedBoard, allChessPieces.Length);
+
+        // 2. Führe den Zug auf dem simulierten Brett aus.
+        //    Beachte: Das Schlagen auf dem simulierten Brett ist hier vereinfacht.
+        //    Wir entfernen die Zielfigur nicht explizit aus simulatedBoard, da IsKingInCheck
+        //    primär die Angriffslinien prüft. Für eine 100% exakte Simulation aller
+        //    Spezialfälle (wie Golem-Trample, das den Weg freiräumt) wäre mehr Aufwand nötig.
+        simulatedBoard[x, y] = cp; // Setze die ziehende Figur auf das Zielfeld im simulierten Brett
+        simulatedBoard[previousPosition.x, previousPosition.y] = null; // Leere das Startfeld im simulierten Brett
+
+        // 3. Überprüfe, ob der eigene König nach diesem simulierten Zug im Schach stünde.
+        //    cp.team ist das Team der Figur, die gerade zieht (also das Team des eigenen Königs).
+        if (IsKingInCheck(cp.team, simulatedBoard, TILE_COUNT_X, TILE_COUNT_Y))
         {
-            if (targetPiece.team == cp.team)
+            Debug.LogWarning($"UNGÜLTIGER ZUG für {cp.type} nach ({x},{y}): Der eigene König (Team {cp.team}) stünde im Schach.");
+            // Wichtig: Da der Zug ungültig ist, werden keine Änderungen am echten `allChessPieces`-Array vorgenommen.
+            return false; // Der Zug ist nicht erlaubt.
+        }
+        // === ENDE NEU: SIMULATION UND ÜBERPRÜFUNG ===
+
+
+        // Wenn wir hier ankommen, ist der Zug legal (stellt den eigenen König nicht ins Schach).
+        // Führe den Zug jetzt auf dem ECHTEN Brett (`allChessPieces`) aus:
+
+        // --- Handle Capturing (auf dem echten Brett) ---
+        PieceType targetPieceOnRealBoard = allChessPieces[x, y]; // Figur auf dem Zielfeld des echten Bretts
+        if (targetPieceOnRealBoard != null) // Ist das Zielfeld besetzt?
+        {
+            // Die Prüfung, ob es eine eigene Figur ist, sollte durch die Logik von
+            // GetAvailableMoves und ContainsValidMove bereits abgedeckt sein (diese sollten keine
+            // Züge auf eigene Figuren erlauben, außer ggf. Rochade).
+            // Die Simulation oben hätte auch ein Problem gemeldet, wenn man auf eine eigene Figur zieht und dadurch Schach entsteht.
+            // Dennoch, als Sicherheitsnetz:
+            if (targetPieceOnRealBoard.team == cp.team)
             {
-                Debug.Log($"Invalid Move for {cp.type}: Cannot capture own piece ({targetPiece.type}) at ({x},{y}).");
-                return false;
+                Debug.LogError($"KRITISCHER FEHLER: Versuch, eigene Figur ({targetPieceOnRealBoard.type}) bei ({x},{y}) zu schlagen, obwohl Zug als legal eingestuft wurde. Dies sollte nicht passieren.");
+                return false; // Verhindere den Zug
             }
             else
             {
-                ProcessDefeatedPiece(targetPiece);
-                if (targetPiece.type == ChessPieceType.King)
+                // Es ist eine gegnerische Figur
+                Debug.Log($"{cp.type} (Team {cp.team}) schlägt {targetPieceOnRealBoard.type} (Team {targetPieceOnRealBoard.team}) auf ({x},{y}).");
+                ProcessDefeatedPiece(targetPieceOnRealBoard); // Verarbeitet die besiegte Figur
+
+                if (targetPieceOnRealBoard.type == ChessPieceType.King)
                 {
                     isKingDead = true;
-                    winTeam = (targetPiece.team == 1) ? "White" : "Black";
-                    Debug.LogWarning($"KING CAPTURED! Team {winTeam} wins!");
+                    winTeam = (targetPieceOnRealBoard.team == 1) ? "White" : "Black"; // Gewinner ist das Team, das den König geschlagen hat
+                    Debug.LogWarning($"KÖNIG GESCHLAGEN! Team {winTeam} gewinnt!");
                 }
             }
         }
 
-        // --- Handle Special Piece Logic (Golem Trample) ---
+        // --- Handle Special Piece Logic (Golem Trample - auf dem echten Brett) ---
+        // Diese Logik wird NACH der Schachprüfung ausgeführt, da sie das Brett verändert.
         if (cp.type == ChessPieceType.Golem)
         {
             Golem golem = cp as Golem;
             if (golem != null)
             {
-                // Rufe DefeatFiguresOnPath NUR EINMAL auf und speichere das Ergebnis
                 bool trampledAnyPieces = golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
-
-                // Löse Kamera-Shake aus, BASIEREND AUF DEM ERGEBNIS DES ERSTEN AUFRUFS
                 if (trampledAnyPieces)
                 {
-                    Debug.Log("Golem trampled pieces, triggering camera shake.");
-                    GameManager.Instance.TriggerActiveCameraShake(0.6f, 0.15f); // Du kannst Dauer/Stärke anpassen
+                    Debug.Log("Golem hat Figuren zertrampelt, löse Kamera-Shake aus.");
+                    GameManager.Instance.TriggerActiveCameraShake(0.6f, 0.15f);
                 }
-
-                // Überprüfe, ob der König durch das Trampeln besiegt wurde
-                // Diese Liste (golem.DefeatedPieces) wird durch den obigen Aufruf von DefeatFiguresOnPath gefüllt
+                // Überprüfe, ob der König durch das Trampeln besiegt wurde (nachdem die Figuren entfernt wurden)
                 foreach (var defeatedPieceInPath in golem.DefeatedPieces)
                 {
                     if (defeatedPieceInPath.type == ChessPieceType.King)
                     {
                         isKingDead = true;
-                        winTeam = (defeatedPieceInPath.team == 1) ? "White" : "Black"; // Bestimme Gewinner basierend auf Team der besiegten Königsfigur
-                        Debug.LogWarning($"KING TRAMPLED BY GOLEM! Team {winTeam} wins!");
-                        break; // König gefunden, Schleife kann beendet werden
+                        winTeam = (defeatedPieceInPath.team == 1) ? "White" : "Black";
+                        Debug.LogWarning($"KÖNIG DURCH GOLEM ZERTRAMPELT! Team {winTeam} gewinnt!");
+                        break;
                     }
                 }
             }
         }
 
-
-        // --- Finalize the Move ---
+        // --- Finalize the Move (auf dem echten Brett) ---
+        // Setze die Figur auf das Zielfeld und leere das Startfeld im echten Brett-Array.
         allChessPieces[x, y] = cp;
         allChessPieces[previousPosition.x, previousPosition.y] = null;
 
-        positionSinglePiece(x, y);
+        // Aktualisiere die interne Position der Figur und die visuelle Darstellung.
+        positionSinglePiece(x, y); // force=false für sanfte Bewegung
 
+        // Setze Flags für den aktuellen Zug.
         lastMovedOrTransformedPiece = cp;
         hasMoved = true;
 
-        //Debug.Log($"Piece {cp.GetType().Name} (Team {(cp.team == 0 ? "White" : "Black")}) moved from ({previousPosition.x}, {previousPosition.y}) to ({x}, {y}).");
+        // Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) zog von ({previousPosition.x},{previousPosition.y}) nach ({x},{y}).");
 
-        return true;
+        return true; // Der Zug war erfolgreich.
     }
+
+    // Stelle sicher, dass du auch die IsKingInCheck-Methode in GenerateBoard.cs hast:
+    //public bool IsKingInCheck(int kingTeam, PieceType[,] boardState, int tileCountX, int tileCountY)
+    //{
+    //    Vector2Int kingPosition = -Vector2Int.one;
+    //    for (int r = 0; r < tileCountX; r++) // r für row/rank (x)
+    //    {
+    //        for (int c = 0; c < tileCountY; c++) // c für column/file (y)
+    //        {
+    //            if (boardState[r, c] != null &&
+    //                boardState[r, c].type == ChessPieceType.King &&
+    //                boardState[r, c].team == kingTeam)
+    //            {
+    //                kingPosition = new Vector2Int(r, c);
+    //                break;
+    //            }
+    //        }
+    //        if (kingPosition != -Vector2Int.one) break;
+    //    }
+
+    //    if (kingPosition == -Vector2Int.one)
+    //    {
+    //        // Dieser Fall sollte idealerweise nie eintreten in einem laufenden Spiel.
+    //        // Debug.LogError($"Konnte König für Team {kingTeam} nicht auf dem Brett finden! (In IsKingInCheck)");
+    //        return true; // Vorsichtshalber als "im Schach" werten, um Fehler zu vermeiden.
+    //    }
+
+    //    int attackerTeam = 1 - kingTeam;
+    //    for (int r = 0; r < tileCountX; r++)
+    //    {
+    //        for (int c = 0; c < tileCountY; c++)
+    //        {
+    //            PieceType piece = boardState[r, c];
+    //            if (piece != null && piece.team == attackerTeam)
+    //            {
+    //                // Wichtig: Erzeuge eine temporäre Liste, da GetAvailableMoves die Referenz erwartet
+    //                PieceType[,] tempBoardRef = boardState; // Für den ref-Parameter
+    //                List<Vector2Int> attackerMoves = piece.GetAvailableMoves(ref tempBoardRef, tileCountX, tileCountY);
+
+    //                if (ContainsValidMove(ref attackerMoves, kingPosition))
+    //                {
+    //                    // Debug.Log($"König von Team {kingTeam} auf ({kingPosition.x},{kingPosition.y}) steht im Schach durch {piece.type} von Team {attackerTeam} auf ({r},{c}).");
+    //                    return true;
+    //                }
+    //            }
+    //        }
+    //    }
+    //    return false;
+    //}
     public Vector2Int LookupTileIndex(GameObject hitInfo)
     {
         for (int x = 0; x < TILE_COUNT_X; x++)
@@ -1241,5 +1323,56 @@ public class GenerateBoard : MonoBehaviour
         // Setze Mana auf 0
         GameManager.Instance.SetCurrentMana(player, 0);
     }
+    // In GenerateBoard.cs (oder einer separaten Logik-Klasse)
 
+
+    public bool IsKingInCheck(int kingTeam, PieceType[,] boardState, int tileCountX, int tileCountY)
+    {
+        // 1. Finde die Position des zu überprüfenden Königs
+        Vector2Int kingPosition = -Vector2Int.one;
+        for (int x = 0; x < tileCountX; x++)
+        {
+            for (int y = 0; y < tileCountY; y++)
+            {
+                if (boardState[x, y] != null &&
+                    boardState[x, y].type == ChessPieceType.King &&
+                    boardState[x, y].team == kingTeam)
+                {
+                    kingPosition = new Vector2Int(x, y);
+                    break;
+                }
+            }
+            if (kingPosition != -Vector2Int.one) break;
+        }
+
+        if (kingPosition == -Vector2Int.one)
+        {
+            // Debug.LogError($"Konnte König für Team {kingTeam} nicht auf dem Brett finden! (In IsKingInCheck)");
+            return false; // Oder true, je nachdem wie man einen fehlenden König werten will (sollte nicht passieren)
+        }
+
+        // 2. Überprüfe alle gegnerischen Figuren
+        int opponentTeam = 1 - kingTeam;
+        for (int x = 0; x < tileCountX; x++)
+        {
+            for (int y = 0; y < tileCountY; y++)
+            {
+                PieceType piece = boardState[x, y];
+                if (piece != null && piece.team == opponentTeam)
+                {
+                    // Berechne die möglichen Züge dieser gegnerischen Figur
+                    // WICHTIG: GetAvailableMoves braucht den aktuellen Brettzustand!
+                    List<Vector2Int> opponentMoves = piece.GetAvailableMoves(ref boardState, tileCountX, tileCountY);
+
+                    // Prüfe, ob einer dieser Züge auf die Position des Königs zeigt
+                    if (ContainsValidMove(ref opponentMoves, kingPosition)) // ContainsValidMove prüft, ob kingPosition in opponentMoves ist
+                    {
+                        // Debug.Log($"König von Team {kingTeam} steht im Schach durch {piece.type} von Team {opponentTeam} auf ({x},{y}) welches ({kingPosition.x},{kingPosition.y}) angreift.");
+                        return true; // König steht im Schach
+                    }
+                }
+            }
+        }
+        return false; // König steht nicht im Schach
+    }
 }
