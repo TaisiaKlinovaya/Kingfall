@@ -522,13 +522,15 @@ public class GameManager : MonoBehaviour
         {
             if (currentPlayer == 1)
             {
+                // Nur weiße Karten aktualisieren
                 whiteTeamCards[i].SetVisibility(whiteTeamUnlockedCards[i]);
-                blackTeamCards[i].SetVisibility(false); // Schwarze Karten nicht sichtbar für Spieler 1
+                // Schwarze Karten nicht ändern
             }
             else
             {
-                whiteTeamCards[i].SetVisibility(false); // Weiße Karten nicht sichtbar für Spieler 2
+                // Nur schwarze Karten aktualisieren
                 blackTeamCards[i].SetVisibility(blackTeamUnlockedCards[i]);
+                // Weiße Karten nicht ändern
             }
         }
     }
