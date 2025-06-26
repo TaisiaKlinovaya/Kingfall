@@ -285,7 +285,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         isGameStarted = true;
         isPaused = false;
-        isRoundActive = true; 
+        isRoundActive = true;
         roundTime = 60f;
         UpdateMusic();
 
