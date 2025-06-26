@@ -3,7 +3,17 @@ guid: 25269c4cccb96f740b2abc3f41f091bd
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BrokenBone
+    second: {fileID: -7508415061182417953, guid: 725042e80e439be48859d918bc54d21a, type: 3}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Grass
+    second: {fileID: 2100000, guid: 72b57ff916ba5074ebb35aa02d711a7a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
