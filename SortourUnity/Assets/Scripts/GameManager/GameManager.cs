@@ -219,12 +219,12 @@ public class GameManager : MonoBehaviour
 
     private void HandleTimeExpired()
     {
-        Debug.Log($"Zeit abgelaufen für Spieler {currentPlayer}!");
+        NotificationManager.Instance.ShowMessage($"Zeit abgelaufen für Spieler {currentPlayer}!");
 
         // Falls der Spieler nichts gemacht hat, trotzdem den Zug beenden
         if (!GenerateBoard.Instance.HasPlayerPerformedActionThisTurn())
         {
-            Debug.Log("Keine Aktion ausgeführt – Zug wird trotzdem beendet wegen Zeitablauf.");
+            NotificationManager.Instance.ShowMessage("Keine Aktion ausgeführt – Zug wird trotzdem beendet wegen Zeitablauf.");
         }
 
         roundTime = 60f; // Timer zurücksetzen
@@ -267,7 +267,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Spieler {player} hat nicht genug Mana!");
+            NotificationManager.Instance.ShowMessage($"Spieler {player} hat nicht genug Mana!");
         }
     }
 
@@ -346,12 +346,12 @@ public class GameManager : MonoBehaviour
             // Wenn also hasMoved false ist, hat der Spieler definitiv nichts Gültiges getan.
             if (!GenerateBoard.Instance.hasMoved)
             {
-                Debug.Log("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur.");
+                NotificationManager.Instance.ShowMessage("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur.");
                 return;
             }
         }
 
-        Debug.Log($"Spieler {currentPlayer} beendet den Zug.");
+        NotificationManager.Instance.ShowMessage($"Spieler {currentPlayer} beendet den Zug.");
         roundTime = 60f; // Timer auf 1 Minuten zurücksetzen
         isRoundActive = true; // Runde wieder aktivieren
 
@@ -512,20 +512,20 @@ public class GameManager : MonoBehaviour
 
         if (unlockedList[index])
         {
-            Debug.Log("Diese Karte wurde bereits freigeschaltet.");
+            NotificationManager.Instance.ShowMessage("Diese Karte wurde bereits freigeschaltet.");
             return;
         }
 
         if (GetCurrentMana(currentPlayer) < 3)
         {
-            Debug.Log($"Spieler {currentPlayer} hat nicht genug Mana!");
+            NotificationManager.Instance.ShowMessage($"Spieler {currentPlayer} hat nicht genug Mana!");
             return;
         }
 
         unlockedList[index] = true;
         teamCards[index].Unlock();
         UseMana(currentPlayer, 3);
-        Debug.Log($"Spieler {currentPlayer} hat Karte {index} freigeschaltet.");
+        NotificationManager.Instance.ShowMessage($"Spieler {currentPlayer} hat Karte {index} freigeschaltet.");
     }
 
     private void UpdateCardVisibility()
@@ -553,13 +553,13 @@ public class GameManager : MonoBehaviour
         // Zugriff über GenerateBoard.Instance
         if (!GenerateBoard.Instance.hasMoved)
         {
-            Debug.Log("Du musst zuerst eine Figur bewegen!");
+            NotificationManager.Instance.ShowMessage("Du musst zuerst eine Figur bewegen!");
             return;
         }
 
         if (GenerateBoard.Instance.hasTransformed)
         {
-            Debug.Log("Du kannst nur eine Transformation pro Zug durchführen!");
+            NotificationManager.Instance.ShowMessage("Du kannst nur eine Transformation pro Zug durchführen!");
             return;
         }
 
@@ -567,7 +567,7 @@ public class GameManager : MonoBehaviour
 
         if (cardIndex < 0 || cardIndex >= teamCards.Count || !teamCards[cardIndex].isUnlocked)
         {
-            Debug.Log("Ungültige Karte oder Karte nicht freigeschaltet!");
+            NotificationManager.Instance.ShowMessage("Ungültige Karte oder Karte nicht freigeschaltet!");
             return;
         }
 

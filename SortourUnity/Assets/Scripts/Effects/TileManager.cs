@@ -49,12 +49,12 @@ public class TileManager : MonoBehaviour
 
     public void ProcessEndOfRound()
     {
-        Debug.Log("disabledTiles.Count: " + disabledTiles.Count);
+        NotificationManager.Instance.ShowMessage("disabledTiles.Count: " + disabledTiles.Count);
         for (int i = disabledTiles.Count - 1; i >= 0; i--)
         {
             var tile = disabledTiles[i];
             
-            Debug.Log($"Tile at {tile.position} has {tile.disabledRounds} rounds left.");
+            NotificationManager.Instance.ShowMessage($"Tile at {tile.position} has {tile.disabledRounds} rounds left.");
 
             if (tile.disabledRounds < 0)
             {
@@ -95,7 +95,7 @@ public class TileManager : MonoBehaviour
             return;
         }
 
-        Debug.Log($"Updating tile at {position} - Disabled: {isDisabled}");
+        NotificationManager.Instance.ShowMessage($"Updating tile at {position} - Disabled: {isDisabled}");
 
         if (isDisabled)
         {

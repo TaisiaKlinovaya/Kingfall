@@ -159,11 +159,11 @@ public class Chessboard : MonoBehaviour
                     //selectedPiece.name = pieceName;
                     //selectedPiece.team = teamNum;
                     //selectedPiece.CurrentPosition = tilePosition;
-                    //Debug.Log($"{teamColor} {pieceName} selected");
+                    //NotificationManager.Instance.ShowMessage($"{teamColor} {pieceName} selected");
                 }
                 else if (selectedPiece == chessPiece)
                 {
-                    //Debug.Log($"Same {pieceName} clicked again");
+                    //NotificationManager.Instance.ShowMessage($"Same {pieceName} clicked again");
                 }
             }
             else
@@ -173,7 +173,7 @@ public class Chessboard : MonoBehaviour
         }
         else
         {
-            //Debug.Log($"No piece found on this tile");
+            //NotificationManager.Instance.ShowMessage($"No piece found on this tile");
         }
     }
 }

@@ -69,7 +69,7 @@ public class Golem : PieceType
                 PieceType pieceOnPath = board[pathX, pathY];
                 if (pieceOnPath != null && pieceOnPath != this) // Piece exists and is not the Golem itself
                 {
-                    Debug.Log($"Golem tramples {pieceOnPath.type} (Team {pieceOnPath.team}) at ({pathX},{pathY}) on its way to ({endPosition.x},{endPosition.y}).");
+                    NotificationManager.Instance.ShowMessage($"Golem tramples {pieceOnPath.type} (Team {pieceOnPath.team}) at ({pathX},{pathY}) on its way to ({endPosition.x},{endPosition.y}).");
 
                     // Use GenerateBoard.Instance to process the defeated piece (handles dead list, mana etc.)
                     GenerateBoard.Instance.ProcessDefeatedPiece(pieceOnPath);

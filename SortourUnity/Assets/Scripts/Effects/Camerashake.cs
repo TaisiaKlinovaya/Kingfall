@@ -50,7 +50,7 @@ public class CameraShake : MonoBehaviour
         currentShakeDuration = duration;
         currentShakeAmount = amount;
         currentDecreaseFactor = decreaseFactor;
-        Debug.Log($"CameraShake triggered: Duration={duration}, Amount={amount} on camera {cameraTransform.name}");
+        NotificationManager.Instance.ShowMessage($"CameraShake triggered: Duration={duration}, Amount={amount} on camera {cameraTransform.name}");
     }
 
     // Optional: Methode, um den Shake sofort zu stoppen

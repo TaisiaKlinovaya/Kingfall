@@ -25,11 +25,11 @@ public class Mantis : PieceType
 
     public override void SetPosition(Vector3 position, bool force = false)
     {
-        Debug.Log($"[Mantis.SetPosition] Called for Mantis at ({currentX},{currentY}). Target: {position}, Force: {force}, Active: {gameObject.activeInHierarchy}");
+        NotificationManager.Instance.ShowMessage($"[Mantis.SetPosition] Called for Mantis at ({currentX},{currentY}). Target: {position}, Force: {force}, Active: {gameObject.activeInHierarchy}");
 
         if (lauerAnimationCoroutine != null)
         {
-            Debug.Log("[Mantis.SetPosition] Stopping previous lauer animation.");
+            NotificationManager.Instance.ShowMessage("[Mantis.SetPosition] Stopping previous lauer animation.");
             StopCoroutine(lauerAnimationCoroutine);
             transform.localScale = desiredScale;
             lauerAnimationCoroutine = null;
@@ -39,17 +39,17 @@ public class Mantis : PieceType
 
         if (!force && gameObject.activeInHierarchy)
         {
-            Debug.Log("[Mantis.SetPosition] Condition to start LauerHaltungAnimation met. Starting coroutine.");
+            NotificationManager.Instance.ShowMessage("[Mantis.SetPosition] Condition to start LauerHaltungAnimation met. Starting coroutine.");
             lauerAnimationCoroutine = StartCoroutine(LauerHaltungAnimation(position));
         }
         else if (force)
         {
-            Debug.Log("[Mantis.SetPosition] Force was true, not starting LauerHaltungAnimation. Setting scale to normal.");
+            NotificationManager.Instance.ShowMessage("[Mantis.SetPosition] Force was true, not starting LauerHaltungAnimation. Setting scale to normal.");
             transform.localScale = desiredScale;
         }
         else if (!gameObject.activeInHierarchy)
         {
-            Debug.Log("[Mantis.SetPosition] GameObject not active, not starting LauerHaltungAnimation.");
+            NotificationManager.Instance.ShowMessage("[Mantis.SetPosition] GameObject not active, not starting LauerHaltungAnimation.");
         }
     }
 
@@ -58,13 +58,13 @@ public class Mantis : PieceType
 
     private IEnumerator LauerHaltungAnimation(Vector3 targetMovementPosition)
     {
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Coroutine STARTED. Waiting for target: {targetMovementPosition}. Current Pos: {transform.position}");
+        NotificationManager.Instance.ShowMessage($"[Mantis.LauerHaltungAnimation] Coroutine STARTED. Waiting for target: {targetMovementPosition}. Current Pos: {transform.position}");
         // Warte, bis die Figur ihre Zielposition (desiredPosition aus PieceType) ungefähr erreicht hat.
         while (Vector3.Distance(transform.position, targetMovementPosition) > 0.015f)
         {
             yield return null; // Warte auf den nächsten Frame
         }
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Target REACHED ({transform.position}). Starting scale and color animation. Normal Scale: {desiredScale}");
+        NotificationManager.Instance.ShowMessage($"[Mantis.LauerHaltungAnimation] Target REACHED ({transform.position}). Starting scale and color animation. Normal Scale: {desiredScale}");
 
         // Materialien und Originalfarben sammeln
         Renderer[] renderers = GetComponentsInChildren<Renderer>(true); // true, um auch inaktive Renderer zu finden (falls relevant)
@@ -104,7 +104,7 @@ public class Mantis : PieceType
         float timer = 0f;
 
         // Phase 1: Sanft in die Lauerhaltung skalieren UND Farbe ändern
-        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 1: Scaling and tinting to Lauerhaltung.");
+        NotificationManager.Instance.ShowMessage("[Mantis.LauerHaltungAnimation] Phase 1: Scaling and tinting to Lauerhaltung.");
         Vector3 startSkalaPhase1 = transform.localScale;
         // Wir verwenden die bereits gesammelten originalColors als Startfarben für den Lerp
         while (timer < anpassungsDauer)
@@ -124,7 +124,7 @@ public class Mantis : PieceType
         for (int i = 0; i < materialsToChange.Count; i++) { materialsToChange[i].color = lauerFarbe; } // Sicherstellen der Endfarbe
 
         // Phase 2: In der Lauerhaltung "atmen" (Skalierung) und Farbe ggf. leicht pulsieren
-        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 2: Breathing in Lauerhaltung.");
+        NotificationManager.Instance.ShowMessage("[Mantis.LauerHaltungAnimation] Phase 2: Breathing in Lauerhaltung.");
         timer = 0f;
         float atemAmplitudeFaktor = 0.2f;
         // Sicherstellen, dass halteDauer nicht 0 ist, um Division durch Null zu vermeiden
@@ -156,7 +156,7 @@ public class Mantis : PieceType
 
 
         // Phase 3: Sanft zurück zur normalen Haltung skalieren UND Farbe zurücksetzen
-        Debug.Log("[Mantis.LauerHaltungAnimation] Phase 3: Scaling and tinting back to Normal.");
+        NotificationManager.Instance.ShowMessage("[Mantis.LauerHaltungAnimation] Phase 3: Scaling and tinting back to Normal.");
         timer = 0f;
         Vector3 startSkalaPhase3 = transform.localScale; // Sollte lauerSkala sein
                                                          // Wir verwenden die lauerFarbe als Startfarbe für den Lerp zurück zum Original
@@ -176,7 +176,7 @@ public class Mantis : PieceType
         transform.localScale = normaleSkala; // Sicherstellen der Originalskala
         for (int i = 0; i < materialsToChange.Count; i++) { materialsToChange[i].color = originalColors[i]; } // Sicherstellen der Originalfarben
 
-        Debug.Log($"[Mantis.LauerHaltungAnimation] Coroutine FINISHED.");
+        NotificationManager.Instance.ShowMessage($"[Mantis.LauerHaltungAnimation] Coroutine FINISHED.");
         lauerAnimationCoroutine = null; // Coroutine-Referenz zurücksetzen
     }    // --- Deine bestehenden Methoden für die Falle (IsTrapActive, GetTrapZone, SetupTrapZone, ResetTrap) ---
     public bool IsTrapActive() { return isTrapSet; }
@@ -197,19 +197,19 @@ public class Mantis : PieceType
         const int TILE_COUNT_X = 8; const int TILE_COUNT_Y = 8; // Sollte idealerweise aus GenerateBoard kommen
         foreach (Vector2Int tile in potentialZoneTiles)
         { if (tile.x >= 0 && tile.x < TILE_COUNT_X && tile.y >= 0 && tile.y < TILE_COUNT_Y) { trapZone.Add(tile); } }
-        Debug.Log($"Mantis (Team {team}) at ({currentX},{currentY}) set trap facing {direction}. Zone: [{string.Join(", ", trapZone)}]");
+        NotificationManager.Instance.ShowMessage($"Mantis (Team {team}) at ({currentX},{currentY}) set trap facing {direction}. Zone: [{string.Join(", ", trapZone)}]");
         if (trapZone.Count == 0) { Debug.LogWarning($"  Trap zone for Mantis at ({currentX},{currentY}) facing {direction} resulted in zero valid tiles. Deactivating trap."); isTrapSet = false; trapDirection = Vector2Int.zero; }
     }
-    public void ResetTrap() { if (isTrapSet) { Debug.Log($"Mantis (Team {team}) at ({currentX},{currentY}) trap reset."); isTrapSet = false; trapDirection = Vector2Int.zero; trapZone.Clear(); } }
+    public void ResetTrap() { if (isTrapSet) { NotificationManager.Instance.ShowMessage($"Mantis (Team {team}) at ({currentX},{currentY}) trap reset."); isTrapSet = false; trapDirection = Vector2Int.zero; trapZone.Clear(); } }
 
 
     // --- Deine GetAvailableMoves Methode ---
     public override List<Vector2Int> GetAvailableMoves(ref PieceType[,] board, int tileCountX, int tileCountY)
     {
-        Debug.Log($"[Mantis.GetAvailableMoves] Called for Mantis at ({currentX},{currentY})");
+        NotificationManager.Instance.ShowMessage($"[Mantis.GetAvailableMoves] Called for Mantis at ({currentX},{currentY})");
         if (lauerAnimationCoroutine != null)
         {
-            Debug.Log("[Mantis.GetAvailableMoves] Stopping lauer animation before calculating moves.");
+            NotificationManager.Instance.ShowMessage("[Mantis.GetAvailableMoves] Stopping lauer animation before calculating moves.");
             StopCoroutine(lauerAnimationCoroutine);
             transform.localScale = desiredScale;
             lauerAnimationCoroutine = null;
@@ -232,7 +232,7 @@ public class Mantis : PieceType
                 else { break; }
             }
         }
-        Debug.Log($"[Mantis.GetAvailableMoves] Found {r.Count} moves.");
+        NotificationManager.Instance.ShowMessage($"[Mantis.GetAvailableMoves] Found {r.Count} moves.");
         return r;
     }
 

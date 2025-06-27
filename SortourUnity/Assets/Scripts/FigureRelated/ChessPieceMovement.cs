@@ -18,11 +18,11 @@ public class ChessPieceMovement : MonoBehaviour
     //    // Überprüft, ob eine Figur am Zielort vorhanden ist.
     //    if (piece != null)
     //    {
-    //        Debug.Log($"Found a piece: {piece.type}, Team: {piece.team}");              // Gibt Infos über die Figur aus.
+    //        NotificationManager.Instance.ShowMessage($"Found a piece: {piece.type}, Team: {piece.team}");              // Gibt Infos über die Figur aus.
     //    }
     //    else
     //    {
-    //        Debug.Log("No piece found on this tile.");                                  // Gibt aus, dass kein Objekt auf dem Zielfeld ist.
+    //        NotificationManager.Instance.ShowMessage("No piece found on this tile.");                                  // Gibt aus, dass kein Objekt auf dem Zielfeld ist.
     //    }
 
     //    bool isValidMove = false;                                                       // Variabel zum Speichern, ob der Zug gültig ist.
@@ -56,12 +56,12 @@ public class ChessPieceMovement : MonoBehaviour
     //    // Überprüfung des Zugs und Aktualisierung der Position.
     //    if (isValidMove)
     //    {
-    //        Debug.Log(name + " can move to " + targetPosition);                         // Log, dass der Zug gültig ist.
+    //        NotificationManager.Instance.ShowMessage(name + " can move to " + targetPosition);                         // Log, dass der Zug gültig ist.
     //        MoveToTile(targetPosition);                                                 // Führt die Bewegung aus.
     //    }
     //    else
     //    {
-    //        Debug.Log(name + " cannot move to " + targetPosition);                      // Log, dass der Zug ungültig ist.
+    //        NotificationManager.Instance.ShowMessage(name + " cannot move to " + targetPosition);                      // Log, dass der Zug ungültig ist.
     //    }
     //}
 
@@ -72,7 +72,7 @@ public class ChessPieceMovement : MonoBehaviour
     //    {
     //        if (pieceType.team == team)                                                 // Wenn die Figur zum gleichen Team gehört.
     //        {
-    //            Debug.Log("cant kill piece from same team");                            // Log, dass eigene Figuren nicht geschlagen werden können.
+    //            NotificationManager.Instance.ShowMessage("cant kill piece from same team");                            // Log, dass eigene Figuren nicht geschlagen werden können.
     //            return false;
     //        }
     //    }
@@ -101,7 +101,7 @@ public class ChessPieceMovement : MonoBehaviour
     //    // no collision - free tile
     //    if (overlappingColliders.Length == 0)
     //    {
-    //        Debug.Log("Feld ist frei");
+    //        NotificationManager.Instance.ShowMessage("Feld ist frei");
     //        return true;
     //    }
 
@@ -112,14 +112,14 @@ public class ChessPieceMovement : MonoBehaviour
     //        // if opponent figure, destroy and move
     //        if (otherPiece.team != team)
     //        {
-    //            Debug.Log("Gegnerische Figur gefunden - kann geschlagen werden");
+    //            NotificationManager.Instance.ShowMessage("Gegnerische Figur gefunden - kann geschlagen werden");
     //            Destroy(otherPiece.gameObject);
     //            return true;
     //        } //if same team figure dont move
     //        else if (otherPiece.team == team)
     //        {
-    //            Debug.Log("gegner Figur: " + otherPiece.name);
-    //            Debug.Log($"Eigene Figur im Weg (Team {team})");
+    //            NotificationManager.Instance.ShowMessage("gegner Figur: " + otherPiece.name);
+    //            NotificationManager.Instance.ShowMessage($"Eigene Figur im Weg (Team {team})");
     //            return false;
     //        }
     //    }
@@ -133,7 +133,7 @@ public class ChessPieceMovement : MonoBehaviour
     //                       int yLimit,                                                  // Maximale Bewegung auf der Y-Achse.
     //                       int diagonalLimit)                                           // Maximale diagonale Bewegung.
     //{
-    //    Debug.Log("CurrentPosition : " + CurrentPosition);                              // Gibt die aktuelle Position der Figur aus.
+    //    NotificationManager.Instance.ShowMessage("CurrentPosition : " + CurrentPosition);                              // Gibt die aktuelle Position der Figur aus.
 
     //    int distanceX = Math.Abs(targetPosition.x - (int)CurrentPosition.x);            // Berechnet die Bewegung auf der X-Achse.
     //    int distanceY = targetPosition.y - (int)CurrentPosition.y;                      // Berechnet die Bewegung auf der Y-Achse.
@@ -149,15 +149,15 @@ public class ChessPieceMovement : MonoBehaviour
     //    // Prüfung der X-Achsen-Bewegung.
     //    if (distanceX > xLimit)
     //    {
-    //        Debug.Log(distanceX + " > " + xLimit);                                      // Log, dass die Bewegung zu weit ist.
-    //        Debug.Log($"Invalid move: X-axis movement exceeds limit of {xLimit}.");
+    //        NotificationManager.Instance.ShowMessage(distanceX + " > " + xLimit);                                      // Log, dass die Bewegung zu weit ist.
+    //        NotificationManager.Instance.ShowMessage($"Invalid move: X-axis movement exceeds limit of {xLimit}.");
     //        return false;
     //    }
 
     //    // Prüfung der Y-Achsen-Bewegung.
     //    if (Math.Abs(distanceY) > yLimit)
     //    {
-    //        Debug.Log($"Invalid move: Y-axis movement exceeds limit of {yLimit}.");
+    //        NotificationManager.Instance.ShowMessage($"Invalid move: Y-axis movement exceeds limit of {yLimit}.");
     //        return false;
     //    }
 
@@ -168,7 +168,7 @@ public class ChessPieceMovement : MonoBehaviour
     //        float diagonalDistance = Mathf.Sqrt(distanceX * distanceX + distanceY * distanceY);
     //        if (diagonalDistance > diagonalLimit)
     //        {
-    //            Debug.Log($"Invalid move: Diagonal movement exceeds limit of {diagonalLimit}.");
+    //            NotificationManager.Instance.ShowMessage($"Invalid move: Diagonal movement exceeds limit of {diagonalLimit}.");
     //            return false;
     //        }
     //    }
@@ -181,7 +181,7 @@ public class ChessPieceMovement : MonoBehaviour
     //{
     //    if (!isFirstMove && Mathf.Abs(distanceY) > 1)                                   // Bauern können nach dem ersten Zug nur 1 Feld ziehen.
     //    {
-    //        Debug.Log("Pawn can only go 1 forward now");
+    //        NotificationManager.Instance.ShowMessage("Pawn can only go 1 forward now");
     //        return false;
     //    }
 
@@ -189,7 +189,7 @@ public class ChessPieceMovement : MonoBehaviour
 
     //    if ((team == 0 && distanceY < 0) || (team == 1 && distanceY > 0))               // Bauern dürfen nicht rückwärts ziehen.
     //    {
-    //        Debug.Log("Invalid move: Pawn can only move forward.");
+    //        NotificationManager.Instance.ShowMessage("Invalid move: Pawn can only move forward.");
     //        return false;
     //    }
 
@@ -231,6 +231,6 @@ public class ChessPieceMovement : MonoBehaviour
     //    transform.localPosition = new Vector3(targetPosition.x + 0.5f, 0, targetPosition.y + 0.5f);         // Zentriert auf Feld.
     //    CurrentPosition = new Vector2Int(targetPosition.x, targetPosition.y);                               // Aktualisiert die Position.
     //    isFirstMove = false;                                                                                // Markiert, dass die Figur bewegt wurde.
-    //    Debug.Log($"Figure moved to: ({targetPosition.x}, {targetPosition.y})");                            // Gibt die neue Position aus.
+    //    NotificationManager.Instance.ShowMessage($"Figure moved to: ({targetPosition.x}, {targetPosition.y})");                            // Gibt die neue Position aus.
     //}
 }
