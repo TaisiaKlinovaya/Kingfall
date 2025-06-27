@@ -199,10 +199,10 @@ public class GenerateBoard : MonoBehaviour
                 if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput && mantisAwaitingTrapSetup != null)
                 {
                     Vector2Int chosenDirection = Vector2Int.zero;
-                    if (Input.GetMouseButtonDown(0)) { chosenDirection = Vector2Int.left; Debug.Log("Mantis Trap Input: Westen (Linksklick)"); }
-                    else if (Input.GetMouseButtonDown(1)) { chosenDirection = Vector2Int.right; Debug.Log("Mantis Trap Input: Osten (Rechtsklick)"); }
-                    else if (Input.GetAxis("Mouse ScrollWheel") > 0.05f) { chosenDirection = Vector2Int.up; Debug.Log("Mantis Trap Input: Norden (Mausrad Vor)"); }
-                    else if (Input.GetAxis("Mouse ScrollWheel") < -0.05f) { chosenDirection = Vector2Int.down; Debug.Log("Mantis Trap Input: Süden (Mausrad Zurück)"); }
+                    if (Input.GetMouseButtonDown(0)) { chosenDirection = Vector2Int.left; NotificationManager.Instance.ShowMessage("Mantis Trap Input: Westen (Linksklick)"); }
+                    else if (Input.GetMouseButtonDown(1)) { chosenDirection = Vector2Int.right; NotificationManager.Instance.ShowMessage("Mantis Trap Input: Osten (Rechtsklick)"); }
+                    else if (Input.GetAxis("Mouse ScrollWheel") > 0.05f) { chosenDirection = Vector2Int.up; NotificationManager.Instance.ShowMessage("Mantis Trap Input: Norden (Mausrad Vor)"); }
+                    else if (Input.GetAxis("Mouse ScrollWheel") < -0.05f) { chosenDirection = Vector2Int.down; NotificationManager.Instance.ShowMessage("Mantis Trap Input: Süden (Mausrad Zurück)"); }
 
                     if (chosenDirection != Vector2Int.zero)
                     {
@@ -212,7 +212,7 @@ public class GenerateBoard : MonoBehaviour
                             mantisAwaitingTrapSetup.SetupTrapZone(chosenDirection);
                             currentMantisTrapState = MantisTrapState.None;
                             mantisAwaitingTrapSetup = null;
-                            Debug.Log("Mantis-Falle erfolgreich gestellt. Zug kann jetzt beendet werden.");
+                            NotificationManager.Instance.ShowMessage("Mantis-Falle erfolgreich gestellt. Zug kann jetzt beendet werden.");
                         }
                         else
                         {
@@ -247,7 +247,7 @@ public class GenerateBoard : MonoBehaviour
                     if (Input.GetMouseButtonDown(0))
                     {
                         if (hitPosition == -Vector2Int.one) { if (currentlyDragging != null) { currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY)); currentlyDragging = null; RemoveHighlightTiles(); } }
-                        else { if (currentlyDragging == null) { if (allChessPieces[hitPosition.x, hitPosition.y] != null) { PieceType clickedPiece = allChessPieces[hitPosition.x, hitPosition.y]; if (clickedPiece == lastMovedOrTransformedPiece && clickedPiece is Mantis mantisToSetup && clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && hasMoved && !hasTransformed) { currentMantisTrapState = MantisTrapState.AwaitingDirectionInput; mantisAwaitingTrapSetup = mantisToSetup; Debug.Log($"Mantis bei ({clickedPiece.currentX},{clickedPiece.currentY}) FÜR FALLENSTELLUNG ausgewählt."); RemoveHighlightTiles(); } else if (clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && !hasMoved) { currentlyDragging = clickedPiece; Debug.Log($"[GenerateBoard.Update] FIGUR AUSGEWÄHLT: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY}) für Bewegung."); availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y); HighlightTiles(); } } } else { Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY); bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y); if (!validMove) { currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y)); } currentlyDragging = null; RemoveHighlightTiles(); } }
+                        else { if (currentlyDragging == null) { if (allChessPieces[hitPosition.x, hitPosition.y] != null) { PieceType clickedPiece = allChessPieces[hitPosition.x, hitPosition.y]; if (clickedPiece == lastMovedOrTransformedPiece && clickedPiece is Mantis mantisToSetup && clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && hasMoved && !hasTransformed) { currentMantisTrapState = MantisTrapState.AwaitingDirectionInput; mantisAwaitingTrapSetup = mantisToSetup; NotificationManager.Instance.ShowMessage($"Mantis bei ({clickedPiece.currentX},{clickedPiece.currentY}) FÜR FALLENSTELLUNG ausgewählt."); RemoveHighlightTiles(); } else if (clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && !hasMoved) { currentlyDragging = clickedPiece; NotificationManager.Instance.ShowMessage($"[GenerateBoard.Update] FIGUR AUSGEWÄHLT: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY}) für Bewegung."); availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y); HighlightTiles(); } } } else { Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY); bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y); if (!validMove) { currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y)); } currentlyDragging = null; RemoveHighlightTiles(); } }
                     }
 
                     // === GEÄNDERTE LOGIK FÜR RECHTSKLICK ===
@@ -256,7 +256,7 @@ public class GenerateBoard : MonoBehaviour
                         // Ignoriere Rechtsklick, wenn wir gerade eine Falle stellen wollen
                         if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput)
                         {
-                            Debug.Log("Mantis trap placement cancelled by right-click.");
+                            NotificationManager.Instance.ShowMessage("Mantis trap placement cancelled by right-click.");
                             currentMantisTrapState = MantisTrapState.None;
                             mantisAwaitingTrapSetup = null;
                         }
@@ -271,7 +271,7 @@ public class GenerateBoard : MonoBehaviour
                                 // --- ERWEITERTE PRÜFUNG: Wurde bereits transformiert? ---
                                 if (hasTransformed)
                                 {
-                                    Debug.Log("Transformation nicht möglich: Es wurde in diesem Zug bereits eine Figur transformiert.");
+                                    NotificationManager.Instance.ShowMessage("Transformation nicht möglich: Es wurde in diesem Zug bereits eine Figur transformiert.");
                                     clickedPiece.FlashColor(Color.red, 0.4f); // Negatives Feedback
                                     selectedPieceForTransformation = null; // Sicherstellen, dass nichts ausgewählt wird
                                 }
@@ -285,13 +285,13 @@ public class GenerateBoard : MonoBehaviour
                                     if (isTransformable)
                                     {
                                         selectedPieceForTransformation = clickedPiece;
-                                        Debug.Log($"{clickedPiece.type} ausgewählt für Transformation. (Bedingungen erfüllt)");
+                                        NotificationManager.Instance.ShowMessage($"{clickedPiece.type} ausgewählt für Transformation. (Bedingungen erfüllt)");
                                         clickedPiece.FlashColor(new Color(0.7f, 1f, 1f), 0.5f); // Positives Feedback
                                     }
                                     else
                                     {
                                         selectedPieceForTransformation = null;
-                                        Debug.Log($"{clickedPiece.type} ist nicht transformierbar.");
+                                        NotificationManager.Instance.ShowMessage($"{clickedPiece.type} ist nicht transformierbar.");
                                         clickedPiece.FlashColor(Color.yellow, 0.4f); // Warnung: Falscher Figurentyp
                                     }
                                 }
@@ -299,7 +299,7 @@ public class GenerateBoard : MonoBehaviour
                                 {
                                     // Es wurde noch keine Figur bewegt
                                     selectedPieceForTransformation = null;
-                                    Debug.Log("Transformation nicht möglich: Es muss zuerst eine Figur bewegt werden.");
+                                    NotificationManager.Instance.ShowMessage("Transformation nicht möglich: Es muss zuerst eine Figur bewegt werden.");
                                     clickedPiece.FlashColor(Color.red, 0.4f); // Negatives Feedback
                                 }
                             }
@@ -314,7 +314,7 @@ public class GenerateBoard : MonoBehaviour
                             // Klick ins Leere deselektiert eine eventuell bestehende Auswahl
                             if (selectedPieceForTransformation != null)
                             {
-                                Debug.Log("Transformations-Auswahl aufgehoben.");
+                                NotificationManager.Instance.ShowMessage("Transformations-Auswahl aufgehoben.");
                                 selectedPieceForTransformation = null;
                             }
                         }
@@ -351,7 +351,7 @@ public class GenerateBoard : MonoBehaviour
     {
         if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput)
         {
-            Debug.Log("Mantis trap mode reset because turn ended before trap was set.");
+            NotificationManager.Instance.ShowMessage("Mantis trap mode reset because turn ended before trap was set.");
         }
         currentMantisTrapState = MantisTrapState.None;
         mantisAwaitingTrapSetup = null;
@@ -382,7 +382,7 @@ public class GenerateBoard : MonoBehaviour
         else if (activeTeam == 2)
         {
             currentCamera = GameManager.Instance.player2Camera;
-            Debug.Log("camera set to player2 in setCamera");
+            NotificationManager.Instance.ShowMessage("camera set to player2 in setCamera");
         }
     }
 
@@ -504,7 +504,7 @@ public class GenerateBoard : MonoBehaviour
         {
             if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
             {
-                Debug.Log($"Cannot move to disabled tile at ({x},{y})");
+                NotificationManager.Instance.ShowMessage($"Cannot move to disabled tile at ({x},{y})");
                 return false;
             }
         }
@@ -541,7 +541,7 @@ public class GenerateBoard : MonoBehaviour
         // Standard-Zugvalidierung
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log($"Invalid Move for {cp.type}: Target ({x},{y}) is not in the list of available moves.");
+            NotificationManager.Instance.ShowMessage($"Invalid Move for {cp.type}: Target ({x},{y}) is not in the list of available moves.");
             // --- NEU: Rotes Aufleuchten bei ungültigem Zug ---
             if (cp != null)
             {
@@ -573,7 +573,7 @@ public class GenerateBoard : MonoBehaviour
         {
             if (targetPiece.team == cp.team)
             {
-                Debug.Log($"Invalid Move for {cp.type}: Cannot capture own piece ({targetPiece.type}) at ({x},{y}).");
+                NotificationManager.Instance.ShowMessage($"Invalid Move for {cp.type}: Cannot capture own piece ({targetPiece.type}) at ({x},{y}).");
                 return false;
             }
             else
@@ -596,7 +596,7 @@ public class GenerateBoard : MonoBehaviour
                 bool trampledAnyPieces = golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
                 if (trampledAnyPieces)
                 {
-                    Debug.Log("Golem trampled pieces, triggering camera shake.");
+                    NotificationManager.Instance.ShowMessage("Golem trampled pieces, triggering camera shake.");
                     GameManager.Instance.TriggerActiveCameraShake(0.6f, 0.15f);
                 }
                 foreach (var defeatedPieceInPath in golem.DefeatedPieces)
@@ -659,7 +659,7 @@ public class GenerateBoard : MonoBehaviour
 
     //                if (ContainsValidMove(ref attackerMoves, kingPosition))
     //                {
-    //                    // Debug.Log($"König von Team {kingTeam} auf ({kingPosition.x},{kingPosition.y}) steht im Schach durch {piece.type} von Team {attackerTeam} auf ({r},{c}).");
+    //                    // NotificationManager.Instance.ShowMessage($"König von Team {kingTeam} auf ({kingPosition.x},{kingPosition.y}) steht im Schach durch {piece.type} von Team {attackerTeam} auf ({r},{c}).");
     //                    return true;
     //                }
     //            }
@@ -908,13 +908,13 @@ public class GenerateBoard : MonoBehaviour
         if (newMana > 10)
         {
             GameManager.Instance.SetCurrentMana(currentPlayer, 10);
-            Debug.Log($"Mana overflow! Triggering Mana Storm.");
+            NotificationManager.Instance.ShowMessage($"Mana overflow! Triggering Mana Storm.");
             TriggerManaStorm(currentPlayer);
         }
         else
         {
             GameManager.Instance.SetCurrentMana(currentPlayer, newMana);
-            Debug.Log($"Player {currentPlayer} gained {RegenManaAmount} mana (now: {newMana}/10)");
+            NotificationManager.Instance.ShowMessage($"Player {currentPlayer} gained {RegenManaAmount} mana (now: {newMana}/10)");
         }
     }
 
@@ -984,7 +984,7 @@ public class GenerateBoard : MonoBehaviour
         positionSinglePiece(x, y, true);
 
         selectedPieceForTransformation = null; // Clear selection after successful transformation
-        Debug.Log($"Rook (Team {team}) transformed into Golem at ({x}, {y}).");
+        NotificationManager.Instance.ShowMessage($"Rook (Team {team}) transformed into Golem at ({x}, {y}).");
         return golem; // Return the new Golem piece
     }
 
@@ -1048,7 +1048,7 @@ public class GenerateBoard : MonoBehaviour
         positionSinglePiece(x, y, true);
 
         selectedPieceForTransformation = null; // Clear selection after successful transformation
-        Debug.Log($"Knight (Team {team}) transformed into Kelpie at ({x}, {y}).");
+        NotificationManager.Instance.ShowMessage($"Knight (Team {team}) transformed into Kelpie at ({x}, {y}).");
         return kelpie; // Return the new Kelpie piece
     }
     public PieceType TransformBishopToMantis(PieceType bishop)
@@ -1094,7 +1094,7 @@ public class GenerateBoard : MonoBehaviour
         positionSinglePiece(x, y, true); // force = true für sofortige Positionierung
 
         selectedPieceForTransformation = null; // Auswahl nach erfolgreicher Transformation zurücksetzen
-        Debug.Log($"Bishop transformed into Mantis at ({x}, {y}).");
+        NotificationManager.Instance.ShowMessage($"Bishop transformed into Mantis at ({x}, {y}).");
         return mantis; // Gib die neue Mantis-Figur zurück
     }
     public void ResetDraggingPiece()
@@ -1115,7 +1115,7 @@ public class GenerateBoard : MonoBehaviour
         // Die Prüfungen für hasMoved und hasTransformed sind gut.
         if (!hasMoved)
         {
-            Debug.Log("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
+            NotificationManager.Instance.ShowMessage("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
             return;
         }
     }
@@ -1129,7 +1129,7 @@ public class GenerateBoard : MonoBehaviour
         // Überprüfe Basisvoraussetzungen
         if (hasTransformed)
         {
-            Debug.Log("Nur eine Transformation pro Zug erlaubt!");
+            NotificationManager.Instance.ShowMessage("Nur eine Transformation pro Zug erlaubt!");
             return;
         }
 
@@ -1137,14 +1137,14 @@ public class GenerateBoard : MonoBehaviour
 
         if (selectedPiece == null)
         {
-            Debug.Log("Keine Figur für Transformation ausgewählt!");
+            NotificationManager.Instance.ShowMessage("Keine Figur für Transformation ausgewählt!");
             return;
         }
 
         // Prüfe, ob die ausgewählte Figur dem richtigen Typ entspricht
         if (selectedPiece.type != requiredType)
         {
-            Debug.Log($"Falsche Figur! Diese Karte benötigt {requiredType}, aber {selectedPiece.type} ist ausgewählt");
+            NotificationManager.Instance.ShowMessage($"Falsche Figur! Diese Karte benötigt {requiredType}, aber {selectedPiece.type} ist ausgewählt");
             return;
         }
 
@@ -1160,7 +1160,7 @@ public class GenerateBoard : MonoBehaviour
         // Mana-Prüfung
         if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) < cost)
         {
-            Debug.Log("Nicht genug Mana für diese Transformation!");
+            NotificationManager.Instance.ShowMessage("Nicht genug Mana für diese Transformation!");
             return;
         }
 
@@ -1178,7 +1178,7 @@ public class GenerateBoard : MonoBehaviour
             GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, cost);
             hasTransformed = true;
             lastMovedOrTransformedPiece = transformedPiece;
-            Debug.Log($"Erfolgreich transformiert zu {targetType}!");
+            NotificationManager.Instance.ShowMessage($"Erfolgreich transformiert zu {targetType}!");
         }
         else
         {
@@ -1186,8 +1186,17 @@ public class GenerateBoard : MonoBehaviour
         }
     }
 
-    private void TriggerManaStorm(int player)
+
+    /// <summary>
+    /// ***NEU*** Angepasste Methode, der ManaSturm sollte nun auch ausgelöst werden wenn die Zeit auf 0 fällt.
+    /// </summary>
+    public void TriggerManaStorm(int player)
     {
+        if (isManaStormActive) return; // Verhindere mehrfache Auslösung
+
+        isManaStormActive = true;
+        Debug.Log($"Mana-Sturm wird ausgelöst für Spieler {player}!");
+
         // Wähle eine zufällige Kachel
         Vector2Int randomTile;
         int attempts = 0;
@@ -1205,6 +1214,7 @@ public class GenerateBoard : MonoBehaviour
             {
                 Debug.LogWarning("Couldn't find non-king tile after 10 attempts!");
                 GameManager.Instance.SetCurrentMana(player, 0);
+                isManaStormActive = false;
                 return;
             }
         }
@@ -1212,7 +1222,6 @@ public class GenerateBoard : MonoBehaviour
 
         // Deaktiviere die Kachel
         TileManager.Instance.DisableTile(randomTile, 2);
-
 
         // Blitz-Effekt
         if (lightningEffectPrefab)
@@ -1228,27 +1237,20 @@ public class GenerateBoard : MonoBehaviour
         {
             Debug.Log($"{piece.type} (Team {piece.team}) was struck by lightning!");
 
-            // Besondere Behandlung für Mana-Sturm-Opfer
             if (piece.type == ChessPieceType.King)
             {
                 Debug.LogWarning("King was struck but shouldn't be defeated by mana storm!");
             }
             else
             {
-                // Direkte Entfernung der Figur (ohne Mana-Belohnung)
                 allChessPieces[randomTile.x, randomTile.y] = null;
-                MoveToGraveyard(piece);
-
-                // Optional: Spezialeffekte für bestimmte Figurentypen
-                if (piece is Golem)
-                {
-                    GameManager.Instance.TriggerActiveCameraShake(0.7f, 0.2f);
-                }
+                ProcessDefeatedPiece(piece, true); // true = fromManaStorm
             }
         }
 
         // Setze Mana auf 0
         GameManager.Instance.SetCurrentMana(player, 0);
+        isManaStormActive = false;
     }
     // In GenerateBoard.cs (oder einer separaten Logik-Klasse)
 
@@ -1294,7 +1296,7 @@ public class GenerateBoard : MonoBehaviour
                     // Prüfe, ob einer dieser Züge auf die Position des Königs zeigt
                     if (ContainsValidMove(ref opponentMoves, kingPosition)) // ContainsValidMove prüft, ob kingPosition in opponentMoves ist
                     {
-                        // Debug.Log($"König von Team {kingTeam} steht im Schach durch {piece.type} von Team {opponentTeam} auf ({x},{y}) welches ({kingPosition.x},{kingPosition.y}) angreift.");
+                        // NotificationManager.Instance.ShowMessage($"König von Team {kingTeam} steht im Schach durch {piece.type} von Team {opponentTeam} auf ({x},{y}) welches ({kingPosition.x},{kingPosition.y}) angreift.");
                         return true; // König steht im Schach
                     }
                 }

@@ -73,7 +73,7 @@ public class PieceType : MonoBehaviour
     {
         return $"Figur {type} (Team {(team == 0 ? "Weiß" : "Schwarz")}) auf Position ({currentX}, {currentY}).";
     }
-    public void FlashColor(Color flashColor, float duration = 0.5f)
+    public void FlashColor(Color flashColor, float duration = 200.0f)
     {
         // Stoppe eine eventuell bereits laufende Flash-Animation
         if (flashCoroutine != null)
@@ -112,7 +112,7 @@ public class PieceType : MonoBehaviour
             yield break;
         }
 
-        float halfDuration = duration / 2f;
+        float halfDuration = duration;
         float timer = 0f;
 
         // Phase 1: Zur flashColor überblenden

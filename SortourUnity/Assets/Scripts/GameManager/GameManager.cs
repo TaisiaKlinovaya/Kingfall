@@ -217,14 +217,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ***NEU*** Mehtode angepasst, so dass der Sturm nach beenden von 60sek. ausgelöst (solange man kein Zug gemacht hat
+    /// </summary>
     private void HandleTimeExpired()
     {
-        NotificationManager.Instance.ShowMessage($"Zeit abgelaufen für Spieler {currentPlayer}!");
+        Debug.Log($"Zeit abgelaufen für Spieler {currentPlayer}!");
 
-        // Falls der Spieler nichts gemacht hat, trotzdem den Zug beenden
+        // Falls der Spieler nichts gemacht hat, Mana-Sturm auslösen
         if (!GenerateBoard.Instance.HasPlayerPerformedActionThisTurn())
         {
-            NotificationManager.Instance.ShowMessage("Keine Aktion ausgeführt – Zug wird trotzdem beendet wegen Zeitablauf.");
+            Debug.Log("Keine Aktion ausgeführt - Mana-Sturm wird ausgelöst!");
+            GenerateBoard.Instance.TriggerManaStorm(currentPlayer);
+        }
+        else
+        {
+            Debug.Log("Aktion wurde ausgeführt - kein Mana-Sturm");
         }
 
         roundTime = 60f; // Timer zurücksetzen
@@ -346,7 +354,7 @@ public class GameManager : MonoBehaviour
             // Wenn also hasMoved false ist, hat der Spieler definitiv nichts Gültiges getan.
             if (!GenerateBoard.Instance.hasMoved)
             {
-                NotificationManager.Instance.ShowMessage("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur.");
+                //NotificationManager.Instance.ShowMessage("Keine Aktion ausgeführt! Bitte bewege oder transformiere zuerst eine Figur."); **AUSKOMMENTIERT: Störende Nachricht im Spiel
                 return;
             }
         }
