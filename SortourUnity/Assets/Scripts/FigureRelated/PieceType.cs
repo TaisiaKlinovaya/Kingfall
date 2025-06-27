@@ -26,6 +26,9 @@ public class PieceType : MonoBehaviour
     protected Vector3 desiredPosition;
     protected Vector3 desiredScale = Vector3.one;
 
+    private Coroutine flashCoroutine;
+    private List<KeyValuePair<Material, Color>> originalMaterialColors;
+
     private void Update()
     {
         transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * 10);
@@ -69,6 +72,91 @@ public class PieceType : MonoBehaviour
     public string GetPieceInfo()
     {
         return $"Figur {type} (Team {(team == 0 ? "Weiß" : "Schwarz")}) auf Position ({currentX}, {currentY}).";
+    }
+    public void FlashColor(Color flashColor, float duration = 0.5f)
+    {
+        // Stoppe eine eventuell bereits laufende Flash-Animation
+        if (flashCoroutine != null)
+        {
+            StopCoroutine(flashCoroutine);
+            // --- NEU: Setze die Farben sofort auf ihren ursprünglichen Zustand zurück ---
+            RestoreOriginalColors();
+        }
+        // Starte die neue Flash-Animation
+        flashCoroutine = StartCoroutine(FlashColorAnimation(flashColor, duration));
+    }
+
+
+    private IEnumerator FlashColorAnimation(Color flashColor, float duration)
+    {
+        // Materialien und Originalfarben sammeln und speichern
+        originalMaterialColors = new List<KeyValuePair<Material, Color>>();
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+
+        foreach (Renderer rend in renderers)
+        {
+            foreach (Material matInstance in rend.materials)
+            {
+                if (matInstance.HasProperty("_Color"))
+                {
+                    // Speichere das Material und seine Originalfarbe
+                    originalMaterialColors.Add(new KeyValuePair<Material, Color>(matInstance, matInstance.color));
+                }
+            }
+        }
+
+        if (originalMaterialColors.Count == 0)
+        {
+            Debug.LogWarning("Konnte keine Materialien mit '_Color'-Eigenschaft finden zum Aufleuchten.");
+            flashCoroutine = null;
+            yield break;
+        }
+
+        float halfDuration = duration / 2f;
+        float timer = 0f;
+
+        // Phase 1: Zur flashColor überblenden
+        while (timer < halfDuration)
+        {
+            float t = timer / halfDuration;
+            foreach (var matColorPair in originalMaterialColors)
+            {
+                matColorPair.Key.color = Color.Lerp(matColorPair.Value, flashColor, t);
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // Phase 2: Zurück zur Originalfarbe überblenden
+        timer = 0f;
+        while (timer < halfDuration)
+        {
+            float t = timer / halfDuration;
+            foreach (var matColorPair in originalMaterialColors)
+            {
+                matColorPair.Key.color = Color.Lerp(flashColor, matColorPair.Value, t);
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // Finales Zurücksetzen
+        RestoreOriginalColors();
+        flashCoroutine = null;
+    }
+    private void RestoreOriginalColors()
+    {
+        if (originalMaterialColors != null)
+        {
+            foreach (var matColorPair in originalMaterialColors)
+            {
+                if (matColorPair.Key != null) // Sicherstellen, dass das Material noch existiert
+                {
+                    matColorPair.Key.color = matColorPair.Value; // Setze die gespeicherte Originalfarbe
+                }
+            }
+            originalMaterialColors = null; // Liste leeren
+        }
     }
 }
 

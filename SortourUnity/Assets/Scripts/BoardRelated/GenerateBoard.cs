@@ -134,6 +134,10 @@ public class GenerateBoard : MonoBehaviour
     {
         return hasMoved || hasTransformed;
     }
+    // In BoardRelated/GenerateBoard.cs
+
+    // In BoardRelated/GenerateBoard.cs
+
     private void Update()
     {
         // Spielstart und Initialisierungslogik (unverändert)
@@ -162,20 +166,19 @@ public class GenerateBoard : MonoBehaviour
         if (!currentCamera)
         {
             currentCamera = Camera.main;
-            if (!currentCamera) // Immer noch keine Kamera? Das ist ein Problem.
+            if (!currentCamera)
             {
                 Debug.LogError("Keine Kamera im Spiel gefunden oder zugewiesen!");
-                return; // Verhindere weitere Ausführung ohne Kamera
+                return;
             }
         }
 
         // Hauptlogik, wenn das Spiel läuft
         if (GameManager.Instance.State == "GameRun")
         {
-            // Kamerawechsel basierend auf Spieler (unverändert)
+            // Kamerawechsel (unverändert)
             if (GameManager.Instance.CurrentPlayer == 1)
             {
-                // Null-Check für GameObject.Find, bevor GetComponent aufgerufen wird
                 GameObject p1CamObj = GameObject.Find("Player1Camera");
                 if (p1CamObj != null) currentCamera = p1CamObj.GetComponent<Camera>();
                 else Debug.LogError("Player1Camera GameObject nicht gefunden!");
@@ -187,57 +190,29 @@ public class GenerateBoard : MonoBehaviour
                 else Debug.LogError("Player2Camera GameObject nicht gefunden!");
             }
 
-            // Nur fortfahren, wenn das Brett generiert wurde und eine Kamera existiert
             if (isBoardGenerated && currentCamera != null)
             {
                 RaycastHit info;
                 Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
 
-                // ================================================================================
-                // NEUE LOGIK: MANTIS FALLENSTELLEN PER MAUS
-                // ================================================================================
+                // Mantis Fallenstellen per Maus (unverändert)
                 if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput && mantisAwaitingTrapSetup != null)
                 {
-                    // UI-Hinweis (sollte über ein richtiges UI-System laufen)
-                    // Fürs Erste: Debug.Log("MANTIS FALLE: L-Klick (West), R-Klick (Ost), Mausrad Vor (Nord), Mausrad Zurück (Süd). Oder klicke 'Finished'.");
-
                     Vector2Int chosenDirection = Vector2Int.zero;
-
-                    if (Input.GetMouseButtonDown(0)) // Linksklick für Westen
-                    {
-                        chosenDirection = Vector2Int.left;
-                        Debug.Log("Mantis Trap Input: Westen (Linksklick)");
-                    }
-                    else if (Input.GetMouseButtonDown(1)) // Rechtsklick für Osten
-                    {
-                        chosenDirection = Vector2Int.right;
-                        Debug.Log("Mantis Trap Input: Osten (Rechtsklick)");
-                    }
-                    else if (Input.GetAxis("Mouse ScrollWheel") > 0.05f) // Mausrad nach vorne für Norden (mit Schwellenwert)
-                    {
-                        chosenDirection = Vector2Int.up;
-                        Debug.Log("Mantis Trap Input: Norden (Mausrad Vor)");
-                    }
-                    else if (Input.GetAxis("Mouse ScrollWheel") < -0.05f) // Mausrad nach hinten für Süden (mit Schwellenwert)
-                    {
-                        chosenDirection = Vector2Int.down;
-                        Debug.Log("Mantis Trap Input: Süden (Mausrad Zurück)");
-                    }
+                    if (Input.GetMouseButtonDown(0)) { chosenDirection = Vector2Int.left; Debug.Log("Mantis Trap Input: Westen (Linksklick)"); }
+                    else if (Input.GetMouseButtonDown(1)) { chosenDirection = Vector2Int.right; Debug.Log("Mantis Trap Input: Osten (Rechtsklick)"); }
+                    else if (Input.GetAxis("Mouse ScrollWheel") > 0.05f) { chosenDirection = Vector2Int.up; Debug.Log("Mantis Trap Input: Norden (Mausrad Vor)"); }
+                    else if (Input.GetAxis("Mouse ScrollWheel") < -0.05f) { chosenDirection = Vector2Int.down; Debug.Log("Mantis Trap Input: Süden (Mausrad Zurück)"); }
 
                     if (chosenDirection != Vector2Int.zero)
                     {
-                        // Überprüfen, ob die Mantis noch gültig ist
                         if (allChessPieces[mantisAwaitingTrapSetup.currentX, mantisAwaitingTrapSetup.currentY] == mantisAwaitingTrapSetup &&
                             mantisAwaitingTrapSetup.team == GameManager.Instance.CurrentPlayer - 1)
                         {
                             mantisAwaitingTrapSetup.SetupTrapZone(chosenDirection);
-                            // Modus beenden, nachdem Falle gestellt wurde
                             currentMantisTrapState = MantisTrapState.None;
                             mantisAwaitingTrapSetup = null;
                             Debug.Log("Mantis-Falle erfolgreich gestellt. Zug kann jetzt beendet werden.");
-                            // hasMoved wurde schon durch die Bewegung gesetzt.
-                            // Wenn das Fallenstellen eine "Aktion" ist, die "hasTransformed" setzen soll,
-                            // dann hier: hasTransformed = true; (und Mana-Kosten ggf.)
                         }
                         else
                         {
@@ -246,13 +221,7 @@ public class GenerateBoard : MonoBehaviour
                             mantisAwaitingTrapSetup = null;
                         }
                     }
-                    // Wichtig: Hier KEIN return; damit der Rest von Update (z.B. Figurendrehung beim Draggen) noch laufen kann,
-                    // FALLS man das so möchte. Fürs Erste ist es sauberer, wenn im Fallenmodus nur die Falle bedient wird.
-                    // Wenn man im Fallenmodus ist, sollte das Hovern der Tiles etc. pausiert werden (siehe unten).
                 }
-                // ================================================================================
-                // ENDE NEUE LOGIK: MANTIS FALLENSTELLEN
-                // ================================================================================
                 // Normale Interaktion (Hover, Figurenauswahl, Bewegung) nur, wenn NICHT im Mantis-Fallen-Modus
                 else if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Hover", "Highlight")))
                 {
@@ -268,97 +237,95 @@ public class GenerateBoard : MonoBehaviour
                     {
                         tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
                         currentHover = hitPosition;
-                        if (hitPosition != -Vector2Int.one) // Nur wenn hitPosition gültig ist
+                        if (hitPosition != -Vector2Int.one)
                         {
                             tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Hover");
                         }
                     }
 
-                    // Linksklick-Logik (Figurenauswahl, Bewegung, Mantis-Fallenmodus-Aktivierung)
+                    // Linksklick-Logik (unverändert)
                     if (Input.GetMouseButtonDown(0))
                     {
-                        if (hitPosition == -Vector2Int.one) // Klick ins Leere
-                        {
-                            if (currentlyDragging != null) // Wenn eine Figur gezogen wurde, aber nicht auf ein Feld geklickt
-                            {
-                                currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY)); // Zurücksetzen
-                                currentlyDragging = null;
-                                RemoveHighlightTiles();
-                            }
-                        }
-                        else // Klick auf ein gültiges Feld
-                        {
-                            if (currentlyDragging == null) // Phase 1: Figur auswählen oder Mantis-Fallenmodus aktivieren
-                            {
-                                if (allChessPieces[hitPosition.x, hitPosition.y] != null)
-                                {
-                                    PieceType clickedPiece = allChessPieces[hitPosition.x, hitPosition.y];
+                        if (hitPosition == -Vector2Int.one) { if (currentlyDragging != null) { currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY)); currentlyDragging = null; RemoveHighlightTiles(); } }
+                        else { if (currentlyDragging == null) { if (allChessPieces[hitPosition.x, hitPosition.y] != null) { PieceType clickedPiece = allChessPieces[hitPosition.x, hitPosition.y]; if (clickedPiece == lastMovedOrTransformedPiece && clickedPiece is Mantis mantisToSetup && clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && hasMoved && !hasTransformed) { currentMantisTrapState = MantisTrapState.AwaitingDirectionInput; mantisAwaitingTrapSetup = mantisToSetup; Debug.Log($"Mantis bei ({clickedPiece.currentX},{clickedPiece.currentY}) FÜR FALLENSTELLUNG ausgewählt."); RemoveHighlightTiles(); } else if (clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && !hasMoved) { currentlyDragging = clickedPiece; Debug.Log($"[GenerateBoard.Update] FIGUR AUSGEWÄHLT: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY}) für Bewegung."); availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y); HighlightTiles(); } } } else { Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY); bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y); if (!validMove) { currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y)); } currentlyDragging = null; RemoveHighlightTiles(); } }
+                    }
 
-                                    // Fall 1: Auf gerade bewegte Mantis des aktuellen Spielers klicken, um Fallenmodus zu starten
-                                    if (clickedPiece == lastMovedOrTransformedPiece &&
-                                        clickedPiece is Mantis mantisToSetup &&
-                                        clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 &&
-                                        hasMoved && !hasTransformed) // Mantis muss sich schon bewegt haben, aber keine andere Aktion (Transformation)
-                                    {
-                                        currentMantisTrapState = MantisTrapState.AwaitingDirectionInput;
-                                        mantisAwaitingTrapSetup = mantisToSetup;
-                                        Debug.Log($"Mantis bei ({clickedPiece.currentX},{clickedPiece.currentY}) FÜR FALLENSTELLUNG ausgewählt.");
-                                        RemoveHighlightTiles(); // Entferne normale Zug-Highlights
-                                                                // Kein 'currentlyDragging' setzen!
-                                    }
-                                    // Fall 2: Normale Figurenauswahl für Bewegung
-                                    else if (clickedPiece.team == GameManager.Instance.CurrentPlayer - 1 && !hasMoved)
-                                    {
-                                        currentlyDragging = clickedPiece;
-                                        Debug.Log($"[GenerateBoard.Update] FIGUR AUSGEWÄHLT: {currentlyDragging.type} at ({currentlyDragging.currentX},{currentlyDragging.currentY}) für Bewegung.");
-                                        availableMoves = currentlyDragging.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
-                                        HighlightTiles();
-                                    }
-                                    // Fall 3: Klick auf andere Figur (nicht auswählbar unter aktuellen Bedingungen)
-                                    // else { Debug.Log("Cannot select this piece now."); }
-                                }
-                            }
-                            else // Phase 2: Figur wurde bereits gezogen (currentlyDragging != null), Zug ausführen
-                            {
-                                Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
-                                bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-
-                                if (!validMove)
-                                {
-                                    // Ungültiger Zug, Figur visuell zurücksetzen
-                                    currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
-                                }
-                                // hasMoved wird jetzt in MoveTo gesetzt, wenn der Zug erfolgreich war.
-
-                                currentlyDragging = null;
-                                RemoveHighlightTiles();
-                            }
-                        }
-                    } // Ende Input.GetMouseButtonDown(0)
-
-                    // Rechtsklick für Transformation (deine bestehende Logik, unverändert)
+                    // === GEÄNDERTE LOGIK FÜR RECHTSKLICK ===
                     if (Input.GetMouseButtonDown(1))
                     {
-                        if (hitPosition != -Vector2Int.one && allChessPieces[hitPosition.x, hitPosition.y] != null)
+                        // Ignoriere Rechtsklick, wenn wir gerade eine Falle stellen wollen
+                        if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput)
+                        {
+                            Debug.Log("Mantis trap placement cancelled by right-click.");
+                            currentMantisTrapState = MantisTrapState.None;
+                            mantisAwaitingTrapSetup = null;
+                        }
+                        // Prüfe, ob auf ein gültiges Feld mit einer Figur geklickt wurde
+                        else if (hitPosition != -Vector2Int.one && allChessPieces[hitPosition.x, hitPosition.y] != null)
                         {
                             PieceType clickedPiece = allChessPieces[hitPosition.x, hitPosition.y];
+
+                            // Prüfe, ob es eine eigene Figur ist
                             if (clickedPiece.team == GameManager.Instance.CurrentPlayer - 1)
                             {
-                                if (clickedPiece.type == ChessPieceType.Rook) { selectedPieceForTransformation = clickedPiece; Debug.Log("Rook selected for transformation."); }
-                                else if (clickedPiece.type == ChessPieceType.Knight) { selectedPieceForTransformation = clickedPiece; Debug.Log("Knight selected for transformation."); }
-                                else if (clickedPiece.type == ChessPieceType.Bishop) { selectedPieceForTransformation = clickedPiece; Debug.Log("Bishop selected for transformation."); }
-                                else { selectedPieceForTransformation = null; Debug.Log($"{clickedPiece.type} cannot be transformed."); }
+                                // --- ERWEITERTE PRÜFUNG: Wurde bereits transformiert? ---
+                                if (hasTransformed)
+                                {
+                                    Debug.Log("Transformation nicht möglich: Es wurde in diesem Zug bereits eine Figur transformiert.");
+                                    clickedPiece.FlashColor(Color.red, 0.4f); // Negatives Feedback
+                                    selectedPieceForTransformation = null; // Sicherstellen, dass nichts ausgewählt wird
+                                }
+                                // Prüfe, ob bereits eine Bewegung stattgefunden hat (wie vorher)
+                                else if (hasMoved)
+                                {
+                                    bool isTransformable = (clickedPiece.type == ChessPieceType.Rook ||
+                                                            clickedPiece.type == ChessPieceType.Knight ||
+                                                            clickedPiece.type == ChessPieceType.Bishop);
+
+                                    if (isTransformable)
+                                    {
+                                        selectedPieceForTransformation = clickedPiece;
+                                        Debug.Log($"{clickedPiece.type} ausgewählt für Transformation. (Bedingungen erfüllt)");
+                                        clickedPiece.FlashColor(new Color(0.7f, 1f, 1f), 0.5f); // Positives Feedback
+                                    }
+                                    else
+                                    {
+                                        selectedPieceForTransformation = null;
+                                        Debug.Log($"{clickedPiece.type} ist nicht transformierbar.");
+                                        clickedPiece.FlashColor(Color.yellow, 0.4f); // Warnung: Falscher Figurentyp
+                                    }
+                                }
+                                else
+                                {
+                                    // Es wurde noch keine Figur bewegt
+                                    selectedPieceForTransformation = null;
+                                    Debug.Log("Transformation nicht möglich: Es muss zuerst eine Figur bewegt werden.");
+                                    clickedPiece.FlashColor(Color.red, 0.4f); // Negatives Feedback
+                                }
                             }
-                            else { selectedPieceForTransformation = null; }
+                            else
+                            {
+                                // Klick auf gegnerische Figur
+                                selectedPieceForTransformation = null;
+                            }
                         }
-                        else { selectedPieceForTransformation = null; }
+                        else
+                        {
+                            // Klick ins Leere deselektiert eine eventuell bestehende Auswahl
+                            if (selectedPieceForTransformation != null)
+                            {
+                                Debug.Log("Transformations-Auswahl aufgehoben.");
+                                selectedPieceForTransformation = null;
+                            }
+                        }
                     }
+                    // === ENDE GEÄNDERTE LOGIK FÜR RECHTSKLICK ===
+
                 }
-                else // Kein Tile getroffen beim Raycast (Maus ist nicht über dem Brett)
+                else // Kein Tile getroffen
                 {
                     if (currentHover != -Vector2Int.one)
                     {
-                        // Stelle sicher, dass currentHover gültig ist, bevor auf tiles zugegriffen wird
                         if (currentHover.x >= 0 && currentHover.x < TILE_COUNT_X && currentHover.y >= 0 && currentHover.y < TILE_COUNT_Y)
                         {
                             tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") : LayerMask.NameToLayer("Tile");
@@ -367,22 +334,19 @@ public class GenerateBoard : MonoBehaviour
                     }
                 }
 
-                // Figur-Dragging-Logik (visuell, unverändert)
+                // Figur-Dragging-Logik (unverändert)
                 if (currentlyDragging)
                 {
                     Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
                     float distance = 0.0f;
                     if (horizontalPlane.Raycast(ray, out distance))
                     {
-                        currentlyDragging.SetPosition(ray.GetPoint(distance) + Vector3.up * dragOffset, true); // force = true für direktes Dragging
+                        currentlyDragging.SetPosition(ray.GetPoint(distance) + Vector3.up * dragOffset, true);
                     }
                 }
-            } // Ende if (isBoardGenerated && currentCamera != null)
-        } // Ende if (GameManager.Instance.State == "GameRun")
-
-        // Die alte WASD-Fallenlogik wurde entfernt.
+            }
+        }
     }
-
     public void ResetMantisTrapMode()
     {
         if (currentMantisTrapState == MantisTrapState.AwaitingDirectionInput)
@@ -530,19 +494,22 @@ public class GenerateBoard : MonoBehaviour
 
     private bool MoveTo(PieceType cp, int x, int y)
     {
-        // --- Vorabprüfungen (TileManager, Mantis Trap) ---
+        // Null-Überprüfung für TileManager (wie bei dir)
         if (TileManager.Instance == null)
         {
-            Debug.LogError("TileManager ist nicht initialisiert in MoveTo!");
+            Debug.LogError("TileManager ist nicht initialisiert!");
             return false;
         }
-        if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
+        else
         {
-            Debug.Log($"Ungültiger Zug: Zielfeld ({x},{y}) ist deaktiviert.");
-            return false;
+            if (TileManager.Instance.IsTileDisabled(new Vector2Int(x, y)))
+            {
+                Debug.Log($"Cannot move to disabled tile at ({x},{y})");
+                return false;
+            }
         }
 
-        // Mantis-Fallenprüfung (wie in deinem Code)
+        // Mantis-Fallenprüfung (wie bei dir)
         int opponentTeam = 1 - cp.team;
         for (int mx = 0; mx < TILE_COUNT_X; mx++)
         {
@@ -556,89 +523,71 @@ public class GenerateBoard : MonoBehaviour
                 {
                     if (mantis.GetTrapZone().Contains(new Vector2Int(x, y)))
                     {
-                        Debug.LogWarning($"MANTIS FALLE AUSGELÖST! Figur {cp.type} (Team {cp.team}) wollte nach ({x},{y}) ziehen und trat in Falle von Mantis (Team {opponentTeam}) auf ({mantis.currentX},{mantis.currentY}).");
+                        Debug.LogWarning($"MANTIS TRAP TRIGGERED! Piece {cp.type} (Team {cp.team}) moving to ({x},{y}) stepped into Mantis (Team {opponentTeam}) trap originating from ({mantis.currentX},{mantis.currentY}).");
                         Vector2Int originalPosition = new Vector2Int(cp.currentX, cp.currentY);
-                        ProcessDefeatedPiece(cp); // Die Figur, die in die Falle getreten ist
-                        allChessPieces[originalPosition.x, originalPosition.y] = null; // Vom Startfeld entfernen
+                        ProcessDefeatedPiece(cp);
+                        allChessPieces[originalPosition.x, originalPosition.y] = null;
                         mantis.ResetTrap();
-                        hasMoved = true; // Zählt als Aktion für den Zug
-                        lastMovedOrTransformedPiece = null; // Keine Figur hat den Zug erfolgreich abgeschlossen
-                        return true; // Zug beendet (durch Falle)
+                        hasMoved = true;
+                        lastMovedOrTransformedPiece = null;
+                        return true;
                     }
                 }
             }
         }
-        // --- Ende Mantis-Fallenprüfung ---
 
         Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
-        // Standard-Zugvalidierung (ob das Feld prinzipiell aus der Figurenlogik erreichbar ist)
+        // Standard-Zugvalidierung
         if (!ContainsValidMove(ref availableMoves, new Vector2(x, y)))
         {
-            Debug.Log($"Ungültiger Zug für {cp.type}: Ziel ({x},{y}) ist nicht in der Liste der verfügbaren Züge.");
+            Debug.Log($"Invalid Move for {cp.type}: Target ({x},{y}) is not in the list of available moves.");
+            // --- NEU: Rotes Aufleuchten bei ungültigem Zug ---
+            if (cp != null)
+            {
+                cp.FlashColor(Color.red, 0.4f); // Lasse die Figur kurz rot aufleuchten
+            }
             return false;
         }
 
-        // === NEU: SIMULATION UND ÜBERPRÜFUNG AUF SELBST-SCHACH ===
-        // 1. Erstelle eine temporäre Kopie des Bretts für die Simulation.
-        //    Dies stellt sicher, dass wir das echte 'allChessPieces'-Array nicht verändern,
-        //    bevor der Zug als legal bestätigt wurde.
+        // Simulation und Überprüfung auf Selbst-Schach
         PieceType[,] simulatedBoard = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
         System.Array.Copy(allChessPieces, simulatedBoard, allChessPieces.Length);
+        simulatedBoard[x, y] = cp;
+        simulatedBoard[previousPosition.x, previousPosition.y] = null;
 
-        // 2. Führe den Zug auf dem simulierten Brett aus.
-        //    Beachte: Das Schlagen auf dem simulierten Brett ist hier vereinfacht.
-        //    Wir entfernen die Zielfigur nicht explizit aus simulatedBoard, da IsKingInCheck
-        //    primär die Angriffslinien prüft. Für eine 100% exakte Simulation aller
-        //    Spezialfälle (wie Golem-Trample, das den Weg freiräumt) wäre mehr Aufwand nötig.
-        simulatedBoard[x, y] = cp; // Setze die ziehende Figur auf das Zielfeld im simulierten Brett
-        simulatedBoard[previousPosition.x, previousPosition.y] = null; // Leere das Startfeld im simulierten Brett
-
-        // 3. Überprüfe, ob der eigene König nach diesem simulierten Zug im Schach stünde.
-        //    cp.team ist das Team der Figur, die gerade zieht (also das Team des eigenen Königs).
         if (IsKingInCheck(cp.team, simulatedBoard, TILE_COUNT_X, TILE_COUNT_Y))
         {
             Debug.LogWarning($"UNGÜLTIGER ZUG für {cp.type} nach ({x},{y}): Der eigene König (Team {cp.team}) stünde im Schach.");
-            // Wichtig: Da der Zug ungültig ist, werden keine Änderungen am echten `allChessPieces`-Array vorgenommen.
-            return false; // Der Zug ist nicht erlaubt.
-        }
-        // === ENDE NEU: SIMULATION UND ÜBERPRÜFUNG ===
-
-
-        // Wenn wir hier ankommen, ist der Zug legal (stellt den eigenen König nicht ins Schach).
-        // Führe den Zug jetzt auf dem ECHTEN Brett (`allChessPieces`) aus:
-
-        // --- Handle Capturing (auf dem echten Brett) ---
-        PieceType targetPieceOnRealBoard = allChessPieces[x, y]; // Figur auf dem Zielfeld des echten Bretts
-        if (targetPieceOnRealBoard != null) // Ist das Zielfeld besetzt?
-        {
-            // Die Prüfung, ob es eine eigene Figur ist, sollte durch die Logik von
-            // GetAvailableMoves und ContainsValidMove bereits abgedeckt sein (diese sollten keine
-            // Züge auf eigene Figuren erlauben, außer ggf. Rochade).
-            // Die Simulation oben hätte auch ein Problem gemeldet, wenn man auf eine eigene Figur zieht und dadurch Schach entsteht.
-            // Dennoch, als Sicherheitsnetz:
-            if (targetPieceOnRealBoard.team == cp.team)
+            // --- NEU: Rotes Aufleuchten auch bei Selbst-Schach ---
+            if (cp != null)
             {
-                Debug.LogError($"KRITISCHER FEHLER: Versuch, eigene Figur ({targetPieceOnRealBoard.type}) bei ({x},{y}) zu schlagen, obwohl Zug als legal eingestuft wurde. Dies sollte nicht passieren.");
-                return false; // Verhindere den Zug
+                cp.FlashColor(Color.red, 0.6f); // Etwas länger, da es ein wichtigerer Fehler ist
+            }
+            return false;
+        }
+
+        // --- Rest der Methode (wie bei dir) ---
+        PieceType targetPiece = allChessPieces[x, y];
+        if (targetPiece != null)
+        {
+            if (targetPiece.team == cp.team)
+            {
+                Debug.Log($"Invalid Move for {cp.type}: Cannot capture own piece ({targetPiece.type}) at ({x},{y}).");
+                return false;
             }
             else
             {
-                // Es ist eine gegnerische Figur
-                Debug.Log($"{cp.type} (Team {cp.team}) schlägt {targetPieceOnRealBoard.type} (Team {targetPieceOnRealBoard.team}) auf ({x},{y}).");
-                ProcessDefeatedPiece(targetPieceOnRealBoard); // Verarbeitet die besiegte Figur
-
-                if (targetPieceOnRealBoard.type == ChessPieceType.King)
+                ProcessDefeatedPiece(targetPiece);
+                if (targetPiece.type == ChessPieceType.King)
                 {
                     isKingDead = true;
-                    winTeam = (targetPieceOnRealBoard.team == 1) ? "White" : "Black"; // Gewinner ist das Team, das den König geschlagen hat
-                    Debug.LogWarning($"KÖNIG GESCHLAGEN! Team {winTeam} gewinnt!");
+                    winTeam = (targetPiece.team == 1) ? "White" : "Black";
+                    Debug.LogWarning($"KING CAPTURED! Team {winTeam} wins!");
                 }
             }
         }
 
-        // --- Handle Special Piece Logic (Golem Trample - auf dem echten Brett) ---
-        // Diese Logik wird NACH der Schachprüfung ausgeführt, da sie das Brett verändert.
         if (cp.type == ChessPieceType.Golem)
         {
             Golem golem = cp as Golem;
@@ -647,40 +596,29 @@ public class GenerateBoard : MonoBehaviour
                 bool trampledAnyPieces = golem.DefeatFiguresOnPath(ref allChessPieces, previousPosition, new Vector2Int(x, y));
                 if (trampledAnyPieces)
                 {
-                    Debug.Log("Golem hat Figuren zertrampelt, löse Kamera-Shake aus.");
+                    Debug.Log("Golem trampled pieces, triggering camera shake.");
                     GameManager.Instance.TriggerActiveCameraShake(0.6f, 0.15f);
                 }
-                // Überprüfe, ob der König durch das Trampeln besiegt wurde (nachdem die Figuren entfernt wurden)
                 foreach (var defeatedPieceInPath in golem.DefeatedPieces)
                 {
                     if (defeatedPieceInPath.type == ChessPieceType.King)
                     {
                         isKingDead = true;
                         winTeam = (defeatedPieceInPath.team == 1) ? "White" : "Black";
-                        Debug.LogWarning($"KÖNIG DURCH GOLEM ZERTRAMPELT! Team {winTeam} gewinnt!");
+                        Debug.LogWarning($"KING TRAMPLED BY GOLEM! Team {winTeam} wins!");
                         break;
                     }
                 }
             }
         }
 
-        // --- Finalize the Move (auf dem echten Brett) ---
-        // Setze die Figur auf das Zielfeld und leere das Startfeld im echten Brett-Array.
         allChessPieces[x, y] = cp;
         allChessPieces[previousPosition.x, previousPosition.y] = null;
-
-        // Aktualisiere die interne Position der Figur und die visuelle Darstellung.
-        positionSinglePiece(x, y); // force=false für sanfte Bewegung
-
-        // Setze Flags für den aktuellen Zug.
+        positionSinglePiece(x, y);
         lastMovedOrTransformedPiece = cp;
         hasMoved = true;
-
-        // Debug.Log($"Figur {cp.GetType().Name} (Team {(cp.team == 0 ? "Weiß" : "Schwarz")}) zog von ({previousPosition.x},{previousPosition.y}) nach ({x},{y}).");
-
-        return true; // Der Zug war erfolgreich.
+        return true;
     }
-
     // Stelle sicher, dass du auch die IsKingInCheck-Methode in GenerateBoard.cs hast:
     //public bool IsKingInCheck(int kingTeam, PieceType[,] boardState, int tileCountX, int tileCountY)
     //{
@@ -1169,15 +1107,16 @@ public class GenerateBoard : MonoBehaviour
             RemoveHighlightTiles();
         }
     }
+    // In BoardRelated/GenerateBoard.cs
+
     public void TransformPiece()
     {
-        // Überprüfe, ob bereits eine Bewegung gemacht wurde
+        // Die Prüfungen für hasMoved und hasTransformed sind gut.
         if (!hasMoved)
         {
             Debug.Log("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
             return;
         }
-
         if (hasTransformed)
         {
             Debug.Log("Du kannst nur eine Figur pro Zug transformieren.");
@@ -1185,80 +1124,82 @@ public class GenerateBoard : MonoBehaviour
         }
 
         PieceType selectedPiece = GetSelectedPieceForTransformation();
-        if (selectedPiece != null)
+        if (selectedPiece == null)
         {
-            // Überprüfe, ob die ausgewählte Figur dem aktuellen Spieler gehört
-            if (selectedPiece.team == GameManager.Instance.CurrentPlayer - 1)
+            Debug.Log("Keine Figur für die Transformation ausgewählt.");
+            // Optional: Hier eine Benachrichtigung für den Spieler einblenden
+            return;
+        }
+
+        // Prüfe, ob die ausgewählte Figur dem aktuellen Spieler gehört
+        if (selectedPiece.team != GameManager.Instance.CurrentPlayer - 1)
+        {
+            Debug.Log("Du kannst nur deine eigenen Figuren transformieren.");
+            selectedPieceForTransformation = null; // Auswahl zurücksetzen
+            return;
+        }
+
+        // Bestimme die Transformationskosten
+        int transformationCost = 0;
+        switch (selectedPiece.type)
+        {
+            case ChessPieceType.Rook:
+                transformationCost = golemTransformationCost;
+                break;
+            case ChessPieceType.Knight:
+                transformationCost = kelpieTransformationCost;
+                break;
+            case ChessPieceType.Bishop:
+                transformationCost = mantisTransformationCost;
+                break;
+            default:
+                Debug.Log($"Figur vom Typ {selectedPiece.type} kann nicht transformiert werden.");
+                selectedPieceForTransformation = null;
+                return;
+        }
+
+        // --- NEU & WICHTIG: Mana-Prüfung ---
+        if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
+        {
+            // Genug Mana vorhanden, führe die Transformation durch
+            Debug.Log($"Spieler {GameManager.Instance.CurrentPlayer} hat genug Mana ({GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}/{transformationCost}). Transformation wird gestartet.");
+
+            PieceType transformedPiece = null;
+            switch (selectedPiece.type)
             {
-                int transformationCost = 0;
-                bool canTransform = false;
+                case ChessPieceType.Rook:
+                    transformedPiece = TransformRookToGolem(selectedPiece);
+                    break;
+                case ChessPieceType.Knight:
+                    transformedPiece = TransformKnightToKelpie(selectedPiece);
+                    break;
+                case ChessPieceType.Bishop:
+                    transformedPiece = TransformBishopToMantis(selectedPiece);
+                    break;
+            }
 
-                if (selectedPiece.type == ChessPieceType.Rook)
-                {
-                    transformationCost = golemTransformationCost;
-                    canTransform = true;
-                }
-                else if (selectedPiece.type == ChessPieceType.Knight)
-                {
-                    transformationCost = kelpieTransformationCost;
-                    canTransform = true;
-                }
-                else if (selectedPiece.type == ChessPieceType.Bishop)
-                {
-                    transformationCost = mantisTransformationCost;
-                    canTransform = true;
-                }
-
-                if (!canTransform)
-                {
-                    Debug.Log($"Figur vom Typ {selectedPiece.type} kann nicht transformiert werden.");
-                    selectedPieceForTransformation = null;
-                    return;
-                }
-
-                // Überprüfe, ob der Spieler genug Mana hat
-                if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
-                {
-                    PieceType transformedPiece = null;
-
-                    if (selectedPiece.type == ChessPieceType.Rook)
-                    {
-                        transformedPiece = TransformRookToGolem(selectedPiece);
-                        Debug.Log("Rook wurde in einen Golem transformiert");
-                    }
-                    else if (selectedPiece.type == ChessPieceType.Knight)
-                    {
-                        transformedPiece = TransformKnightToKelpie(selectedPiece);
-                        Debug.Log("Knight wurde in einen Kelpie transformiert");
-                    }
-                    else if (selectedPiece.type == ChessPieceType.Bishop)
-                    {
-                        transformedPiece = TransformBishopToMantis(selectedPiece);
-                        Debug.Log("Bishop wurde in einen Mantis transformiert");
-                    }
-
-                    // Mana abziehen
-                    GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
-                    hasTransformed = true;
-                    lastMovedOrTransformedPiece = transformedPiece;
-                }
-                else
-                {
-                    Debug.Log("Nicht genug Mana für die Transformation!");
-                }
+            if (transformedPiece != null) // Nur wenn die Transformation erfolgreich war
+            {
+                // Mana abziehen
+                GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
+                hasTransformed = true; // Setze das Flag, dass eine Transformation stattgefunden hat
+                lastMovedOrTransformedPiece = transformedPiece;
+                Debug.Log($"Transformation erfolgreich. Neues Mana: {GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}.");
             }
             else
             {
-                Debug.Log("Du kannst nur deine eigenen Figuren transformieren");
-                selectedPieceForTransformation = null;
+                Debug.LogError("Transformation ist fehlgeschlagen, obwohl die Bedingungen erfüllt schienen. Mana wird nicht abgezogen.");
             }
         }
         else
         {
-            Debug.Log("Keine Figur für die Transformation ausgewählt");
+            // Nicht genug Mana
+            Debug.Log($"Nicht genug Mana für die Transformation! Benötigt: {transformationCost}, Vorhanden: {GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}.");
+            // Gib dem Spieler negatives Feedback
+            selectedPiece.FlashColor(Color.magenta, 0.5f); // Magenta als "Kein Mana"-Indikator
+            selectedPieceForTransformation = null; // Auswahl zurücksetzen, da nicht möglich
         }
     }
-
     private void TriggerManaStorm(int player)
     {
         // Wähle eine zufällige Kachel
