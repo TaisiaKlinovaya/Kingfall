@@ -13,6 +13,8 @@ public class Card
     public string cardName;
     public Team team;
     public Image coverImage;
+    public ChessPieceType requiredPieceType; // Neu: Welche Figur kann transformiert werden (Rook/Knight/Bishop)
+    public ChessPieceType targetPieceType;   // Neu: Ziel-Transformation (Golem/Kelpie/Mantis)
 
     public bool isUnlocked => !coverImage.gameObject.activeSelf;
 

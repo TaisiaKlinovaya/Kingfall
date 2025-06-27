@@ -298,12 +298,24 @@ public class GameManager : MonoBehaviour
         transformButton.onClick.RemoveAllListeners();
         transformButton2.onClick.RemoveAllListeners();
         transformButton3.onClick.RemoveAllListeners();
-        transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
-        transformButton2.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
-        transformButton3.onClick.AddListener(GenerateBoard.Instance.TransformPiece);
+        //transformButton.onClick.AddListener(GenerateBoard.Instance.TransformPiece);   // AUSKOMMENTIERT: keine verwendung mehr!
+        //transformButton2.onClick.AddListener(GenerateBoard.Instance.TransformPiece);  // AUSKOMMENTIERT: keine verwendung mehr!
+        //transformButton3.onClick.AddListener(GenerateBoard.Instance.TransformPiece);  // AUSKOMMENTIERT: keine verwendung mehr!
 
         GenerateBoard.Instance.ResetBoardState();
         UpdateRoundTimerText(); // Timer-Text aktualisieren
+
+        // Button-Listener korrekt setzen
+        transformButton.onClick.RemoveAllListeners();
+        transformButton2.onClick.RemoveAllListeners();
+        transformButton3.onClick.RemoveAllListeners();
+
+        /// <summary>
+        /// ***NEU*** Jeder Button ruft TryTransformWithCard mit seinem Index auf (für die neue Transformationslogik)
+        /// <summary>
+        transformButton.onClick.AddListener(() => TryTransformWithCard(0));
+        transformButton2.onClick.AddListener(() => TryTransformWithCard(1));
+        transformButton3.onClick.AddListener(() => TryTransformWithCard(2));
     }
 
     public void UpdateRoundTimerText()
@@ -533,5 +545,33 @@ public class GameManager : MonoBehaviour
                 // Weiße Karten nicht ändern
             }
         }
+    }
+
+    // ***NEU***  Angepasste Transformationslogik, das die Figuren nun spezifisch der Karten Trasformiert werden können
+    private void TryTransformWithCard(int cardIndex)
+    {
+        // Zugriff über GenerateBoard.Instance
+        if (!GenerateBoard.Instance.hasMoved)
+        {
+            Debug.Log("Du musst zuerst eine Figur bewegen!");
+            return;
+        }
+
+        if (GenerateBoard.Instance.hasTransformed)
+        {
+            Debug.Log("Du kannst nur eine Transformation pro Zug durchführen!");
+            return;
+        }
+
+        List<Card> teamCards = (currentPlayer == 1) ? whiteTeamCards : blackTeamCards;
+
+        if (cardIndex < 0 || cardIndex >= teamCards.Count || !teamCards[cardIndex].isUnlocked)
+        {
+            Debug.Log("Ungültige Karte oder Karte nicht freigeschaltet!");
+            return;
+        }
+
+        Card card = teamCards[cardIndex];
+        GenerateBoard.Instance.TryCardTransformation(card.requiredPieceType, card.targetPieceType);
     }
 }

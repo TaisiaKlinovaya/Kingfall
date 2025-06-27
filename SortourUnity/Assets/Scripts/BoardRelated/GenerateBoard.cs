@@ -1107,6 +1107,7 @@ public class GenerateBoard : MonoBehaviour
             RemoveHighlightTiles();
         }
     }
+
     // In BoardRelated/GenerateBoard.cs
 
     public void TransformPiece()
@@ -1117,89 +1118,74 @@ public class GenerateBoard : MonoBehaviour
             Debug.Log("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
             return;
         }
+    }
+
+
+    /// <summary>
+    ///**NEU** Transformationslogik anhand der spezifischen Karten angepasst ***NEU***
+    /// <summary>
+    public void TryCardTransformation(ChessPieceType requiredType, ChessPieceType targetType)
+    {
+        // Überprüfe Basisvoraussetzungen
         if (hasTransformed)
         {
-            Debug.Log("Du kannst nur eine Figur pro Zug transformieren.");
+            Debug.Log("Nur eine Transformation pro Zug erlaubt!");
             return;
         }
 
         PieceType selectedPiece = GetSelectedPieceForTransformation();
+
         if (selectedPiece == null)
         {
-            Debug.Log("Keine Figur für die Transformation ausgewählt.");
-            // Optional: Hier eine Benachrichtigung für den Spieler einblenden
+            Debug.Log("Keine Figur für Transformation ausgewählt!");
             return;
         }
 
-        // Prüfe, ob die ausgewählte Figur dem aktuellen Spieler gehört
-        if (selectedPiece.team != GameManager.Instance.CurrentPlayer - 1)
+        // Prüfe, ob die ausgewählte Figur dem richtigen Typ entspricht
+        if (selectedPiece.type != requiredType)
         {
-            Debug.Log("Du kannst nur deine eigenen Figuren transformieren.");
-            selectedPieceForTransformation = null; // Auswahl zurücksetzen
+            Debug.Log($"Falsche Figur! Diese Karte benötigt {requiredType}, aber {selectedPiece.type} ist ausgewählt");
             return;
         }
 
-        // Bestimme die Transformationskosten
-        int transformationCost = 0;
-        switch (selectedPiece.type)
+        // Bestimme Manakosten
+        int cost = targetType switch
         {
-            case ChessPieceType.Rook:
-                transformationCost = golemTransformationCost;
-                break;
-            case ChessPieceType.Knight:
-                transformationCost = kelpieTransformationCost;
-                break;
-            case ChessPieceType.Bishop:
-                transformationCost = mantisTransformationCost;
-                break;
-            default:
-                Debug.Log($"Figur vom Typ {selectedPiece.type} kann nicht transformiert werden.");
-                selectedPieceForTransformation = null;
-                return;
+            ChessPieceType.Golem => golemTransformationCost,
+            ChessPieceType.Kelpie => kelpieTransformationCost,
+            ChessPieceType.Mantis => mantisTransformationCost,
+            _ => 0
+        };
+
+        // Mana-Prüfung
+        if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) < cost)
+        {
+            Debug.Log("Nicht genug Mana für diese Transformation!");
+            return;
         }
 
-        // --- NEU & WICHTIG: Mana-Prüfung ---
-        if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
+        // Führe Transformation durch
+        PieceType transformedPiece = targetType switch
         {
-            // Genug Mana vorhanden, führe die Transformation durch
-            Debug.Log($"Spieler {GameManager.Instance.CurrentPlayer} hat genug Mana ({GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}/{transformationCost}). Transformation wird gestartet.");
+            ChessPieceType.Golem when selectedPiece.type == ChessPieceType.Rook => TransformRookToGolem(selectedPiece),
+            ChessPieceType.Kelpie when selectedPiece.type == ChessPieceType.Knight => TransformKnightToKelpie(selectedPiece),
+            ChessPieceType.Mantis when selectedPiece.type == ChessPieceType.Bishop => TransformBishopToMantis(selectedPiece),
+            _ => null
+        };
 
-            PieceType transformedPiece = null;
-            switch (selectedPiece.type)
-            {
-                case ChessPieceType.Rook:
-                    transformedPiece = TransformRookToGolem(selectedPiece);
-                    break;
-                case ChessPieceType.Knight:
-                    transformedPiece = TransformKnightToKelpie(selectedPiece);
-                    break;
-                case ChessPieceType.Bishop:
-                    transformedPiece = TransformBishopToMantis(selectedPiece);
-                    break;
-            }
-
-            if (transformedPiece != null) // Nur wenn die Transformation erfolgreich war
-            {
-                // Mana abziehen
-                GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
-                hasTransformed = true; // Setze das Flag, dass eine Transformation stattgefunden hat
-                lastMovedOrTransformedPiece = transformedPiece;
-                Debug.Log($"Transformation erfolgreich. Neues Mana: {GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}.");
-            }
-            else
-            {
-                Debug.LogError("Transformation ist fehlgeschlagen, obwohl die Bedingungen erfüllt schienen. Mana wird nicht abgezogen.");
-            }
+        if (transformedPiece != null)
+        {
+            GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, cost);
+            hasTransformed = true;
+            lastMovedOrTransformedPiece = transformedPiece;
+            Debug.Log($"Erfolgreich transformiert zu {targetType}!");
         }
         else
         {
-            // Nicht genug Mana
-            Debug.Log($"Nicht genug Mana für die Transformation! Benötigt: {transformationCost}, Vorhanden: {GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}.");
-            // Gib dem Spieler negatives Feedback
-            selectedPiece.FlashColor(Color.magenta, 0.5f); // Magenta als "Kein Mana"-Indikator
-            selectedPieceForTransformation = null; // Auswahl zurücksetzen, da nicht möglich
+            Debug.LogError("Transformation fehlgeschlagen - Typen stimmen nicht überein");
         }
     }
+
     private void TriggerManaStorm(int player)
     {
         // Wähle eine zufällige Kachel

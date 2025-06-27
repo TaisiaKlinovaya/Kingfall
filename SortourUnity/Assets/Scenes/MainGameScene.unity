@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.041061044, g: 0.03759274, b: 0.051771346, a: 1}
+  m_IndirectSpecularColor: {r: 0.041014414, g: 0.037523832, b: 0.051620435, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3212,22 +3212,34 @@ MonoBehaviour:
   - cardName: Rook
     team: 0
     coverImage: {fileID: 1362274830}
+    requiredPieceType: 2
+    targetPieceType: 7
   - cardName: Kelpie
     team: 0
     coverImage: {fileID: 865244328}
+    requiredPieceType: 3
+    targetPieceType: 8
   - cardName: Mantis
     team: 0
     coverImage: {fileID: 1981302234}
+    requiredPieceType: 4
+    targetPieceType: 9
   blackTeamCards:
   - cardName: Rook
     team: 1
     coverImage: {fileID: 1362274830}
+    requiredPieceType: 2
+    targetPieceType: 7
   - cardName: Kelpie
     team: 1
     coverImage: {fileID: 865244328}
+    requiredPieceType: 3
+    targetPieceType: 8
   - cardName: Mantis
     team: 1
     coverImage: {fileID: 1981302234}
+    requiredPieceType: 4
+    targetPieceType: 9
   breakScene: {fileID: 732720482}
   resumeButton: {fileID: 434023229}
   quitButton: {fileID: 1291019285}
