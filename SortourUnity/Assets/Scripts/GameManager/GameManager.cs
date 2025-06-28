@@ -393,14 +393,17 @@ public class GameManager : MonoBehaviour
         state = "Win";
         UpdateMusic();
 
-        //  Formatierung der Farbe hinzugefügt, für das Gewinner Team
-        if (winTeam == "Black")
+        if (winTeam == "Patt")
         {
-            winnerText.text = $"<color=black>{winTeam}</color> Team won!";
+            winnerText.text = "Patt! Unentschieden.";
+        }
+        else if (winTeam == "Black")
+        {
+            winnerText.text = $"<color=black>{winTeam}</color> Team gewinnt!";
         }
         else if (winTeam == "White")
         {
-            winnerText.text = $"{winTeam} Team won!";
+            winnerText.text = $"{winTeam} Team gewinnt!";
         }
 
         gameScene.SetActive(false);
@@ -488,10 +491,10 @@ public class GameManager : MonoBehaviour
 
     public void SwitchPlayer()
     {
+        // Spieler-Index wechseln (z.B. von 1 zu 2 oder 2 zu 1)
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
 
-
-        // Camera switching logic
+        // Kamera umschalten (deine bestehende Logik)
         if (currentPlayer == 1)
         {
             player1Camera.enabled = true;
@@ -502,9 +505,15 @@ public class GameManager : MonoBehaviour
             player1Camera.enabled = false;
             player2Camera.enabled = true;
         }
+
+        // Mana- und Karten-UI aktualisieren (deine bestehende Logik)
         UpdateManaUI();
-        // Kartenanzeige aktualisieren
         UpdateCardVisibility();
+
+        // === NEU: PRÜFUNG AUF SCHACHMATT ODER PATT FÜR DEN SPIELER, DER JETZT AM ZUG IST ===
+        // Wir rufen eine Methode im GenerateBoard auf, die uns sagt, ob das Spiel vorbei ist.
+        // Dafür müssen wir dem GenerateBoard sagen, dass es den Zustand für den *neuen* currentPlayer prüfen soll.
+        GenerateBoard.Instance.CheckForCheckmateOrStalemate(currentPlayer);
     }
 
     public void UnlockCardForTeam(int index)
