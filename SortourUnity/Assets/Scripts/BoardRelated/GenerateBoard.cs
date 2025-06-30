@@ -68,8 +68,8 @@ public class GenerateBoard : MonoBehaviour
     private bool isManaStormActive = false;
 
     [Header("Transformation Costs")]
-    public int golemTransformationCost = 5;
-    public int kelpieTransformationCost = 5;
+    public int golemTransformationCost = 4;
+    public int kelpieTransformationCost = 4;
     public int mantisTransformationCost = 4; // Beispielwert, passe ihn nach Bedarf an
 
 

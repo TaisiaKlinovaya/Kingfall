@@ -6034,8 +6034,8 @@ MonoBehaviour:
   - {fileID: 478155545966345468, guid: 539f7feaecc44484c96cffaea9e9c5b0, type: 3}
   hasMoved: 0
   hasTransformed: 0
-  golemTransformationCost: 5
-  kelpieTransformationCost: 3
+  golemTransformationCost: 4
+  kelpieTransformationCost: 4
   mantisTransformationCost: 4
   disabledTileMaterial: {fileID: 2100000, guid: cd00807983842414abbd5f24845f9576, type: 2}
 --- !u!4 &1407249037
