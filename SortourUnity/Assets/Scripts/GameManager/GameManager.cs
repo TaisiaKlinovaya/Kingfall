@@ -68,6 +68,11 @@ public class GameManager : MonoBehaviour
     public AudioClip menuClip;
     public AudioClip gameClip;
 
+    [Header("Finish Button Images")]
+    public Sprite finishButtonLightSprite;
+    public Sprite finishButtonDarkSprite;
+    public Image finishButtonImage; // Referenz zum Image-Komponente des Buttons
+
     private AudioSource audioSource;
 
     public int GetCurrentMana(int player)
@@ -476,6 +481,12 @@ public class GameManager : MonoBehaviour
 
         // Aktualisiere das Mana-UI
         UpdateManaUI();
+
+        // ***NEU***: Setze das initiale Finish-Button-Image für Spieler 1
+        if (finishButtonImage != null && finishButtonLightSprite != null)
+        {
+            finishButtonImage.sprite = finishButtonLightSprite;
+        }
     }
 
     private void SetInitialCamera()
@@ -491,22 +502,23 @@ public class GameManager : MonoBehaviour
 
     public void SwitchPlayer()
     {
-        // Spieler-Index wechseln (z.B. von 1 zu 2 oder 2 zu 1)
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
 
-        // Kamera umschalten (deine bestehende Logik)
+        // Kamera umschalten
         if (currentPlayer == 1)
         {
             player1Camera.enabled = true;
             player2Camera.enabled = false;
+            finishButtonImage.sprite = finishButtonLightSprite; // Bild für helle Seite
         }
         else
         {
             player1Camera.enabled = false;
             player2Camera.enabled = true;
+            finishButtonImage.sprite = finishButtonDarkSprite; // Bild für dunkle Seite
         }
 
-        // Mana- und Karten-UI aktualisieren (deine bestehende Logik)
+        // Rest deiner SwitchPlayer-Logik...
         UpdateManaUI();
         UpdateCardVisibility();
 
