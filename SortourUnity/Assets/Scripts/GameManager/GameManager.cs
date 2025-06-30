@@ -68,12 +68,19 @@ public class GameManager : MonoBehaviour
     public AudioClip menuClip;
     public AudioClip gameClip;
 
+    private AudioSource audioSource;
+
+    //  ***NEU*** Damit sich der Button an das Team anpasst
     [Header("Finish Button Images")]
     public Sprite finishButtonLightSprite;
     public Sprite finishButtonDarkSprite;
     public Image finishButtonImage; // Referenz zum Image-Komponente des Buttons
 
-    private AudioSource audioSource;
+    //  ***NEU*** Damit sich die Farbe des FinishButton an Team: Black anpasst
+    [Header("Finish Button Text")]
+    public Text finishButtonText;
+
+
 
     public int GetCurrentMana(int player)
     {
@@ -510,18 +517,28 @@ public class GameManager : MonoBehaviour
             player1Camera.enabled = true;
             player2Camera.enabled = false;
             finishButtonImage.sprite = finishButtonLightSprite; // Bild für helle Seite
+
+            // Textfarbe auf schwarz setzen für bessere Lesbarkeit auf hellem Hintergrund
+            if (finishedButton.GetComponentInChildren<Text>() != null)
+            {
+                finishedButton.GetComponentInChildren<Text>().color = Color.black;
+            }
         }
         else
         {
             player1Camera.enabled = false;
             player2Camera.enabled = true;
             finishButtonImage.sprite = finishButtonDarkSprite; // Bild für dunkle Seite
+
+            // Textfarbe auf weiß setzen für bessere Lesbarkeit auf dunklem Hintergrund
+            if (finishedButton.GetComponentInChildren<Text>() != null)
+            {
+                finishedButton.GetComponentInChildren<Text>().color = Color.white;
+            }
         }
 
-        // Rest deiner SwitchPlayer-Logik...
         UpdateManaUI();
         UpdateCardVisibility();
-
         // === NEU: PRÜFUNG AUF SCHACHMATT ODER PATT FÜR DEN SPIELER, DER JETZT AM ZUG IST ===
         // Wir rufen eine Methode im GenerateBoard auf, die uns sagt, ob das Spiel vorbei ist.
         // Dafür müssen wir dem GenerateBoard sagen, dass es den Zustand für den *neuen* currentPlayer prüfen soll.
