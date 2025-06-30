@@ -558,7 +558,7 @@ public class GenerateBoard : MonoBehaviour
 
         if (IsKingInCheck(cp.team, simulatedBoard, TILE_COUNT_X, TILE_COUNT_Y))
         {
-            Debug.LogWarning($"UNGÜLTIGER ZUG für {cp.type} nach ({x},{y}): Der eigene König (Team {cp.team}) stünde im Schach.");
+            NotificationManager.Instance.ShowMessage("Ungültiger Zug: Der eigene König stünde im Schach.", MessageType.Error);
             // --- NEU: Rotes Aufleuchten auch bei Selbst-Schach ---
             if (cp != null)
             {
@@ -1110,17 +1110,185 @@ public class GenerateBoard : MonoBehaviour
 
     // In BoardRelated/GenerateBoard.cs
 
+    // In BoardRelated/GenerateBoard.cs
+
     public void TransformPiece()
     {
-        // Die Prüfungen für hasMoved und hasTransformed sind gut.
+        // Vorabprüfung 1: Hat sich schon eine Figur bewegt?
         if (!hasMoved)
         {
-            NotificationManager.Instance.ShowMessage("Du musst zuerst eine Figur bewegen, bevor du transformieren kannst.");
+            NotificationManager.Instance.ShowMessage("Du musst zuerst eine Figur bewegen.", MessageType.Warning);
             return;
+        }
+
+        // Vorabprüfung 2: Wurde in diesem Zug bereits transformiert?
+        if (hasTransformed)
+        {
+            NotificationManager.Instance.ShowMessage("Es wurde in diesem Zug bereits transformiert.", MessageType.Error);
+            return;
+        }
+
+        PieceType selectedPiece = GetSelectedPieceForTransformation();
+        if (selectedPiece == null)
+        {
+            NotificationManager.Instance.ShowMessage("Keine Figur für die Transformation ausgewählt.", MessageType.Info);
+            return;
+        }
+
+        // Vorabprüfung 3: Gehört die Figur dem aktuellen Spieler?
+        if (selectedPiece.team != GameManager.Instance.CurrentPlayer - 1)
+        {
+            NotificationManager.Instance.ShowMessage("Du kannst nur deine eigenen Figuren transformieren.", MessageType.Error);
+            selectedPieceForTransformation = null;
+            return;
+        }
+
+        // Kosten und Typ der Transformation bestimmen
+        int transformationCost = 0;
+        ChessPieceType targetType = ChessPieceType.None;
+
+        switch (selectedPiece.type)
+        {
+            case ChessPieceType.Rook:
+                transformationCost = golemTransformationCost;
+                targetType = ChessPieceType.Golem;
+                break;
+            case ChessPieceType.Knight:
+                transformationCost = kelpieTransformationCost;
+                targetType = ChessPieceType.Kelpie;
+                break;
+            case ChessPieceType.Bishop:
+                transformationCost = mantisTransformationCost;
+                targetType = ChessPieceType.Mantis;
+                break;
+            default:
+                // Sollte durch die Rechtsklick-Logik eigentlich nicht passieren, aber als Absicherung
+                NotificationManager.Instance.ShowMessage($"Figur vom Typ {selectedPiece.type} kann nicht transformiert werden.", MessageType.Warning);
+                selectedPieceForTransformation = null;
+                return;
+        }
+
+        // --- ZENTRALE MANA-PRÜFUNG ---
+        if (GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer) >= transformationCost)
+        {
+            // Genug Mana: Transformation durchführen
+            PieceType transformedPiece = null;
+            switch (targetType)
+            {
+                case ChessPieceType.Golem:
+                    transformedPiece = TransformRookToGolem(selectedPiece);
+                    break;
+                case ChessPieceType.Kelpie:
+                    transformedPiece = TransformKnightToKelpie(selectedPiece);
+                    break;
+                case ChessPieceType.Mantis:
+                    transformedPiece = TransformBishopToMantis(selectedPiece);
+                    break;
+            }
+
+            if (transformedPiece != null) // Nur wenn die Transformation im Backend erfolgreich war
+            {
+                // Mana abziehen
+                GameManager.Instance.UseMana(GameManager.Instance.CurrentPlayer, transformationCost);
+                hasTransformed = true; // Aktion für diesen Zug als "verbraucht" markieren
+                lastMovedOrTransformedPiece = transformedPiece; // Tracker für Spezialfähigkeiten (z.B. Mantis)
+                NotificationManager.Instance.ShowMessage($"{selectedPiece.type} wurde zu {transformedPiece.type} transformiert!", MessageType.Info);
+            }
+            else
+            {
+                // Dieser Fall sollte selten auftreten, deutet auf einen Fehler in den Transform... Methoden hin
+                NotificationManager.Instance.ShowMessage("Transformation fehlgeschlagen!", MessageType.Error);
+            }
+        }
+        else
+        {
+            // Nicht genug Mana
+            string message = $"Nicht genug Mana! Benötigt: {transformationCost}, Vorhanden: {GameManager.Instance.GetCurrentMana(GameManager.Instance.CurrentPlayer)}";
+            NotificationManager.Instance.ShowMessage(message, MessageType.Error);
+            selectedPiece.FlashColor(Color.magenta, 0.5f); // Visuelles Feedback
+            selectedPieceForTransformation = null; // Auswahl zurücksetzen
         }
     }
 
+    public void CheckForCheckmateOrStalemate(int teamToCheck)
+    {
+        // Das Team wird vom GameManager übergeben (1 für Spieler 1, 2 für Spieler 2)
+        // Wir brauchen den Index 0 oder 1.
+        int teamIndex = teamToCheck - 1;
 
+        // Generiere alle überhaupt möglichen legalen Züge für dieses Team
+        List<Vector2Int> legalMoves = GenerateAllLegalMovesForTeam(teamIndex);
+
+        // Wenn die Liste der legalen Züge leer ist, ist das Spiel vorbei.
+        if (legalMoves.Count == 0)
+        {
+            // Prüfe, ob der König des Teams aktuell im Schach steht.
+            if (IsKingInCheck(teamIndex, allChessPieces, TILE_COUNT_X, TILE_COUNT_Y))
+            {
+                // SCHACHMATT: Keine legalen Züge und König steht im Schach.
+                int winnerTeamNumber = 1 - teamIndex; // Das andere Team (0 oder 1) hat gewonnen.
+                string winnerTeamName = (winnerTeamNumber == 0) ? "White" : "Black";
+
+                NotificationManager.Instance.ShowMessage($"Schachmatt! Team {winnerTeamName} gewinnt!", MessageType.Info);
+                GameManager.Instance.WinGame(winnerTeamName);
+            }
+            else
+            {
+                // PATT: Keine legalen Züge und König steht NICHT im Schach.
+                NotificationManager.Instance.ShowMessage("Patt! Das Spiel ist unentschieden.", MessageType.Info);
+                GameManager.Instance.WinGame("Patt"); // Dein GameManager muss "Patt" im Text verarbeiten können.
+            }
+        }
+        // Wenn es noch legale Züge gibt, geht das Spiel einfach weiter.
+    }
+
+    // In BoardRelated/GenerateBoard.cs
+    public PieceType[,] GetAllChessPieces()
+    {
+        return allChessPieces;
+    }
+
+    public List<Vector2Int> GenerateAllLegalMovesForTeam(int team)
+    {
+        List<Vector2Int> allLegalMoves = new List<Vector2Int>();
+
+        // Gehe durch jede Figur des Teams
+        for (int x = 0; x < TILE_COUNT_X; x++)
+        {
+            for (int y = 0; y < TILE_COUNT_Y; y++)
+            {
+                PieceType piece = allChessPieces[x, y];
+                if (piece != null && piece.team == team)
+                {
+                    // Hole alle theoretisch möglichen Züge dieser Figur
+                    List<Vector2Int> pseudoLegalMoves = piece.GetAvailableMoves(ref allChessPieces, TILE_COUNT_X, TILE_COUNT_Y);
+
+                    // Filtere jeden dieser Züge
+                    foreach (Vector2Int move in pseudoLegalMoves)
+                    {
+                        // Simuliere den Zug
+                        PieceType[,] simulatedBoard = new PieceType[TILE_COUNT_X, TILE_COUNT_Y];
+                        System.Array.Copy(allChessPieces, simulatedBoard, allChessPieces.Length);
+                        simulatedBoard[move.x, move.y] = piece;
+                        simulatedBoard[x, y] = null;
+
+                        // Prüfe, ob der eigene König nach diesem Zug im Schach stünde
+                        if (!IsKingInCheck(team, simulatedBoard, TILE_COUNT_X, TILE_COUNT_Y))
+                        {
+                            // Nur wenn nicht im Schach, ist es ein wirklich legaler Zug
+                            // Wir brauchen diese Liste hier nicht direkt, aber die Erkenntnis,
+                            // dass es mindestens einen legalen Zug gibt, ist wichtig.
+                            // Für die aktuelle Logik, die nur die Züge EINER Figur anzeigt, ist das hier
+                            // die Grundlage für die Schachmatt-Prüfung.
+                            // Wir fügen den Zug einer imaginären Gesamtliste hinzu.
+                            allLegalMoves.Add(move);
+                        }
+                    }
+                }
+            }
+        }
+        return allLegalMoves;
+    }
     /// <summary>
     ///**NEU** Transformationslogik anhand der spezifischen Karten angepasst ***NEU***
     /// <summary>
